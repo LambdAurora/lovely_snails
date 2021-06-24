@@ -17,6 +17,7 @@
 
 package dev.lambdaurora.lovely_snails;
 
+import dev.lambdaurora.lovely_snails.registry.LovelySnailsRegistry;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.util.Identifier;
 
@@ -32,7 +33,7 @@ public class LovelySnails implements ModInitializer {
 
     @Override
     public void onInitialize() {
-
+        LovelySnailsRegistry.init();
     }
 
     public static Identifier id(String path) {

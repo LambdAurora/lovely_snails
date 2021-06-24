@@ -17,7 +17,16 @@
 
 package dev.lambdaurora.lovely_snails.client;
 
+import dev.lambdaurora.lovely_snails.LovelySnails;
+import dev.lambdaurora.lovely_snails.client.model.SnailModel;
+import dev.lambdaurora.lovely_snails.client.render.SnailEntityRenderer;
+import dev.lambdaurora.lovely_snails.registry.LovelySnailsRegistry;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.client.rendereregistry.v1.EntityModelLayerRegistry;
+import net.fabricmc.fabric.api.client.rendereregistry.v1.EntityRendererRegistry;
+import net.minecraft.client.render.entity.model.EntityModelLayer;
 
 /**
  * Represents the Lovely Snails client mod.
@@ -26,8 +35,14 @@ import net.fabricmc.api.ClientModInitializer;
  * @version 1.0.0
  * @since 1.0.0
  */
+@Environment(EnvType.CLIENT)
 public class LovelySnailsClient implements ClientModInitializer {
+    public static final EntityModelLayer SNAIL_MODEL_LAYER = new EntityModelLayer(LovelySnails.id("snail"), "main");
+
     @Override
     public void onInitializeClient() {
+        EntityRendererRegistry.INSTANCE.register(LovelySnailsRegistry.SNAIL_ENTITY_TYPE, SnailEntityRenderer::new);
+        // noinspection deprecated
+        EntityModelLayerRegistry.registerModelLayer(SNAIL_MODEL_LAYER, SnailModel::model);
     }
 }
