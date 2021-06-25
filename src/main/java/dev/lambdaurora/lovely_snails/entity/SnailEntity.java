@@ -21,8 +21,10 @@ import dev.lambdaurora.lovely_snails.entity.goal.SnailHideGoal;
 import net.minecraft.block.Block;
 import net.minecraft.block.CarpetBlock;
 import net.minecraft.block.DyedCarpetBlock;
+import net.minecraft.entity.EntityPose;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.Saddleable;
+import net.minecraft.entity.ai.goal.*;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.data.DataTracker;
@@ -31,6 +33,7 @@ import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.passive.AnimalEntity;
 import net.minecraft.entity.passive.PassiveEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.InventoryChangedListener;
 import net.minecraft.inventory.SimpleInventory;
@@ -42,7 +45,9 @@ import net.minecraft.nbt.NbtElement;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.DyeColor;
+import net.minecraft.util.Hand;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
@@ -130,6 +135,14 @@ public class SnailEntity extends AnimalEntity implements InventoryChangedListene
         return i == -1 ? null : DyeColor.byId(i);
     }
 
+    @Override
+    public double getMountedHeightOffset() {
+        if (!this.isBaby())
+            return this.getDimensions(EntityPose.STANDING).height * 0.95f;
+        else
+            return super.getMountedHeightOffset();
+    }
+
     /* Data Tracker Stuff */
 
     @Override
@@ -191,7 +204,14 @@ public class SnailEntity extends AnimalEntity implements InventoryChangedListene
     protected void initGoals() {
         super.initGoals();
 
+        this.goalSelector.add(0, new SwimGoal(this));
+        this.goalSelector.add(1, new EscapeDangerGoal(this, 1.2));
         this.goalSelector.add(1, new SnailHideGoal(this, 5));
+        this.goalSelector.add(2, new AnimalMateGoal(this, 1.0, SnailEntity.class));
+        this.goalSelector.add(4, new FollowParentGoal(this, 1.0));
+        this.goalSelector.add(6, new WanderAroundFarGoal(this, 0.7));
+        this.goalSelector.add(7, new LookAtEntityGoal(this, PlayerEntity.class, 6.f));
+        this.goalSelector.add(8, new LookAroundGoal(this));
     }
 
     /* Inventory */
@@ -226,6 +246,25 @@ public class SnailEntity extends AnimalEntity implements InventoryChangedListene
         if (this.age > 20 && !previouslySaddled && this.isSaddled()) {
             this.playSound(SoundEvents.ENTITY_HORSE_SADDLE, .5f, 1.f);
         }
+    }
+
+    /* Interaction */
+
+    @Override
+    public ActionResult interactMob(PlayerEntity player, Hand hand) {
+        var handStack = player.getStackInHand(hand);
+
+        if (!this.isBaby() && this.isSaddled() && !this.hasPassengers()) {
+            if (!this.getEntityWorld().isClient()) {
+                player.setYaw(this.getYaw());
+                player.setPitch(this.getPitch());
+                player.startRiding(this);
+            }
+
+            return ActionResult.success(this.getEntityWorld().isClient());
+        }
+
+        return super.interactMob(player, hand);
     }
 
     /* Saddle Stuff */

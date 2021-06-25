@@ -69,7 +69,7 @@ public class SnailModel extends EntityModel<SnailEntity> {
         var body = root.addChild(BODY, new ModelPartBuilder()
                         .uv(0, 32)
                         .cuboid(-(ADULT_FRONT_WIDTH / 2.f), 5.f, -20.f, ADULT_FRONT_WIDTH, 3.f, 40.f, dilation),
-                ModelTransform.pivot(0.f, 16.f, 0.f));
+                ModelTransform.pivot(0.f, 16.f, -2.f));
         body.addChild("upper_body", new ModelPartBuilder()
                         .uv(64, 16)
                         .cuboid(-(ADULT_FRONT_WIDTH / 2.f), -7.f, -20.f, ADULT_FRONT_WIDTH, 12.f, 8.f,
@@ -79,7 +79,7 @@ public class SnailModel extends EntityModel<SnailEntity> {
                         .cuboid(-(ADULT_FRONT_WIDTH / 2.f), -2.f, -2.f, ADULT_FRONT_WIDTH, ADULT_SHELL_DIAMETER, ADULT_SHELL_DIAMETER,
                                 dilation.add(4.f, 8.f, 8.f),
                                 1.f, 1.f),
-                ModelTransform.of(0.f, 0.f, -3.f, ADULT_SHELL_ROTATION, 0.f, 0.f));
+                ModelTransform.of(0.f, 0.f, -5.f, ADULT_SHELL_ROTATION, 0.f, 0.f));
 
         body.addChild(LEFT_EYE, new ModelPartBuilder()
                         .uv(42, 0)
@@ -98,11 +98,11 @@ public class SnailModel extends EntityModel<SnailEntity> {
                         .cuboid(-(BABY_FRONT_WIDTH / 2.f), 22.f, -7.f, BABY_FRONT_WIDTH, 2.f, 14.f, dilation)
                         .uv(0, 10)
                         .cuboid(-(BABY_FRONT_WIDTH / 2.f), 20.f, -7.f, BABY_FRONT_WIDTH, 2.f, 4.f, dilation),
-                ModelTransform.NONE);
+                ModelTransform.pivot(0, 0, -2.f));
         babyRoot.addChild(SHELL, new ModelPartBuilder()
                         .uv(0, 32)
                         .cuboid(-3.f, 10.f, -1.f, 6.f, BABY_SHELL_DIAMETER, BABY_SHELL_DIAMETER, dilation),
-                ModelTransform.of(0.f, 2.2f, -1.f, BABY_SHELL_ROTATION, 0.f, 0.f));
+                ModelTransform.of(0.f, 2.2f, -3.f, BABY_SHELL_ROTATION, 0.f, 0.f));
         body.addChild(LEFT_EYE, new ModelPartBuilder()
                         .uv(0, 32)
                         .cuboid(-1.1664f, 19.f, -3.8272f, BABY_EYE_DIAMETER, BABY_EYE_LENGTH, BABY_EYE_DIAMETER, dilation),

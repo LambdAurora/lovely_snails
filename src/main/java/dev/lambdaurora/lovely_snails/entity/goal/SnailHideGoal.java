@@ -22,6 +22,8 @@ import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.predicate.entity.EntityPredicates;
 
+import java.util.EnumSet;
+
 /**
  * Makes the snail hides if it senses danger nearby.
  *
@@ -36,6 +38,8 @@ public class SnailHideGoal extends Goal {
     public SnailHideGoal(SnailEntity snail, double distance) {
         this.snail = snail;
         this.vitalSpaceDistance = distance;
+
+        this.setControls(EnumSet.of(Control.JUMP, Control.MOVE, Control.LOOK));
     }
 
     private boolean isThereScaryEntitiesAround() {
