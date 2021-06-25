@@ -17,6 +17,7 @@
 
 package dev.lambdaurora.lovely_snails.entity;
 
+import dev.lambdaurora.lovely_snails.entity.goal.SnailHideGoal;
 import net.minecraft.block.Block;
 import net.minecraft.block.CarpetBlock;
 import net.minecraft.block.DyedCarpetBlock;
@@ -97,6 +98,24 @@ public class SnailEntity extends AnimalEntity implements InventoryChangedListene
         return this.getSnailFlag(TAMED_FLAG);
     }
 
+    /**
+     * Returns whether this snail is scared of something.
+     *
+     * @return {@code true} if this snail is scared, else {@code false}
+     */
+    public boolean isScared() {
+        return this.getSnailFlag(SCARED_FLAG);
+    }
+
+    /**
+     * Sets whether this snail is scared of something.
+     *
+     * @param scared {@code true} if this snail is scared, else {@code false}
+     */
+    public void setScared(boolean scared) {
+        this.setSnailFlag(SCARED_FLAG, scared);
+    }
+
     private static @Nullable DyeColor getColorFromCarpet(ItemStack color) {
         var block = Block.getBlockFromItem(color.getItem());
         return block instanceof DyedCarpetBlock dyedCarpetBlock ? dyedCarpetBlock.getDyeColor() : null;
@@ -164,6 +183,15 @@ public class SnailEntity extends AnimalEntity implements InventoryChangedListene
         if (!this.inventory.getStack(slot).isEmpty()) {
             nbt.put(name, this.inventory.getStack(slot).writeNbt(new NbtCompound()));
         }
+    }
+
+    /* AI */
+
+    @Override
+    protected void initGoals() {
+        super.initGoals();
+
+        this.goalSelector.add(1, new SnailHideGoal(this, 5));
     }
 
     /* Inventory */

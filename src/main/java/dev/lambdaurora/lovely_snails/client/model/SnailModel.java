@@ -53,8 +53,8 @@ public class SnailModel extends EntityModel<SnailEntity> {
     private final Model babyModel;
 
     public SnailModel(ModelPart root) {
-        this.adultModel = new Model(root.getChild("adult"));
-        this.babyModel = new Model(root.getChild("baby"));
+        this.adultModel = new Model(root.getChild("adult"), ADULT_SHELL_ROTATION);
+        this.babyModel = new Model(root.getChild("baby"), BABY_SHELL_ROTATION);
     }
 
     public static TexturedModelData model(Dilation dilation) {
@@ -75,8 +75,8 @@ public class SnailModel extends EntityModel<SnailEntity> {
                         .cuboid(-(ADULT_FRONT_WIDTH / 2.f), -7.f, -20.f, ADULT_FRONT_WIDTH, 12.f, 8.f,
                                 dilation),
                 ModelTransform.NONE);
-        body.addChild(SHELL, new ModelPartBuilder()
-                        .cuboid(-(ADULT_FRONT_WIDTH / 2.f), -18.f, -2.f, ADULT_FRONT_WIDTH, ADULT_SHELL_DIAMETER, ADULT_SHELL_DIAMETER,
+        root.addChild(SHELL, new ModelPartBuilder()
+                        .cuboid(-(ADULT_FRONT_WIDTH / 2.f), -2.f, -2.f, ADULT_FRONT_WIDTH, ADULT_SHELL_DIAMETER, ADULT_SHELL_DIAMETER,
                                 dilation.add(4.f, 8.f, 8.f),
                                 1.f, 1.f),
                 ModelTransform.of(0.f, 0.f, -3.f, ADULT_SHELL_ROTATION, 0.f, 0.f));
@@ -99,7 +99,7 @@ public class SnailModel extends EntityModel<SnailEntity> {
                         .uv(0, 10)
                         .cuboid(-(BABY_FRONT_WIDTH / 2.f), 20.f, -7.f, BABY_FRONT_WIDTH, 2.f, 4.f, dilation),
                 ModelTransform.NONE);
-        body.addChild(SHELL, new ModelPartBuilder()
+        babyRoot.addChild(SHELL, new ModelPartBuilder()
                         .uv(0, 32)
                         .cuboid(-3.f, 10.f, -1.f, 6.f, BABY_SHELL_DIAMETER, BABY_SHELL_DIAMETER, dilation),
                 ModelTransform.of(0.f, 2.2f, -1.f, BABY_SHELL_ROTATION, 0.f, 0.f));
@@ -114,27 +114,65 @@ public class SnailModel extends EntityModel<SnailEntity> {
                 ModelTransform.of(1.5f, -4.f, -14.2f, 0.4363f, -BABY_EYE_YAW, 0.f));
     }
 
+    public Model getCurrentModel() {
+        return this.child ? this.babyModel : this.adultModel;
+    }
+
     @Override
     public void setAngles(SnailEntity entity, float limbAngle, float limbDistance, float animationProgress, float headYaw, float headPitch) {
+        var model = this.getCurrentModel();
 
+        if (entity.isScared()) model.hideSnail();
+        else model.uncover();
     }
 
     @Override
     public void render(MatrixStack matrices, VertexConsumer vertices, int light, int overlay, float red, float green, float blue, float alpha) {
-        if (this.child)
-            this.babyModel.render(matrices, vertices, light, overlay, red, green, blue, alpha);
-        else
-            this.adultModel.render(matrices, vertices, light, overlay, red, green, blue, alpha);
+        matrices.push();
+        this.getCurrentModel().render(matrices, vertices, light, overlay, red, green, blue, alpha);
+        matrices.pop();
     }
 
     public static class Model {
         private final ModelPart root;
+        private final ModelPart body;
+        private final ModelPart shell;
+        private final float idleShellYaw;
 
-        public Model(ModelPart root) {
+        public Model(ModelPart root, float idleShellYaw) {
             this.root = root;
+            this.idleShellYaw = idleShellYaw;
+            this.body = root.getChild(BODY);
+            this.shell = root.getChild(SHELL);
+        }
+
+        /**
+         * Returns the shell of the snail.
+         *
+         * @return the shell
+         */
+        public ModelPart getShell() {
+            return this.shell;
+        }
+
+        /**
+         * Puts the snail in hiding.
+         */
+        public void hideSnail() {
+            this.body.visible = false;
+            this.getShell().setAngles(0.f, 0.f, 0.f);
+        }
+
+        /**
+         * Puts the snail in idle position.
+         */
+        public void uncover() {
+            this.body.visible = true;
+            this.getShell().setAngles(this.idleShellYaw, 0.f, 0.f);
         }
 
         public void render(MatrixStack matrices, VertexConsumer vertices, int light, int overlay, float red, float green, float blue, float alpha) {
+            if (!this.body.visible) matrices.translate(0, 2.f / 16.f, 0);
             this.root.render(matrices, vertices, light, overlay, red, green, blue, alpha);
         }
     }
