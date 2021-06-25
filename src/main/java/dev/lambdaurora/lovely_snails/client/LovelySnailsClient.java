@@ -26,6 +26,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.rendereregistry.v1.EntityModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendereregistry.v1.EntityRendererRegistry;
+import net.minecraft.client.model.Dilation;
 import net.minecraft.client.render.entity.model.EntityModelLayer;
 
 /**
@@ -38,11 +39,15 @@ import net.minecraft.client.render.entity.model.EntityModelLayer;
 @Environment(EnvType.CLIENT)
 public class LovelySnailsClient implements ClientModInitializer {
     public static final EntityModelLayer SNAIL_MODEL_LAYER = new EntityModelLayer(LovelySnails.id("snail"), "main");
+    public static final EntityModelLayer SNAIL_SADDLE_MODEL_LAYER = new EntityModelLayer(LovelySnails.id("snail"), "saddle");
+    public static final EntityModelLayer SNAIL_DECOR_MODEL_LAYER = new EntityModelLayer(LovelySnails.id("snail"), "decor");
 
+    @SuppressWarnings("UnstableApiUsage")
     @Override
     public void onInitializeClient() {
         EntityRendererRegistry.INSTANCE.register(LovelySnailsRegistry.SNAIL_ENTITY_TYPE, SnailEntityRenderer::new);
-        // noinspection deprecated
-        EntityModelLayerRegistry.registerModelLayer(SNAIL_MODEL_LAYER, SnailModel::model);
+        EntityModelLayerRegistry.registerModelLayer(SNAIL_MODEL_LAYER, () -> SnailModel.model(Dilation.NONE));
+        EntityModelLayerRegistry.registerModelLayer(SNAIL_SADDLE_MODEL_LAYER, () -> SnailModel.model(new Dilation(0.5f)));
+        EntityModelLayerRegistry.registerModelLayer(SNAIL_DECOR_MODEL_LAYER, () -> SnailModel.model(new Dilation(0.25f)));
     }
 }

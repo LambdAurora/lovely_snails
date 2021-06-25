@@ -57,59 +57,60 @@ public class SnailModel extends EntityModel<SnailEntity> {
         this.babyModel = new Model(root.getChild("baby"));
     }
 
-    public static TexturedModelData model() {
+    public static TexturedModelData model(Dilation dilation) {
         var modelData = new ModelData();
         var root = modelData.getRoot();
-        buildAdultModel(root.addChild("adult", new ModelPartBuilder(), ModelTransform.NONE));
-        buildBabyModel(root.addChild("baby", new ModelPartBuilder(), ModelTransform.NONE));
+        buildAdultModel(root.addChild("adult", new ModelPartBuilder(), ModelTransform.NONE), dilation);
+        buildBabyModel(root.addChild("baby", new ModelPartBuilder(), ModelTransform.NONE), dilation);
         return TexturedModelData.of(modelData, 128, 96);
     }
 
-    private static void buildAdultModel(ModelPartData adultRoot) {
-        var body = adultRoot.addChild(BODY, new ModelPartBuilder()
+    private static void buildAdultModel(ModelPartData root, Dilation dilation) {
+        var body = root.addChild(BODY, new ModelPartBuilder()
                         .uv(0, 32)
-                        .cuboid(-(ADULT_FRONT_WIDTH / 2.f), 5.f, -20.f, ADULT_FRONT_WIDTH, 3.f, 40.f),
+                        .cuboid(-(ADULT_FRONT_WIDTH / 2.f), 5.f, -20.f, ADULT_FRONT_WIDTH, 3.f, 40.f, dilation),
                 ModelTransform.pivot(0.f, 16.f, 0.f));
         body.addChild("upper_body", new ModelPartBuilder()
+                        .uv(64, 16)
                         .cuboid(-(ADULT_FRONT_WIDTH / 2.f), -7.f, -20.f, ADULT_FRONT_WIDTH, 12.f, 8.f,
-                                Dilation.NONE, 2.f, 2.f),
+                                dilation),
                 ModelTransform.NONE);
         body.addChild(SHELL, new ModelPartBuilder()
                         .cuboid(-(ADULT_FRONT_WIDTH / 2.f), -18.f, -2.f, ADULT_FRONT_WIDTH, ADULT_SHELL_DIAMETER, ADULT_SHELL_DIAMETER,
-                                new Dilation(4.f, 8.f, 8.f),
+                                dilation.add(4.f, 8.f, 8.f),
                                 1.f, 1.f),
                 ModelTransform.of(0.f, 0.f, -3.f, ADULT_SHELL_ROTATION, 0.f, 0.f));
 
         body.addChild(LEFT_EYE, new ModelPartBuilder()
                         .uv(42, 0)
-                        .cuboid(-2.8336f, -15.849f, -3.8272f, ADULT_EYE_DIAMETER, ADULT_EYE_LENGTH, ADULT_EYE_DIAMETER),
+                        .cuboid(-2.8336f, -15.849f, -3.8272f, ADULT_EYE_DIAMETER, ADULT_EYE_LENGTH, ADULT_EYE_DIAMETER, dilation),
                 ModelTransform.of(-1.5f, -4.f, -15f, 0.4363f, ADULT_EYE_YAW, 0.f));
         body.addChild(RIGHT_EYE, new ModelPartBuilder()
                         .uv(42, 0)
                         .mirrored()
-                        .cuboid(0.8336f, -15.849f, -3.8272f, ADULT_EYE_DIAMETER, ADULT_EYE_LENGTH, ADULT_EYE_DIAMETER),
+                        .cuboid(0.8336f, -15.849f, -3.8272f, ADULT_EYE_DIAMETER, ADULT_EYE_LENGTH, ADULT_EYE_DIAMETER, dilation),
                 ModelTransform.of(1.5f, -4.f, -15f, 0.4363f, -ADULT_EYE_YAW, 0.f));
     }
 
-    private static void buildBabyModel(ModelPartData babyRoot) {
+    private static void buildBabyModel(ModelPartData babyRoot, Dilation dilation) {
         var body = babyRoot.addChild(BODY, new ModelPartBuilder()
                         .uv(56, 0)
-                        .cuboid(-(BABY_FRONT_WIDTH / 2.f), 22.f, -7.f, BABY_FRONT_WIDTH, 2.f, 14.f)
+                        .cuboid(-(BABY_FRONT_WIDTH / 2.f), 22.f, -7.f, BABY_FRONT_WIDTH, 2.f, 14.f, dilation)
                         .uv(0, 10)
-                        .cuboid(-(BABY_FRONT_WIDTH / 2.f), 20.f, -7.f, BABY_FRONT_WIDTH, 2.f, 4.f),
+                        .cuboid(-(BABY_FRONT_WIDTH / 2.f), 20.f, -7.f, BABY_FRONT_WIDTH, 2.f, 4.f, dilation),
                 ModelTransform.NONE);
         body.addChild(SHELL, new ModelPartBuilder()
                         .uv(0, 32)
-                        .cuboid(-3.f, 10.f, -1.f, 6.f, BABY_SHELL_DIAMETER, BABY_SHELL_DIAMETER),
+                        .cuboid(-3.f, 10.f, -1.f, 6.f, BABY_SHELL_DIAMETER, BABY_SHELL_DIAMETER, dilation),
                 ModelTransform.of(0.f, 2.2f, -1.f, BABY_SHELL_ROTATION, 0.f, 0.f));
         body.addChild(LEFT_EYE, new ModelPartBuilder()
                         .uv(0, 32)
-                        .cuboid(-1.1664f, 19.f, -3.8272f, BABY_EYE_DIAMETER, BABY_EYE_LENGTH, BABY_EYE_DIAMETER),
+                        .cuboid(-1.1664f, 19.f, -3.8272f, BABY_EYE_DIAMETER, BABY_EYE_LENGTH, BABY_EYE_DIAMETER, dilation),
                 ModelTransform.of(-1.5f, -4.f, -14.2f, 0.4363f, BABY_EYE_YAW, 0.f));
         body.addChild(RIGHT_EYE, new ModelPartBuilder()
                         .uv(0, 32)
                         .mirrored()
-                        .cuboid(0.1664f, 19.f, -3.8272f, BABY_EYE_DIAMETER, BABY_EYE_LENGTH, BABY_EYE_DIAMETER),
+                        .cuboid(0.1664f, 19.f, -3.8272f, BABY_EYE_DIAMETER, BABY_EYE_LENGTH, BABY_EYE_DIAMETER, dilation),
                 ModelTransform.of(1.5f, -4.f, -14.2f, 0.4363f, -BABY_EYE_YAW, 0.f));
     }
 

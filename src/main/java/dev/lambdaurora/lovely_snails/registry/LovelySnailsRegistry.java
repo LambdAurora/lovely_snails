@@ -17,17 +17,18 @@
 
 package dev.lambdaurora.lovely_snails.registry;
 
-import dev.lambdaurora.lovely_snails.LovelySnails;
 import dev.lambdaurora.lovely_snails.entity.SnailEntity;
+import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
-import net.fabricmc.fabric.impl.object.builder.FabricEntityType;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityDimensions;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnGroup;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.passive.HorseEntity;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemGroup;
+import net.minecraft.item.SpawnEggItem;
 import net.minecraft.util.registry.Registry;
+
+import static dev.lambdaurora.lovely_snails.LovelySnails.id;
 
 /**
  * Represents the Lovely Snails' registry.
@@ -41,10 +42,13 @@ public final class LovelySnailsRegistry {
         throw new UnsupportedOperationException("Someone tried to instantiate a class only containing static definitions. How?");
     }
 
-    /* Entity */
+    /* Items */
 
+    public static final SpawnEggItem SNAIL_SPAWN_EGG_ITEM;
 
-    public static final EntityType<SnailEntity> SNAIL_ENTITY_TYPE = Registry.register(Registry.ENTITY_TYPE, LovelySnails.id("snail"),
+    /* Entities */
+
+    public static final EntityType<SnailEntity> SNAIL_ENTITY_TYPE = Registry.register(Registry.ENTITY_TYPE, id("snail"),
             FabricEntityTypeBuilder.<SnailEntity>createMob()
                     .spawnGroup(SpawnGroup.CREATURE)
                     .entityFactory(SnailEntity::new)
@@ -53,6 +57,15 @@ public final class LovelySnailsRegistry {
                     .build()
     );
 
+    private static <T extends Item> T register(String name, T item) {
+        return Registry.register(Registry.ITEM, id(name), item);
+    }
+
     public static void init() {
+    }
+
+    static {
+        SNAIL_SPAWN_EGG_ITEM = register("snail_spawn_egg", new SpawnEggItem(SNAIL_ENTITY_TYPE, 0xff36201c, 0xffd58d51,
+                new FabricItemSettings().group(ItemGroup.MISC)));
     }
 }

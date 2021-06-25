@@ -17,6 +17,9 @@
 
 package dev.lambdaurora.lovely_snails.entity;
 
+import net.minecraft.block.Block;
+import net.minecraft.block.CarpetBlock;
+import net.minecraft.block.DyedCarpetBlock;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.Saddleable;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
@@ -28,12 +31,21 @@ import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.passive.AnimalEntity;
 import net.minecraft.entity.passive.PassiveEntity;
 import net.minecraft.inventory.Inventory;
+import net.minecraft.inventory.InventoryChangedListener;
+import net.minecraft.inventory.SimpleInventory;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.DyeColor;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.function.Predicate;
 
 /**
  * Represents the snail entity.
@@ -42,7 +54,7 @@ import org.jetbrains.annotations.Nullable;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class SnailEntity extends AnimalEntity implements Saddleable {
+public class SnailEntity extends AnimalEntity implements InventoryChangedListener, Saddleable {
     private static final TrackedData<Byte> SNAIL_FLAGS = DataTracker.registerData(SnailEntity.class, TrackedDataHandlerRegistry.BYTE);
     private static final TrackedData<Byte> CHEST_COUNT = DataTracker.registerData(SnailEntity.class, TrackedDataHandlerRegistry.BYTE);
     private static final TrackedData<Integer> CARPET_COLOR = DataTracker.registerData(SnailEntity.class, TrackedDataHandlerRegistry.INTEGER);
@@ -57,6 +69,7 @@ public class SnailEntity extends AnimalEntity implements Saddleable {
 
     public SnailEntity(EntityType<? extends SnailEntity> entityType, World world) {
         super(entityType, world);
+        this.inventory = new SimpleInventory(2);
     }
 
     public static DefaultAttributeContainer.Builder createSnailAttributes() {
@@ -84,6 +97,11 @@ public class SnailEntity extends AnimalEntity implements Saddleable {
         return this.getSnailFlag(TAMED_FLAG);
     }
 
+    private static @Nullable DyeColor getColorFromCarpet(ItemStack color) {
+        var block = Block.getBlockFromItem(color.getItem());
+        return block instanceof DyedCarpetBlock dyedCarpetBlock ? dyedCarpetBlock.getDyeColor() : null;
+    }
+
     public void setCarpetColor(@Nullable DyeColor color) {
         this.dataTracker.set(CARPET_COLOR, color == null ? -1 : color.getId());
     }
@@ -104,6 +122,50 @@ public class SnailEntity extends AnimalEntity implements Saddleable {
         this.dataTracker.startTracking(CARPET_COLOR, -1);
     }
 
+    /* Serialization */
+
+    @Override
+    public void readCustomDataFromNbt(NbtCompound nbt) {
+        super.readCustomDataFromNbt(nbt);
+
+        this.setSnailFlag(TAMED_FLAG, nbt.getBoolean("tame"));
+
+        this.readSpecialSlot(nbt, "saddle", SADDLE_SLOT, stack -> stack.isOf(Items.SADDLE));
+        this.readSpecialSlot(nbt, "decor", CARPET_SLOT,
+                stack -> stack.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof CarpetBlock
+        );
+
+        this.syncInventoryToFlags();
+    }
+
+    private void readSpecialSlot(NbtCompound nbt, String name, int slot, Predicate<ItemStack> predicate) {
+        if (nbt.contains(name, NbtElement.COMPOUND_TYPE)) {
+            var stack = ItemStack.fromNbt(nbt.getCompound(name));
+            if (predicate.test(stack)) {
+                this.inventory.setStack(slot, stack);
+                return;
+            }
+        }
+
+        this.inventory.setStack(slot, ItemStack.EMPTY);
+    }
+
+    @Override
+    public void writeCustomDataToNbt(NbtCompound nbt) {
+        super.writeCustomDataToNbt(nbt);
+
+        nbt.putBoolean("tame", this.isTame());
+
+        this.writeSpecialSlot(nbt, "saddle", SADDLE_SLOT);
+        this.writeSpecialSlot(nbt, "decor", CARPET_SLOT);
+    }
+
+    public void writeSpecialSlot(NbtCompound nbt, String name, int slot) {
+        if (!this.inventory.getStack(slot).isEmpty()) {
+            nbt.put(name, this.inventory.getStack(slot).writeNbt(new NbtCompound()));
+        }
+    }
+
     /* Inventory */
 
     public boolean hasChest() {
@@ -122,13 +184,23 @@ public class SnailEntity extends AnimalEntity implements Saddleable {
         return this.inventory.getStack(SADDLE_SLOT);
     }
 
-    /* Saddle Stuff */
-
-    protected void updateSaddle() {
+    public void syncInventoryToFlags() {
         if (!this.world.isClient()) {
             this.setSnailFlag(SADDLED_FLAG, !this.getSaddle().isEmpty());
+            this.setCarpetColor(getColorFromCarpet(this.inventory.getStack(CARPET_SLOT)));
         }
     }
+
+    @Override
+    public void onInventoryChanged(Inventory sender) {
+        boolean previouslySaddled = this.isSaddled();
+        this.syncInventoryToFlags();
+        if (this.age > 20 && !previouslySaddled && this.isSaddled()) {
+            this.playSound(SoundEvents.ENTITY_HORSE_SADDLE, .5f, 1.f);
+        }
+    }
+
+    /* Saddle Stuff */
 
     @Override
     public boolean canBeSaddled() {
@@ -151,5 +223,10 @@ public class SnailEntity extends AnimalEntity implements Saddleable {
     @Override
     public PassiveEntity createChild(ServerWorld world, PassiveEntity entity) {
         return null;
+    }
+
+    @Override
+    public float getScaleFactor() {
+        return this.isBaby() ? 0.35f : 1.f;
     }
 }

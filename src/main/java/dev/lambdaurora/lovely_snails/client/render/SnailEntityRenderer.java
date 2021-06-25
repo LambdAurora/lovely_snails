@@ -23,6 +23,7 @@ import dev.lambdaurora.lovely_snails.client.model.SnailModel;
 import dev.lambdaurora.lovely_snails.entity.SnailEntity;
 import net.minecraft.client.render.entity.EntityRendererFactory;
 import net.minecraft.client.render.entity.MobEntityRenderer;
+import net.minecraft.client.render.entity.feature.SaddleFeatureRenderer;
 import net.minecraft.util.Identifier;
 
 /**
@@ -37,6 +38,11 @@ public class SnailEntityRenderer extends MobEntityRenderer<SnailEntity, SnailMod
 
     public SnailEntityRenderer(EntityRendererFactory.Context context) {
         super(context, new SnailModel(context.getPart(LovelySnailsClient.SNAIL_MODEL_LAYER)), .5f);
+
+        this.addFeature(new SaddleFeatureRenderer<>(this,
+                new SnailModel(context.getPart(LovelySnailsClient.SNAIL_SADDLE_MODEL_LAYER)),
+                LovelySnails.id("textures/entity/snail/saddle.png")));
+        this.addFeature(new SnailDecorFeatureRenderer(this, context));
     }
 
     @Override
