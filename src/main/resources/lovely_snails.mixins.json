@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "package": "dev.lambdaurora.lovely_snails.mixin",
+  "compatibilityLevel": "JAVA_16",
+  "client": [
+    "client.ClientPlayerInteractionManagerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "mixins": [
+    "ServerPlayNetworkHandlerMixin"
+  ]
+}

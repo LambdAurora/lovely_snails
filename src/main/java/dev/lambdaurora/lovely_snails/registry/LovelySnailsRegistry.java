@@ -18,14 +18,17 @@
 package dev.lambdaurora.lovely_snails.registry;
 
 import dev.lambdaurora.lovely_snails.entity.SnailEntity;
+import dev.lambdaurora.lovely_snails.screen.SnailScreenHandler;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
+import net.fabricmc.fabric.api.screenhandler.v1.ScreenHandlerRegistry;
 import net.minecraft.entity.EntityDimensions;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnGroup;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.SpawnEggItem;
+import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.util.registry.Registry;
 
 import static dev.lambdaurora.lovely_snails.LovelySnails.id;
@@ -45,6 +48,11 @@ public final class LovelySnailsRegistry {
     /* Items */
 
     public static final SpawnEggItem SNAIL_SPAWN_EGG_ITEM;
+
+    /* Screen handlers */
+
+    public static final ScreenHandlerType<SnailScreenHandler> SNAIL_SCREEN_HANDLER_TYPE =
+            ScreenHandlerRegistry.registerExtended(id("snail"), SnailScreenHandler::new);
 
     /* Entities */
 

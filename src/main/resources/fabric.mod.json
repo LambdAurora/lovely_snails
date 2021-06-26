@@ -27,6 +27,7 @@
     ]
   },
   "mixins": [
+    "lovely_snails.mixins.json"
   ],
   "depends": {
     "minecraft": ">=1.17",

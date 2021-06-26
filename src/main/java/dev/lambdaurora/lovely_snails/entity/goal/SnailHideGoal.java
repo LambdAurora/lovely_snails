@@ -53,12 +53,12 @@ public class SnailHideGoal extends Goal {
 
     @Override
     public boolean canStart() {
-        return this.isThereScaryEntitiesAround();
+        return this.snail.getAttacker() != null || this.isThereScaryEntitiesAround();
     }
 
     @Override
     public boolean shouldContinue() {
-        return this.isThereScaryEntitiesAround();
+        return this.snail.getAttacker() != null || this.isThereScaryEntitiesAround();
     }
 
     @Override
