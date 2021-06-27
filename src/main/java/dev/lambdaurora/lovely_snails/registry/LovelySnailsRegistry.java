@@ -22,6 +22,7 @@ import dev.lambdaurora.lovely_snails.screen.SnailScreenHandler;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
 import net.fabricmc.fabric.api.screenhandler.v1.ScreenHandlerRegistry;
+import net.fabricmc.fabric.api.tag.TagRegistry;
 import net.minecraft.entity.EntityDimensions;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnGroup;
@@ -29,6 +30,8 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.SpawnEggItem;
 import net.minecraft.screen.ScreenHandlerType;
+import net.minecraft.tag.Tag;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 
 import static dev.lambdaurora.lovely_snails.LovelySnails.id;
@@ -64,6 +67,14 @@ public final class LovelySnailsRegistry {
                     .dimensions(EntityDimensions.changing(1.5f, 2.f))
                     .build()
     );
+
+    /* Packet */
+
+    public static final Identifier SNAIL_OPEN_ENDER_CHEST_PACKET = id("snail_open_ender_chest");
+
+    /* Tags */
+
+    public static final Tag<Item> SNAIL_BREEDING_ITEMS = TagRegistry.item(id("snail_breeding_items"));
 
     private static <T extends Item> T register(String name, T item) {
         return Registry.register(Registry.ITEM, id(name), item);

@@ -18,13 +18,24 @@
 package dev.lambdaurora.lovely_snails.client.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import dev.lambdaurora.lovely_snails.LovelySnails;
 import dev.lambdaurora.lovely_snails.entity.SnailEntity;
+import dev.lambdaurora.lovely_snails.registry.LovelySnailsRegistry;
 import dev.lambdaurora.lovely_snails.screen.SnailScreenHandler;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
+import net.minecraft.client.gui.widget.TexturedButtonWidget;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.Inventory;
+import net.minecraft.inventory.InventoryChangedListener;
+import net.minecraft.inventory.SimpleInventory;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
@@ -36,14 +47,48 @@ import net.minecraft.util.Identifier;
  * @since 1.0.0
  */
 public class SnailInventoryScreen extends HandledScreen<SnailScreenHandler> {
-    private static final Identifier TEXTURE = new Identifier("textures/gui/container/horse.png");
+    private static final Identifier TEXTURE = LovelySnails.id("textures/gui/container/snail.png");
     private final SnailEntity entity;
     private float mouseX;
     private float mouseY;
+    private EnderChestButton enderChestButton;
 
     public SnailInventoryScreen(SnailScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, handler.snail().getDisplayName());
+        this.titleX -= 19;
         this.entity = handler.snail();
+    }
+
+    private void clearEnderChestListener() {
+        if (this.enderChestButton != null && this.getScreenHandler().getInventory() instanceof SimpleInventory inventory) {
+            inventory.removeListener(this.enderChestButton);
+        }
+        this.enderChestButton = null;
+    }
+
+    @Override
+    protected void init() {
+        super.init();
+        this.clearEnderChestListener();
+
+        int x = (this.width - this.backgroundWidth) / 2;
+        int y = (this.height - this.backgroundHeight) / 2;
+        this.addDrawableChild(this.enderChestButton = new EnderChestButton(x + 7, y + 35 + 18));
+        if (this.getScreenHandler().getInventory() instanceof SimpleInventory inventory) {
+            inventory.addListener(this.enderChestButton);
+        }
+    }
+
+    @Override
+    public void removed() {
+        super.removed();
+        this.clearEnderChestListener();
+    }
+
+    @Override
+    public void onClose() {
+        super.onClose();
+        this.clearEnderChestListener();
     }
 
     @Override
@@ -53,7 +98,7 @@ public class SnailInventoryScreen extends HandledScreen<SnailScreenHandler> {
         RenderSystem.setShaderTexture(0, TEXTURE);
         int x = (this.width - this.backgroundWidth) / 2;
         int y = (this.height - this.backgroundHeight) / 2;
-        this.drawTexture(matrices, x, y, 0, 0, this.backgroundWidth, this.backgroundHeight);
+        this.drawTexture(matrices, x - 19, y, 0, 0, this.backgroundWidth + 19, this.backgroundHeight);
         /*if (this.entity instanceof AbstractDonkeyEntity) {
             AbstractDonkeyEntity abstractDonkeyEntity = (AbstractDonkeyEntity) this.entity;
             if (abstractDonkeyEntity.hasChest()) {
@@ -66,6 +111,12 @@ public class SnailInventoryScreen extends HandledScreen<SnailScreenHandler> {
         }
 
         this.drawTexture(matrices, x + 7, y + 35, 36, this.backgroundHeight + 54, 18, 18);
+
+        if (!this.entity.isBaby()) {
+            for (int row = y + 17; row <= y + 35 + 18; row += 18) {
+                this.drawTexture(matrices, x + 7 - 18, row, 54, this.backgroundHeight + 54, 18, 18);
+            }
+        }
 
         InventoryScreen.drawEntity(x + 51, y + 60, 17,
                 (x + 51) - this.mouseX,
@@ -80,5 +131,28 @@ public class SnailInventoryScreen extends HandledScreen<SnailScreenHandler> {
         this.mouseY = mouseY;
         super.render(matrices, mouseX, mouseY, delta);
         this.drawMouseoverTooltip(matrices, mouseX, mouseY);
+    }
+
+    private class EnderChestButton extends TexturedButtonWidget implements InventoryChangedListener {
+        public EnderChestButton(int x, int y) {
+            super(x, y, 18, 18, 0, 0, 18, LovelySnails.id("textures/gui/snail_ender_chest_button.png"),
+                    18, 36,
+                    btn -> {
+                        var buffer = PacketByteBufs.create();
+                        buffer.writeVarInt(SnailInventoryScreen.this.getScreenHandler().snail().getId());
+                        ClientPlayNetworking.send(LovelySnailsRegistry.SNAIL_OPEN_ENDER_CHEST_PACKET, buffer);
+
+                        var snail = SnailInventoryScreen.this.getScreenHandler().snail();
+                        var world = snail.getEntityWorld();
+                        world.playSound(MinecraftClient.getInstance().player, snail.getBlockPos(),
+                                SoundEvents.BLOCK_ENDER_CHEST_OPEN, SoundCategory.BLOCKS,
+                                .5f, snail.getRandom().nextFloat() * .1f + .9f);
+                    });
+        }
+
+        @Override
+        public void onInventoryChanged(Inventory sender) {
+            this.visible = this.active = SnailInventoryScreen.this.getScreenHandler().hasEnderChest();
+        }
     }
 }

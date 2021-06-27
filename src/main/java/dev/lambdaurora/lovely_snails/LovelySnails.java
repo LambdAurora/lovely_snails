@@ -17,8 +17,10 @@
 
 package dev.lambdaurora.lovely_snails;
 
+import dev.lambdaurora.lovely_snails.entity.SnailEntity;
 import dev.lambdaurora.lovely_snails.registry.LovelySnailsRegistry;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.util.Identifier;
 
 /**
@@ -34,6 +36,17 @@ public class LovelySnails implements ModInitializer {
     @Override
     public void onInitialize() {
         LovelySnailsRegistry.init();
+
+        ServerPlayNetworking.registerGlobalReceiver(LovelySnailsRegistry.SNAIL_OPEN_ENDER_CHEST_PACKET,
+                (server, player, handler, buf, responseSender) -> {
+                    int snailId = buf.readVarInt();
+                    server.execute(() -> {
+                        var entity = player.getEntityWorld().getEntityById(snailId);
+                        if (entity instanceof SnailEntity snail) {
+                            snail.openEnderChestInventory(player);
+                        }
+                    });
+                });
     }
 
     public static Identifier id(String path) {

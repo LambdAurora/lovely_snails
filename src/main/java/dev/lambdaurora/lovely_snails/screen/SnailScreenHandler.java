@@ -53,6 +53,9 @@ public class SnailScreenHandler extends ScreenHandler {
 
         this.addSlot(new SaddleSlot(inventory, SnailEntity.SADDLE_SLOT, 8, 18, entity));
         this.addSlot(new DecorSlot(inventory, SnailEntity.CARPET_SLOT, 8, 36));
+        this.addSlot(new ChestSlot(inventory, 2, -10, 18));
+        this.addSlot(new ChestSlot(inventory, 3, -10, 36));
+        this.addSlot(new ChestSlot(inventory, 4, -10, 54));
 
         for (int row = 0; row < 3; ++row) {
             for (int column = 0; column < 9; ++column) {
@@ -72,6 +75,23 @@ public class SnailScreenHandler extends ScreenHandler {
      */
     public SnailEntity snail() {
         return this.entity;
+    }
+
+    public Inventory getInventory() {
+        return this.inventory;
+    }
+
+    /**
+     * Returns whether this snail holds an ender chest.
+     *
+     * @return {@code true} if this snails holds an ender chest, else {@code false}
+     */
+    public boolean hasEnderChest() {
+        for (int i = 2; i < 5; i++) {
+            if (this.inventory.getStack(i).isOf(Items.ENDER_CHEST))
+                return true;
+        }
+        return false;
     }
 
     @Override
@@ -168,6 +188,22 @@ public class SnailScreenHandler extends ScreenHandler {
         @Override
         public boolean isEnabled() {
             return true;
+        }
+
+        @Override
+        public int getMaxItemCount() {
+            return 1;
+        }
+    }
+
+    private static class ChestSlot extends Slot {
+        public ChestSlot(Inventory inventory, int index, int x, int y) {
+            super(inventory, index, x, y);
+        }
+
+        @Override
+        public boolean canInsert(ItemStack stack) {
+            return stack.isOf(Items.CHEST) || stack.isOf(Items.ENDER_CHEST);
         }
 
         @Override

@@ -9,6 +9,9 @@
     "defaultRequire": 1
   },
   "mixins": [
-    "ServerPlayNetworkHandlerMixin"
+    "DataTrackerAccessor",
+    "PassiveEntityAccessor",
+    "ServerPlayNetworkHandlerMixin",
+    "ShulkerEntityAccessor"
   ]
 }
