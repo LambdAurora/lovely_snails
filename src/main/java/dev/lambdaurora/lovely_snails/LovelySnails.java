@@ -19,8 +19,14 @@ package dev.lambdaurora.lovely_snails;
 
 import dev.lambdaurora.lovely_snails.entity.SnailEntity;
 import dev.lambdaurora.lovely_snails.registry.LovelySnailsRegistry;
+import dev.lambdaurora.lovely_snails.screen.SnailScreenHandler;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.inventory.Inventory;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtList;
 import net.minecraft.util.Identifier;
 
 /**
@@ -47,9 +53,56 @@ public class LovelySnails implements ModInitializer {
                         }
                     });
                 });
+        ServerPlayNetworking.registerGlobalReceiver(LovelySnailsRegistry.SNAIL_SET_STORAGE_PAGE,
+                (server, player, handler, buf, responseSender) -> {
+                    int syncId = buf.readVarInt();
+                    byte storagePage = buf.readByte();
+                    server.execute(() -> {
+                        if (handler.getPlayer().currentScreenHandler instanceof SnailScreenHandler snailScreenHandler
+                                && snailScreenHandler.syncId == syncId) {
+                            snailScreenHandler.setCurrentStoragePage(storagePage);
+                        }
+                    });
+                });
     }
 
     public static Identifier id(String path) {
         return new Identifier(NAMESPACE, path);
+    }
+
+    public static void readInventoryNbt(NbtCompound nbt, String key, Inventory stacks, int start) {
+        var inventoryNbt = nbt.getList(key, NbtElement.COMPOUND_TYPE);
+
+        for (int i = 0; i < inventoryNbt.size(); ++i) {
+            var slotNbt = inventoryNbt.getCompound(i);
+            int slotId = slotNbt.getByte("slot") & 255;
+            if (slotId < stacks.size()) {
+                stacks.setStack(start + slotId, ItemStack.fromNbt(slotNbt));
+            }
+        }
+    }
+
+    public static NbtCompound writeInventoryNbt(NbtCompound nbt, String key, Inventory stacks, int start, int end) {
+        return writeInventoryNbt(nbt, key, stacks, start, end, true);
+    }
+
+    public static NbtCompound writeInventoryNbt(NbtCompound nbt, String key, Inventory stacks, int start, int end, boolean setIfEmpty) {
+        var inventoryNbt = new NbtList();
+
+        for (int i = start; i < end; ++i) {
+            var slotStack = stacks.getStack(i);
+            if (!slotStack.isEmpty()) {
+                var slotNbt = new NbtCompound();
+                slotNbt.putByte("slot", (byte) (i - start));
+                slotStack.writeNbt(slotNbt);
+                inventoryNbt.add(slotNbt);
+            }
+        }
+
+        if (!inventoryNbt.isEmpty() || setIfEmpty) {
+            nbt.put(key, inventoryNbt);
+        }
+
+        return nbt;
     }
 }

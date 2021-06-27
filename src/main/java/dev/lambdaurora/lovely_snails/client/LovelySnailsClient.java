@@ -22,9 +22,11 @@ import dev.lambdaurora.lovely_snails.client.model.SnailModel;
 import dev.lambdaurora.lovely_snails.client.render.SnailEntityRenderer;
 import dev.lambdaurora.lovely_snails.client.screen.SnailInventoryScreen;
 import dev.lambdaurora.lovely_snails.registry.LovelySnailsRegistry;
+import dev.lambdaurora.lovely_snails.screen.SnailScreenHandler;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendereregistry.v1.EntityModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendereregistry.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.client.screenhandler.v1.ScreenRegistry;
@@ -53,5 +55,17 @@ public class LovelySnailsClient implements ClientModInitializer {
         EntityModelLayerRegistry.registerModelLayer(SNAIL_DECOR_MODEL_LAYER, () -> SnailModel.model(new Dilation(0.25f)));
 
         ScreenRegistry.register(LovelySnailsRegistry.SNAIL_SCREEN_HANDLER_TYPE, SnailInventoryScreen::new);
+
+        ClientPlayNetworking.registerGlobalReceiver(LovelySnailsRegistry.SNAIL_SET_STORAGE_PAGE,
+                (client, handler, buf, responseSender) -> {
+                    int syncId = buf.readVarInt();
+                    byte storagePage = buf.readByte();
+                    client.execute(() -> {
+                        if (client.player.currentScreenHandler instanceof SnailScreenHandler snailScreenHandler
+                                && snailScreenHandler.syncId == syncId) {
+                            snailScreenHandler.setCurrentStoragePage(storagePage);
+                        }
+                    });
+                });
     }
 }

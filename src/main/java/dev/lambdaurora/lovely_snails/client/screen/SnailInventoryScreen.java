@@ -22,6 +22,8 @@ import dev.lambdaurora.lovely_snails.LovelySnails;
 import dev.lambdaurora.lovely_snails.entity.SnailEntity;
 import dev.lambdaurora.lovely_snails.registry.LovelySnailsRegistry;
 import dev.lambdaurora.lovely_snails.screen.SnailScreenHandler;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.MinecraftClient;
@@ -33,11 +35,11 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.InventoryChangedListener;
-import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.MathHelper;
 
 /**
  * Represents the snail inventory screen.
@@ -46,6 +48,7 @@ import net.minecraft.util.Identifier;
  * @version 1.0.0
  * @since 1.0.0
  */
+@Environment(EnvType.CLIENT)
 public class SnailInventoryScreen extends HandledScreen<SnailScreenHandler> {
     private static final Identifier TEXTURE = LovelySnails.id("textures/gui/container/snail.png");
     private final SnailEntity entity;
@@ -55,13 +58,13 @@ public class SnailInventoryScreen extends HandledScreen<SnailScreenHandler> {
 
     public SnailInventoryScreen(SnailScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, handler.snail().getDisplayName());
-        this.titleX -= 19;
+        this.backgroundWidth += 19;
         this.entity = handler.snail();
     }
 
     private void clearEnderChestListener() {
-        if (this.enderChestButton != null && this.getScreenHandler().getInventory() instanceof SimpleInventory inventory) {
-            inventory.removeListener(this.enderChestButton);
+        if (this.enderChestButton != null) {
+            this.getScreenHandler().getInventory().removeListener(this.enderChestButton);
         }
         this.enderChestButton = null;
     }
@@ -73,10 +76,8 @@ public class SnailInventoryScreen extends HandledScreen<SnailScreenHandler> {
 
         int x = (this.width - this.backgroundWidth) / 2;
         int y = (this.height - this.backgroundHeight) / 2;
-        this.addDrawableChild(this.enderChestButton = new EnderChestButton(x + 7, y + 35 + 18));
-        if (this.getScreenHandler().getInventory() instanceof SimpleInventory inventory) {
-            inventory.addListener(this.enderChestButton);
-        }
+        this.addDrawableChild(this.enderChestButton = new EnderChestButton(x + 7 + 18, y + 35 + 18));
+        this.getScreenHandler().getInventory().addListener(this.enderChestButton);
     }
 
     @Override
@@ -91,6 +92,34 @@ public class SnailInventoryScreen extends HandledScreen<SnailScreenHandler> {
         this.clearEnderChestListener();
     }
 
+    /* Input */
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
+        int x = (this.width - this.backgroundWidth) / 2;
+        int y = (this.height - this.backgroundHeight) / 2;
+        if (mouseX > x + 98 && mouseY > y + 17 && mouseX <= x + 98 + 5 * 18 && mouseY <= y + 17 + 54) {
+            int oldPage = this.getScreenHandler().getCurrentStoragePage();
+            int newPage = MathHelper.clamp(oldPage + (amount > 0 ? -1 : 1), 0, 2);
+            if (oldPage == newPage)
+                return true;
+
+            if (!this.getScreenHandler().hasChest(newPage)) {
+                int otherNewPage = MathHelper.clamp(newPage + (amount > 0 ? -1 : 1), 0, 2);
+                if (newPage == otherNewPage || !this.getScreenHandler().hasChest(otherNewPage))
+                    return true;
+
+                newPage = otherNewPage;
+            }
+
+            this.getScreenHandler().requestStoragePage(newPage);
+            return true;
+        }
+        return super.mouseScrolled(mouseX, mouseY, amount);
+    }
+
+    /* Rendering */
+
     @Override
     protected void drawBackground(MatrixStack matrices, float delta, int mouseX, int mouseY) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
@@ -98,27 +127,25 @@ public class SnailInventoryScreen extends HandledScreen<SnailScreenHandler> {
         RenderSystem.setShaderTexture(0, TEXTURE);
         int x = (this.width - this.backgroundWidth) / 2;
         int y = (this.height - this.backgroundHeight) / 2;
-        this.drawTexture(matrices, x - 19, y, 0, 0, this.backgroundWidth + 19, this.backgroundHeight);
-        /*if (this.entity instanceof AbstractDonkeyEntity) {
-            AbstractDonkeyEntity abstractDonkeyEntity = (AbstractDonkeyEntity) this.entity;
-            if (abstractDonkeyEntity.hasChest()) {
-                this.drawTexture(matrices, i + 79, j + 17, 0, this.backgroundHeight, abstractDonkeyEntity.getInventoryColumns() * 18, 54);
-            }
-        }*/
+        this.drawTexture(matrices, x, y, 0, 0, this.backgroundWidth, this.backgroundHeight);
 
         if (this.entity.canBeSaddled()) {
-            this.drawTexture(matrices, x + 7, y + 35 - 18, 18, this.backgroundHeight + 54, 18, 18);
+            this.drawTexture(matrices, x + 7 + 18, y + 35 - 18, 18, this.backgroundHeight + 54, 18, 18);
         }
 
-        this.drawTexture(matrices, x + 7, y + 35, 36, this.backgroundHeight + 54, 18, 18);
+        this.drawTexture(matrices, x + 7 + 18, y + 35, 36, this.backgroundHeight + 54, 18, 18);
 
         if (!this.entity.isBaby()) {
             for (int row = y + 17; row <= y + 35 + 18; row += 18) {
-                this.drawTexture(matrices, x + 7 - 18, row, 54, this.backgroundHeight + 54, 18, 18);
+                this.drawTexture(matrices, x + 7, row, 54, this.backgroundHeight + 54, 18, 18);
             }
         }
 
-        InventoryScreen.drawEntity(x + 51, y + 60, 17,
+        if (this.getScreenHandler().hasChests()) {
+            this.drawTexture(matrices, x + 98, y + 17, 0, this.backgroundHeight, 5 * 18, 54);
+        }
+
+        InventoryScreen.drawEntity(x + 70, y + 60, 17,
                 (x + 51) - this.mouseX,
                 (y + 75 - 50) - this.mouseY,
                 this.entity);

@@ -17,6 +17,7 @@
 
 package dev.lambdaurora.lovely_snails.entity;
 
+import dev.lambdaurora.lovely_snails.LovelySnails;
 import dev.lambdaurora.lovely_snails.entity.goal.SnailFollowParentGoal;
 import dev.lambdaurora.lovely_snails.entity.goal.SnailHideGoal;
 import dev.lambdaurora.lovely_snails.mixin.DataTrackerAccessor;
@@ -49,7 +50,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.screen.GenericContainerScreenHandler;
 import net.minecraft.screen.ScreenHandler;
@@ -224,12 +224,8 @@ public class SnailEntity extends AnimalEntity implements InventoryChangedListene
                 stack -> stack.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof CarpetBlock
         );
 
-        if (nbt.contains("chests", NbtElement.LIST_TYPE)) {
-            var list = nbt.getList("chests", NbtElement.COMPOUND_TYPE);
-            for (int slot = 2; slot < 5; slot++) {
-                this.inventory.setStack(slot, ItemStack.fromNbt((NbtCompound) list.get(slot - 2)));
-            }
-        }
+        LovelySnails.readInventoryNbt(nbt, "chests", this.inventory, 2);
+        LovelySnails.readInventoryNbt(nbt, "inventory", this.inventory, 5);
 
         this.syncInventoryToFlags();
     }
@@ -256,11 +252,8 @@ public class SnailEntity extends AnimalEntity implements InventoryChangedListene
         this.writeSpecialSlot(nbt, "saddle", SADDLE_SLOT);
         this.writeSpecialSlot(nbt, "decor", CARPET_SLOT);
 
-        var chests = new NbtList();
-        for (int slot = 2; slot < 5; slot++) {
-            chests.add(this.inventory.getStack(slot).writeNbt(new NbtCompound()));
-        }
-        nbt.put("chests", chests);
+        LovelySnails.writeInventoryNbt(nbt, "chests", this.inventory, 2, 5);
+        LovelySnails.writeInventoryNbt(nbt, "inventory", this.inventory, 5, this.inventory.size());
     }
 
     public void writeSpecialSlot(NbtCompound nbt, String name, int slot) {
@@ -610,6 +603,7 @@ public class SnailEntity extends AnimalEntity implements InventoryChangedListene
         @Override
         public void writeScreenOpeningData(ServerPlayerEntity player, PacketByteBuf buf) {
             buf.writeVarInt(this.snail().getId());
+            buf.writeByte(SnailScreenHandler.getOpeningStoragePage(this.snail().inventory));
         }
 
         @Override
@@ -619,7 +613,8 @@ public class SnailEntity extends AnimalEntity implements InventoryChangedListene
 
         @Override
         public ScreenHandler createMenu(int syncId, PlayerInventory inv, PlayerEntity player) {
-            return new SnailScreenHandler(syncId, inv, this.snail().inventory, this.snail());
+            var snailInv = this.snail().inventory;
+            return new SnailScreenHandler(syncId, inv, snailInv, this.snail(), SnailScreenHandler.getOpeningStoragePage(snailInv));
         }
     }
 }
