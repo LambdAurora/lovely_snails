@@ -76,10 +76,10 @@ public class SnailModel extends EntityModel<SnailEntity> {
                                 dilation),
                 ModelTransform.NONE);
         root.addChild(SHELL, new ModelPartBuilder()
-                        .cuboid(-(ADULT_FRONT_WIDTH / 2.f), -2.f, -2.f, ADULT_FRONT_WIDTH, ADULT_SHELL_DIAMETER, ADULT_SHELL_DIAMETER,
+                        .cuboid(-(ADULT_FRONT_WIDTH / 2.f), 0.f, -2.f, ADULT_FRONT_WIDTH, ADULT_SHELL_DIAMETER, ADULT_SHELL_DIAMETER,
                                 dilation.add(4.f, 8.f, 8.f),
                                 1.f, 1.f),
-                ModelTransform.of(0.f, 0.f, -5.f, ADULT_SHELL_ROTATION, 0.f, 0.f));
+                ModelTransform.of(0.f, -2.f, -5.f, ADULT_SHELL_ROTATION, 0.f, 0.f));
 
         body.addChild(LEFT_EYE, new ModelPartBuilder()
                         .uv(42, 0)

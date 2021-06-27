@@ -87,7 +87,7 @@ public class SnailEntity extends AnimalEntity implements InventoryChangedListene
 
     private static final TrackedData<Boolean> CHILD = PassiveEntityAccessor.lovely_snails$getChild();
     private static final TrackedData<Byte> SNAIL_FLAGS = DataTracker.registerData(SnailEntity.class, TrackedDataHandlerRegistry.BYTE);
-    private static final TrackedData<Byte> CHEST_COUNT = DataTracker.registerData(SnailEntity.class, TrackedDataHandlerRegistry.BYTE);
+    private static final TrackedData<Byte> CHEST_FLAGS = DataTracker.registerData(SnailEntity.class, TrackedDataHandlerRegistry.BYTE);
     private static final TrackedData<Integer> CARPET_COLOR = DataTracker.registerData(SnailEntity.class, TrackedDataHandlerRegistry.INTEGER);
     private static final int TAMED_FLAG = 0b00000001;
     private static final int SADDLED_FLAG = 0b00000010;
@@ -206,7 +206,7 @@ public class SnailEntity extends AnimalEntity implements InventoryChangedListene
         ((DataTrackerAccessor) this.dataTracker).lovely_snails$getEntry(CHILD).set(true); // Replace default value.
 
         this.dataTracker.startTracking(SNAIL_FLAGS, (byte) 0);
-        this.dataTracker.startTracking(CHEST_COUNT, (byte) 0);
+        this.dataTracker.startTracking(CHEST_FLAGS, (byte) 0);
         this.dataTracker.startTracking(CARPET_COLOR, -1);
     }
 
@@ -280,16 +280,20 @@ public class SnailEntity extends AnimalEntity implements InventoryChangedListene
 
     /* Inventory */
 
-    public int getChests() {
-        return this.dataTracker.get(CHEST_COUNT);
+    public int getChestFlags() {
+        return this.dataTracker.get(CHEST_FLAGS);
     }
 
-    public boolean hasChest() {
-        return this.getChests() > 0;
-    }
+    public ItemStack getChest(int slot) {
+        int flags = this.getChestFlags();
 
-    public int getMaxChestCount() {
-        return !this.isBaby() && this.isTamed() ? 3 : 0;
+        int chest = (flags >> slot * 2) & 3;
+
+        return switch (chest) {
+            case 1 -> new ItemStack(Items.CHEST);
+            case 2 -> new ItemStack(Items.ENDER_CHEST);
+            default -> ItemStack.EMPTY;
+        };
     }
 
     public int getInventorySize() {
@@ -300,10 +304,27 @@ public class SnailEntity extends AnimalEntity implements InventoryChangedListene
         return this.inventory.getStack(SADDLE_SLOT);
     }
 
+    /**
+     * Syncs the flags with the inventory.
+     */
     public void syncInventoryToFlags() {
         if (!this.world.isClient()) {
             this.setSnailFlag(SADDLED_FLAG, !this.getSaddle().isEmpty());
             this.setCarpetColor(getColorFromCarpet(this.inventory.getStack(CARPET_SLOT)));
+
+            int chestFlags = 0;
+            for (int chest = 0; chest < 3; chest++) {
+                var chestStack = this.inventory.getStack(2 + chest);
+                int flag = 0;
+
+                if (chestStack.isOf(Items.CHEST))
+                    flag = 1;
+                else if (chestStack.isOf(Items.ENDER_CHEST))
+                    flag = 2;
+
+                chestFlags |= flag << chest * 2;
+            }
+            this.dataTracker.set(CHEST_FLAGS, (byte) chestFlags);
         }
     }
 

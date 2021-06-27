@@ -43,6 +43,7 @@ public class SnailEntityRenderer extends MobEntityRenderer<SnailEntity, SnailMod
                 new SnailModel(context.getPart(LovelySnailsClient.SNAIL_SADDLE_MODEL_LAYER)),
                 LovelySnails.id("textures/entity/snail/saddle.png")));
         this.addFeature(new SnailDecorFeatureRenderer(this, context));
+        this.addFeature(new SnailChestFeatureRenderer(this, context));
     }
 
     @Override
