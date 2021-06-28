@@ -11,6 +11,7 @@
   "mixins": [
     "DataTrackerAccessor",
     "PassiveEntityAccessor",
+    "PotionEntityMixin",
     "ServerPlayNetworkHandlerMixin",
     "ShulkerEntityAccessor"
   ]
