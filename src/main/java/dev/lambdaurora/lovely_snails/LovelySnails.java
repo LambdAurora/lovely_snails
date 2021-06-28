@@ -20,13 +20,19 @@ package dev.lambdaurora.lovely_snails;
 import dev.lambdaurora.lovely_snails.registry.LovelySnailsRegistry;
 import dev.lambdaurora.lovely_snails.screen.SnailScreenHandler;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
+import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.entity.SpawnGroup;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.Registry;
+import net.minecraft.util.registry.RegistryKey;
+import net.minecraft.world.biome.Biome;
 
 /**
  * Represents the Lovely Snails mod.
@@ -53,6 +59,12 @@ public class LovelySnails implements ModInitializer {
                         }
                     });
                 });
+
+        BiomeModifications.addSpawn(BiomeSelectors.categories(Biome.Category.SWAMP),
+                SpawnGroup.CREATURE, LovelySnailsRegistry.SNAIL_ENTITY_TYPE, 10, 1, 3);
+        BiomeModifications.addSpawn(BiomeSelectors.categories(Biome.Category.MUSHROOM)
+                        .or(BiomeSelectors.includeByKey(RegistryKey.of(Registry.BIOME_KEY, new Identifier("dark_forest")))),
+                SpawnGroup.CREATURE, LovelySnailsRegistry.SNAIL_ENTITY_TYPE, 8, 1, 3);
     }
 
     public static Identifier id(String path) {

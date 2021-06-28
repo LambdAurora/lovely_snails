@@ -23,9 +23,11 @@ import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
 import net.fabricmc.fabric.api.screenhandler.v1.ScreenHandlerRegistry;
 import net.fabricmc.fabric.api.tag.TagRegistry;
+import net.minecraft.block.Block;
 import net.minecraft.entity.EntityDimensions;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnGroup;
+import net.minecraft.entity.SpawnRestriction;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.SpawnEggItem;
@@ -33,6 +35,7 @@ import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.tag.Tag;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
+import net.minecraft.world.Heightmap;
 
 import static dev.lambdaurora.lovely_snails.LovelySnails.id;
 
@@ -65,6 +68,8 @@ public final class LovelySnailsRegistry {
                     .entityFactory(SnailEntity::new)
                     .defaultAttributes(SnailEntity::createSnailAttributes)
                     .dimensions(EntityDimensions.changing(1.5f, 2.f))
+                    .spawnRestriction(SpawnRestriction.Location.NO_RESTRICTIONS, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
+                            SnailEntity::canSpawn)
                     .build()
     );
 
@@ -74,6 +79,7 @@ public final class LovelySnailsRegistry {
 
     /* Tags */
 
+    public static final Tag<Block> SNAIL_SPAWN_BLOCKS = TagRegistry.block(id("snail_spawn_blocks"));
     public static final Tag<Item> SNAIL_BREEDING_ITEMS = TagRegistry.item(id("snail_breeding_items"));
 
     private static <T extends Item> T register(String name, T item) {

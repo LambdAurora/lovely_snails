@@ -29,6 +29,7 @@ import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.Block;
 import net.minecraft.block.CarpetBlock;
 import net.minecraft.block.DyedCarpetBlock;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.goal.*;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
@@ -40,6 +41,7 @@ import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.passive.AnimalEntity;
 import net.minecraft.entity.passive.PassiveEntity;
+import net.minecraft.entity.passive.TameableEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
@@ -70,9 +72,11 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.LocalDifficulty;
 import net.minecraft.world.ServerWorldAccess;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldAccess;
 import net.minecraft.world.event.GameEvent;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Random;
 import java.util.function.Predicate;
 
 /**
@@ -82,16 +86,15 @@ import java.util.function.Predicate;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class SnailEntity extends AnimalEntity implements InventoryChangedListener, Saddleable {
+public class SnailEntity extends TameableEntity implements InventoryChangedListener, Saddleable {
     private static final EntityAttributeModifier SCARED_ARMOR_BONUS = ShulkerEntityAccessor.lovely_snails$getCoveredArmorBonus();
 
     private static final TrackedData<Boolean> CHILD = PassiveEntityAccessor.lovely_snails$getChild();
     private static final TrackedData<Byte> SNAIL_FLAGS = DataTracker.registerData(SnailEntity.class, TrackedDataHandlerRegistry.BYTE);
     private static final TrackedData<Byte> CHEST_FLAGS = DataTracker.registerData(SnailEntity.class, TrackedDataHandlerRegistry.BYTE);
     private static final TrackedData<Integer> CARPET_COLOR = DataTracker.registerData(SnailEntity.class, TrackedDataHandlerRegistry.INTEGER);
-    private static final int TAMED_FLAG = 0b00000001;
-    private static final int SADDLED_FLAG = 0b00000010;
-    private static final int SCARED_FLAG = 0b00000100;
+    private static final int SADDLED_FLAG = 0b00000001;
+    private static final int SCARED_FLAG = 0b00000010;
 
     public static final int SADDLE_SLOT = 0;
     public static final int CARPET_SLOT = 1;
@@ -112,6 +115,11 @@ public class SnailEntity extends AnimalEntity implements InventoryChangedListene
                 .add(EntityAttributes.GENERIC_FOLLOW_RANGE, 48.0);
     }
 
+    public static boolean canSpawn(EntityType<? extends AnimalEntity> type, WorldAccess world, SpawnReason spawnReason, BlockPos pos, Random random) {
+        var spawnBlock = world.getBlockState(pos.down());
+        return world.getBaseLightLevel(pos, 0) > 8 && spawnBlock.isIn(LovelySnailsRegistry.SNAIL_SPAWN_BLOCKS);
+    }
+
     @Override
     public EntityData initialize(ServerWorldAccess world, LocalDifficulty difficulty, SpawnReason spawnReason, @Nullable EntityData entityData,
                                  @Nullable NbtCompound entityNbt) {
@@ -130,24 +138,6 @@ public class SnailEntity extends AnimalEntity implements InventoryChangedListene
         } else {
             this.dataTracker.set(SNAIL_FLAGS, (byte) (b & ~bitmask));
         }
-    }
-
-    /**
-     * Returns whether this snail is tamed.
-     *
-     * @return {@code true} if this snail is tamed, else {@code false}
-     */
-    public boolean isTamed() {
-        return this.getSnailFlag(TAMED_FLAG);
-    }
-
-    /**
-     * Sets whether this snail is tamed.
-     *
-     * @param tamed {@code true} if this snail is tamed, else {@code false}
-     */
-    public void setTamed(boolean tamed) {
-        this.setSnailFlag(TAMED_FLAG, tamed);
     }
 
     /**
@@ -217,7 +207,6 @@ public class SnailEntity extends AnimalEntity implements InventoryChangedListene
         super.readCustomDataFromNbt(nbt);
 
         this.setBaby(!nbt.contains("baby", NbtElement.BYTE_TYPE) || nbt.getBoolean("baby"));
-        this.setTamed(nbt.getBoolean("tame"));
 
         this.readSpecialSlot(nbt, "saddle", SADDLE_SLOT, stack -> stack.isOf(Items.SADDLE));
         this.readSpecialSlot(nbt, "decor", CARPET_SLOT,
@@ -245,9 +234,9 @@ public class SnailEntity extends AnimalEntity implements InventoryChangedListene
     @Override
     public void writeCustomDataToNbt(NbtCompound nbt) {
         super.writeCustomDataToNbt(nbt);
+        nbt.remove("Sitting"); // We don't actually need that as you can't make a snail sit.
 
         nbt.putBoolean("baby", this.isBaby());
-        nbt.putBoolean("tame", this.isTamed());
 
         this.writeSpecialSlot(nbt, "saddle", SADDLE_SLOT);
         this.writeSpecialSlot(nbt, "decor", CARPET_SLOT);
@@ -346,6 +335,19 @@ public class SnailEntity extends AnimalEntity implements InventoryChangedListene
         return this.inventory != inventory;
     }
 
+    @Override
+    protected void dropInventory() {
+        super.dropInventory();
+
+        if (this.inventory != null) {
+            for (int slot = 0; slot < this.inventory.size(); ++slot) {
+                var stack = this.inventory.getStack(slot);
+                if (!stack.isEmpty() && !EnchantmentHelper.hasVanishingCurse(stack))
+                    this.dropStack(stack);
+            }
+        }
+    }
+
     protected void updateInventory() {
         var previousInventory = this.inventory;
         this.inventory = new SimpleInventory(this.getInventorySize());
@@ -396,14 +398,27 @@ public class SnailEntity extends AnimalEntity implements InventoryChangedListene
             }
 
             if (this.isBreedingItem(handStack)) {
-                int i = this.getBreedingAge();
-                if (!this.world.isClient() && i == 0 && this.canEat()) {
+                if (this.isTamed()) {
+                    int breedingAge = this.getBreedingAge();
+                    if (!this.world.isClient() && breedingAge == 0 && this.canEat()) {
+                        this.eat(player, hand, handStack);
+                        this.lovePlayer(player);
+                        this.emitGameEvent(GameEvent.MOB_INTERACT, this.getCameraBlockPos());
+                        return ActionResult.SUCCESS;
+                    } else if (this.world.isClient()) {
+                        return ActionResult.CONSUME;
+                    }
+                } else {
                     this.eat(player, hand, handStack);
-                    this.lovePlayer(player);
-                    this.emitGameEvent(GameEvent.MOB_INTERACT, this.getCameraBlockPos());
-                    return ActionResult.SUCCESS;
-                } else if (this.world.isClient()) {
-                    return ActionResult.CONSUME;
+                    if (this.random.nextInt(3) == 0) {
+                        this.setOwner(player);
+                        this.world.sendEntityStatus(this, (byte) 7);
+                    } else {
+                        this.world.sendEntityStatus(this, (byte) 6);
+                    }
+
+                    this.setPersistent();
+                    return ActionResult.success(this.world.isClient());
                 }
             }
 
@@ -602,8 +617,17 @@ public class SnailEntity extends AnimalEntity implements InventoryChangedListene
     /* Animal Stuff */
 
     @Override
-    public PassiveEntity createChild(ServerWorld world, PassiveEntity entity) {
-        return LovelySnailsRegistry.SNAIL_ENTITY_TYPE.create(world);
+    public PassiveEntity createChild(ServerWorld world, PassiveEntity otherParent) {
+        var child = LovelySnailsRegistry.SNAIL_ENTITY_TYPE.create(world);
+
+        if (otherParent instanceof SnailEntity otherSnail) {
+            if (this.isTamed()) {
+                child.setOwnerUuid(this.getOwnerUuid());
+                child.setTamed(true);
+            }
+        }
+
+        return child;
     }
 
     @Override
