@@ -79,6 +79,7 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
             }
         }
 
+        // Player inventory.
         for (int row = 0; row < 3; ++row) {
             for (int column = 0; column < 9; ++column) {
                 this.addSlot(new Slot(playerInventory, column + row * 9 + 9, 27 + column * 18, 102 + row * 18 + -18));
@@ -277,6 +278,15 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
         }
 
         return stack;
+    }
+
+    @Override
+    public boolean onButtonClick(PlayerEntity player, int id) {
+        if (id == 0 && this.hasEnderChest()) {
+            this.snail().openEnderChestInventory(player);
+            return true;
+        }
+        return super.onButtonClick(player, id);
     }
 
     @Override

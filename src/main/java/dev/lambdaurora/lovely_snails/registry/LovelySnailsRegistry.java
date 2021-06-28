@@ -70,7 +70,6 @@ public final class LovelySnailsRegistry {
 
     /* Packet */
 
-    public static final Identifier SNAIL_OPEN_ENDER_CHEST_PACKET = id("snail_open_ender_chest");
     public static final Identifier SNAIL_SET_STORAGE_PAGE = id("snail_set_storage_page");
 
     /* Tags */

@@ -20,22 +20,20 @@ package dev.lambdaurora.lovely_snails.client.screen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.lambdaurora.lovely_snails.LovelySnails;
 import dev.lambdaurora.lovely_snails.entity.SnailEntity;
-import dev.lambdaurora.lovely_snails.registry.LovelySnailsRegistry;
 import dev.lambdaurora.lovely_snails.screen.SnailScreenHandler;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
 import net.minecraft.client.gui.widget.TexturedButtonWidget;
 import net.minecraft.client.render.GameRenderer;
+import net.minecraft.client.sound.PositionedSoundInstance;
+import net.minecraft.client.sound.SoundManager;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.InventoryChangedListener;
-import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -165,16 +163,16 @@ public class SnailInventoryScreen extends HandledScreen<SnailScreenHandler> {
             super(x, y, 18, 18, 0, 0, 18, LovelySnails.id("textures/gui/snail_ender_chest_button.png"),
                     18, 36,
                     btn -> {
-                        var buffer = PacketByteBufs.create();
-                        buffer.writeVarInt(SnailInventoryScreen.this.getScreenHandler().snail().getId());
-                        ClientPlayNetworking.send(LovelySnailsRegistry.SNAIL_OPEN_ENDER_CHEST_PACKET, buffer);
-
-                        var snail = SnailInventoryScreen.this.getScreenHandler().snail();
-                        var world = snail.getEntityWorld();
-                        world.playSound(MinecraftClient.getInstance().player, snail.getBlockPos(),
-                                SoundEvents.BLOCK_ENDER_CHEST_OPEN, SoundCategory.BLOCKS,
-                                .5f, snail.getRandom().nextFloat() * .1f + .9f);
+                        var client = MinecraftClient.getInstance();
+                        var screenHandler = SnailInventoryScreen.this.getScreenHandler();
+                        client.interactionManager.clickButton(screenHandler.syncId, 0);
                     });
+        }
+
+        @Override
+        public void playDownSound(SoundManager soundManager) {
+            var snail = SnailInventoryScreen.this.getScreenHandler().snail();
+            soundManager.play(PositionedSoundInstance.master(SoundEvents.BLOCK_ENDER_CHEST_OPEN, snail.getRandom().nextFloat() * .1f + .9f, .5f));
         }
 
         @Override
