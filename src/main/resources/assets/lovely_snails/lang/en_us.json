@@ -1,4 +1,6 @@
 {
   "item.lovely_snails.snail_spawn_egg": "Snail Spawn Egg",
-  "entity.lovely_snails.snail": "Snail"
+  "entity.lovely_snails.snail": "Snail",
+  "subtitles.lovely_snails.entity.snail.death": "Snail dies",
+  "subtitles.lovely_snails.entity.snail.hurt": "Snail hurts"
 }

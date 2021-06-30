@@ -1,0 +1,22 @@
+{
+  "entity.lovely_snails.snail.death": {
+    "sounds": [
+      "mob/slime/small1",
+      "mob/slime/small2",
+      "mob/slime/small3",
+      "mob/slime/small4",
+      "mob/slime/small5"
+    ],
+    "subtitle": "subtitles.lovely_snails.entity.snail.death"
+  },
+  "entity.lovely_snails.snail.hurt": {
+    "sounds": [
+      "mob/slime/small1",
+      "mob/slime/small2",
+      "mob/slime/small3",
+      "mob/slime/small4",
+      "mob/slime/small5"
+    ],
+    "subtitle": "subtitles.lovely_snails.entity.snail.hurt"
+  }
+}

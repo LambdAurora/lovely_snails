@@ -32,6 +32,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.SpawnEggItem;
 import net.minecraft.screen.ScreenHandlerType;
+import net.minecraft.sound.SoundEvent;
 import net.minecraft.tag.Tag;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
@@ -73,6 +74,11 @@ public final class LovelySnailsRegistry {
                     .build()
     );
 
+    /* Sounds */
+
+    public static final SoundEvent SNAIL_DEATH_SOUND_EVENT = registerSound("entity.lovely_snails.snail.death");
+    public static final SoundEvent SNAIL_HURT_SOUND_EVENT = registerSound("entity.lovely_snails.snail.hurt");
+
     /* Packet */
 
     public static final Identifier SNAIL_SET_STORAGE_PAGE = id("snail_set_storage_page");
@@ -81,9 +87,15 @@ public final class LovelySnailsRegistry {
 
     public static final Tag<Block> SNAIL_SPAWN_BLOCKS = TagRegistry.block(id("snail_spawn_blocks"));
     public static final Tag<Item> SNAIL_BREEDING_ITEMS = TagRegistry.item(id("snail_breeding_items"));
+    public static final Tag<Item> SNAIL_FOOD_ITEMS = TagRegistry.item(id("snail_food_items"));
 
     private static <T extends Item> T register(String name, T item) {
         return Registry.register(Registry.ITEM, id(name), item);
+    }
+
+    private static SoundEvent registerSound(String path) {
+        var id = id(path);
+        return Registry.register(Registry.SOUND_EVENT, id, new SoundEvent(id));
     }
 
     public static void init() {

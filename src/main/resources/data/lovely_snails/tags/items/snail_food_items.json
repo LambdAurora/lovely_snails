@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "#lovely_snails:snail_breeding_items",
+    "minecraft:fern",
+    "minecraft:grass",
+    "minecraft:kelp"
+  ]
+}

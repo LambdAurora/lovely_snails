@@ -35,6 +35,7 @@ import net.minecraft.entity.ai.goal.*;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
+import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
@@ -53,12 +54,14 @@ import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.screen.GenericContainerScreenHandler;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
@@ -180,9 +183,7 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
     public void setSatisfaction(int satisfaction) {
         this.satisfaction = satisfaction;
 
-        if (this.satisfaction > 0) {
-            this.setBaby(false);
-        }
+        this.setBaby(satisfaction < 0);
     }
 
     /**
@@ -194,7 +195,7 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
         this.setSatisfaction(this.getSatisfaction() + baseSatisfaction + this.random.nextInt(10));
         this.putInteractionOnCooldown();
 
-        this.world.sendEntityStatus(this, (byte) 7);
+        this.world.sendEntityStatus(this, (byte) 8);
     }
 
     public short getInteractionCooldown() {
@@ -205,8 +206,13 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
         }
     }
 
+    public boolean canInteract() {
+        return this.getInteractionCooldown() == 0;
+    }
+
     public void setInteractionCooldown(int interactionCooldown) {
-        if ((this.interactionCooldown == 0 && interactionCooldown != 0) || (interactionCooldown == 0 && this.interactionCooldown != 0))
+        boolean onCooldown = this.interactionCooldown > 0;
+        if (onCooldown == (interactionCooldown == 0))
             this.setSnailFlag(INTERACTION_COOLDOWN_FLAG, interactionCooldown != 0);
 
         this.interactionCooldown = (short) interactionCooldown;
@@ -216,7 +222,7 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
      * Puts interactions that brings satisfaction on cool-down.
      */
     public void putInteractionOnCooldown() {
-        this.setInteractionCooldown(55 + this.random.nextInt(10));
+        this.setInteractionCooldown(75 + this.random.nextInt(10));
     }
 
     public static @Nullable DyeColor getColorFromCarpet(ItemStack color) {
@@ -239,6 +245,30 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
             return this.getDimensions(EntityPose.STANDING).height * 0.95f;
         else
             return super.getMountedHeightOffset();
+    }
+
+    @Override
+    public void handleStatus(byte status) {
+        if (status == 8) {
+            for (int i = 0; i < 7; ++i) {
+                double xOffset = this.random.nextGaussian() * 0.02;
+                double yOffset = this.random.nextGaussian() * 0.02;
+                double zOffset = this.random.nextGaussian() * 0.02;
+                this.world.addParticle(this.random.nextBoolean() ? ParticleTypes.HAPPY_VILLAGER : ParticleTypes.HEART,
+                        this.getParticleX(1.0), this.getRandomBodyY() + 0.5, this.getParticleZ(1.0),
+                        xOffset, yOffset, zOffset);
+            }
+        } else if (status == 9) {
+            for (int i = 0; i < 7; ++i) {
+                double xOffset = this.random.nextGaussian() * 0.02;
+                double yOffset = this.random.nextGaussian() * 0.02;
+                double zOffset = this.random.nextGaussian() * 0.02;
+                this.world.addParticle(ParticleTypes.ANGRY_VILLAGER,
+                        this.getParticleX(1.0), this.getRandomBodyY() + 0.5, this.getParticleZ(1.0),
+                        xOffset, yOffset, zOffset);
+            }
+        } else
+            super.handleStatus(status);
     }
 
     /* Data Tracker Stuff */
@@ -429,9 +459,19 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
     @Override
     public void onInventoryChanged(Inventory sender) {
         boolean previouslySaddled = this.isSaddled();
+        boolean hadDecor = this.getCarpetColor() != null;
         this.syncInventoryToFlags();
         if (this.age > 20 && !previouslySaddled && this.isSaddled()) {
             this.playSound(SoundEvents.ENTITY_HORSE_SADDLE, .5f, 1.f);
+        }
+
+        if (!this.reading && !this.world.isClient() && !hadDecor && this.getCarpetColor() != null && this.canInteract()) {
+            var biome = this.world.getBiome(this.getBlockPos());
+
+            int baseSatisfaction;
+            if (biome.isCold(this.getBlockPos())) baseSatisfaction = 15;
+            else baseSatisfaction = 5;
+            this.satisfies(baseSatisfaction);
         }
     }
 
@@ -501,11 +541,26 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
                 }
 
                 return ActionResult.success(this.world.isClient());
-            } else if (handStack.isEmpty()) {
-                // What about petting a snail?
-                this.satisfies(10);
+            } else if (this.canInteract() && this.getOwner() == player) {
+                boolean likeItem = handStack.isIn(LovelySnailsRegistry.SNAIL_FOOD_ITEMS);
+                if (handStack.isEmpty() || likeItem) {
+                    // What about petting a snail?
+                    if (!this.world.isClient())
+                        this.satisfies(likeItem ? 20 : 10);
 
-                return ActionResult.success(this.world.isClient());
+                    return ActionResult.success(this.world.isClient());
+                } else if (handStack.isOf(Items.POISONOUS_POTATO)) {
+                    // Watch me break one of Jeb's rule.
+                    // Also why the fuck would you give a poisonous potato to a snail?
+                    if (!this.world.isClient()) {
+                        this.setSatisfaction(this.getSatisfaction() - 4000);
+                        this.putInteractionOnCooldown();
+
+                        this.world.sendEntityStatus(this, (byte) 9);
+                    }
+
+                    return ActionResult.success(this.world.isClient());
+                }
             }
         }
 
@@ -516,7 +571,16 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
         if (this.getOwner() != waterOwner)
             return;
 
-        this.satisfies(15);
+        if (this.canInteract()) {
+            var biome = this.world.getBiome(this.getBlockPos());
+            var downfall = biome.getDownfall();
+
+            int baseSatisfaction;
+            if (downfall < .4f) baseSatisfaction = 20;
+            else if (biome.isCold(this.getBlockPos())) baseSatisfaction = 10;
+            else baseSatisfaction = 15;
+            this.satisfies(baseSatisfaction);
+        }
     }
 
 
@@ -611,6 +675,11 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
             if (this.random.nextInt(900) == 0 && this.deathTime == 0) {
                 this.heal(1.f);
             }
+
+            short interactionCooldown = this.getInteractionCooldown();
+            if (interactionCooldown != 0) {
+                this.setInteractionCooldown(interactionCooldown - 1);
+            }
         }
     }
 
@@ -662,6 +731,18 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
     @Override
     protected boolean isImmobile() {
         return super.isImmobile() && this.hasPassengers() && this.isSaddled();
+    }
+
+    /* Sounds */
+
+    @Override
+    protected SoundEvent getHurtSound(DamageSource source) {
+        return LovelySnailsRegistry.SNAIL_HURT_SOUND_EVENT;
+    }
+
+    @Override
+    protected SoundEvent getDeathSound() {
+        return LovelySnailsRegistry.SNAIL_DEATH_SOUND_EVENT;
     }
 
     /* Passive Stuff */

@@ -70,11 +70,23 @@ public class SnailModel extends EntityModel<SnailEntity> {
                         .uv(0, 32)
                         .cuboid(-(ADULT_FRONT_WIDTH / 2.f), 5.f, -20.f, ADULT_FRONT_WIDTH, 3.f, 40.f, dilation),
                 ModelTransform.pivot(0.f, 16.f, -2.f));
-        body.addChild("upper_body", new ModelPartBuilder()
+        var upperBody = body.addChild("upper_body", new ModelPartBuilder()
                         .uv(64, 16)
-                        .cuboid(-(ADULT_FRONT_WIDTH / 2.f), -7.f, -20.f, ADULT_FRONT_WIDTH, 12.f, 8.f,
+                        .cuboid(-(ADULT_FRONT_WIDTH / 2.f), -7.f, 0.f, ADULT_FRONT_WIDTH, 12.f, 8.f,
                                 dilation),
-                ModelTransform.NONE);
+                ModelTransform.pivot(0.f, 0.f, -20.f));
+        upperBody.addChild("left_tentacle", new ModelPartBuilder()
+                        .uv(0, 2)
+                        .cuboid(-ADULT_FRONT_WIDTH / 2.f, 0.f, -2.f, 4.f, 4.f, 2.f, dilation),
+                ModelTransform.NONE
+        );
+        upperBody.addChild("right_tentacle", new ModelPartBuilder()
+                        .uv(0, 2)
+                        .mirrored()
+                        .cuboid(ADULT_FRONT_WIDTH / 2.f - 4.f, 0.f, -2.f, 4.f, 4.f, 2.f, dilation),
+                ModelTransform.NONE
+        );
+
         root.addChild(SHELL, new ModelPartBuilder()
                         .cuboid(-(ADULT_FRONT_WIDTH / 2.f), 0.f, -2.f, ADULT_FRONT_WIDTH, ADULT_SHELL_DIAMETER, ADULT_SHELL_DIAMETER,
                                 dilation.add(4.f, 8.f, 8.f),
@@ -97,7 +109,10 @@ public class SnailModel extends EntityModel<SnailEntity> {
                         .uv(56, 0)
                         .cuboid(-(BABY_FRONT_WIDTH / 2.f), 22.f, -7.f, BABY_FRONT_WIDTH, 2.f, 14.f, dilation)
                         .uv(0, 10)
-                        .cuboid(-(BABY_FRONT_WIDTH / 2.f), 20.f, -7.f, BABY_FRONT_WIDTH, 2.f, 4.f, dilation),
+                        .cuboid(-(BABY_FRONT_WIDTH / 2.f), 20.f, -7.f, BABY_FRONT_WIDTH, 2.f, 4.f, dilation)
+                        .uv(0, 0)
+                        .cuboid(-(BABY_FRONT_WIDTH / 2.f), 22.f, -8.f, 1.f, 1.f, 1.f, dilation)
+                        .cuboid(BABY_FRONT_WIDTH / 2.f - 1.f, 22.f, -8.f, 1.f, 1.f, 1.f, dilation),
                 ModelTransform.pivot(0, 0, -2.f));
         babyRoot.addChild(SHELL, new ModelPartBuilder()
                         .uv(0, 32)
