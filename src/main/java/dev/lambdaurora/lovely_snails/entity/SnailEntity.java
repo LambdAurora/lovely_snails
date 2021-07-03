@@ -544,6 +544,7 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
             } else if (this.canInteract() && this.getOwner() == player) {
                 boolean likeItem = handStack.isIn(LovelySnailsRegistry.SNAIL_FOOD_ITEMS);
                 if (handStack.isEmpty() || likeItem) {
+                    if (likeItem) this.eat(player, hand, handStack);
                     // What about petting a snail?
                     if (!this.world.isClient())
                         this.satisfies(likeItem ? 20 : 10);
@@ -553,6 +554,7 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
                     // Watch me break one of Jeb's rule.
                     // Also why the fuck would you give a poisonous potato to a snail?
                     if (!this.world.isClient()) {
+                        this.eat(player, hand, handStack);
                         this.setSatisfaction(this.getSatisfaction() - 4000);
                         this.putInteractionOnCooldown();
 

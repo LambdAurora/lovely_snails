@@ -10,3 +10,9 @@
   - Items in a snail inventory are ordered by pages, which are associated to a chest.
   - Snail inventory pages can be browsed via scrolling in the storage space.
 - Added Snail Spawn Egg.
+
+### 1.0.1
+
+- Added French translations.
+- Added Simplified Chinese translations ([#2](https://github.com/LambdAurora/lovely_snails/pull/2)).
+- Fixed food not being consumed by snails.
