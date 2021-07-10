@@ -16,3 +16,8 @@
 - Added French translations.
 - Added Simplified Chinese translations ([#2](https://github.com/LambdAurora/lovely_snails/pull/2)).
 - Fixed food not being consumed by snails.
+
+### 1.0.2
+
+- Fix shift-click behavior in snail inventory.
+  - Fix chests being transferable to baby snails.

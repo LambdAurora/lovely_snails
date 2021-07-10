@@ -366,7 +366,7 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
 
         @Override
         public boolean canInsert(ItemStack stack) {
-            return stack.isOf(Items.CHEST) || stack.isOf(Items.ENDER_CHEST);
+            return (stack.isOf(Items.CHEST) || stack.isOf(Items.ENDER_CHEST)) && this.isEnabled();
         }
 
         @Override
@@ -391,6 +391,11 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
         @Override
         public boolean isEnabled() {
             return SnailScreenHandler.this.hasChest(this.storagePage) && SnailScreenHandler.this.currentStoragePage == this.storagePage;
+        }
+
+        @Override
+        public boolean canInsert(ItemStack stack) {
+            return this.isEnabled();
         }
     }
 }
