@@ -70,6 +70,7 @@ import net.minecraft.util.Arm;
 import net.minecraft.util.DyeColor;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.*;
@@ -83,7 +84,7 @@ import java.util.function.Predicate;
  * Represents the snail entity.
  *
  * @author LambdAurora
- * @version 1.0.0
+ * @version 1.0.3
  * @since 1.0.0
  */
 public class SnailEntity extends TameableEntity implements InventoryChangedListener, Saddleable {
@@ -192,8 +193,27 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
      * @param baseSatisfaction the base satisfaction amount
      */
     public void satisfies(int baseSatisfaction) {
-        this.setSatisfaction(this.getSatisfaction() + baseSatisfaction + this.random.nextInt(10));
-        this.putInteractionOnCooldown();
+        if (this.isBaby()) {
+            this.putInteractionOnCooldown();
+            int newSatisfaction = this.getSatisfaction() + baseSatisfaction + this.random.nextInt(10);
+
+            if (newSatisfaction >= 0) {
+                var adultDimensions = this.getType().getDimensions();
+                float width = adultDimensions.width * .8f;
+                float eyeHeight = this.getEyeHeight(EntityPose.STANDING, adultDimensions);
+                var box = Box.of(new Vec3d(this.getX(), this.getY() + eyeHeight, this.getZ()), width, 1.0E-6, width);
+
+                // Adult form will suffocate, so we must prevent the growth until the player moves the snail.
+                boolean willSuffocate = this.world.getBlockCollisions(this, box, (state, pos) -> state.shouldSuffocate(this.world, pos))
+                        .findAny().isPresent();
+                if (willSuffocate) {
+                    this.world.sendEntityStatus(this, (byte) 10);
+                    return;
+                }
+            }
+
+            this.setSatisfaction(newSatisfaction);
+        }
 
         this.world.sendEntityStatus(this, (byte) 8);
     }
@@ -264,6 +284,15 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
                 double yOffset = this.random.nextGaussian() * 0.02;
                 double zOffset = this.random.nextGaussian() * 0.02;
                 this.world.addParticle(ParticleTypes.ANGRY_VILLAGER,
+                        this.getParticleX(1.0), this.getRandomBodyY() + 0.5, this.getParticleZ(1.0),
+                        xOffset, yOffset, zOffset);
+            }
+        } else if (status == 10) {
+            for (int i = 0; i < 7; ++i) {
+                double xOffset = this.random.nextGaussian() * 0.02;
+                double yOffset = this.random.nextGaussian() * 0.02;
+                double zOffset = this.random.nextGaussian() * 0.02;
+                this.world.addParticle(this.random.nextBoolean() ? ParticleTypes.ANGRY_VILLAGER : ParticleTypes.SMOKE,
                         this.getParticleX(1.0), this.getRandomBodyY() + 0.5, this.getParticleZ(1.0),
                         xOffset, yOffset, zOffset);
             }
@@ -770,6 +799,7 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
     public void setBaby(boolean baby) {
         var wasBaby = this.dataTracker.get(CHILD);
         this.dataTracker.set(CHILD, baby);
+        this.calculateDimensions();
 
         if (wasBaby && !baby && !this.reading) {
             this.onGrowUp();
@@ -782,7 +812,7 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
     public PassiveEntity createChild(ServerWorld world, PassiveEntity otherParent) {
         var child = LovelySnailsRegistry.SNAIL_ENTITY_TYPE.create(world);
 
-        if (otherParent instanceof SnailEntity otherSnail) {
+        if (otherParent instanceof SnailEntity) {
             if (this.isTamed()) {
                 child.setOwnerUuid(this.getOwnerUuid());
                 child.setTamed(true);

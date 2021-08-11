@@ -43,7 +43,7 @@ import net.minecraft.util.math.MathHelper;
  * Represents the snail inventory screen.
  *
  * @author LambdAurora
- * @version 1.0.0
+ * @version 1.0.3
  * @since 1.0.0
  */
 @Environment(EnvType.CLIENT)
@@ -53,6 +53,7 @@ public class SnailInventoryScreen extends HandledScreen<SnailScreenHandler> {
     private float mouseX;
     private float mouseY;
     private EnderChestButton enderChestButton;
+    private PageButton[] pageButtons = new PageButton[3];
 
     public SnailInventoryScreen(SnailScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, handler.snail().getDisplayName());
@@ -60,34 +61,51 @@ public class SnailInventoryScreen extends HandledScreen<SnailScreenHandler> {
         this.entity = handler.snail();
     }
 
-    private void clearEnderChestListener() {
+    private void clearListeners() {
         if (this.enderChestButton != null) {
             this.getScreenHandler().getInventory().removeListener(this.enderChestButton);
         }
         this.enderChestButton = null;
+
+        for (int page = 0; page < 3; page++) {
+            if (this.pageButtons[page] != null) {
+                this.getScreenHandler().getInventory().removeListener(this.pageButtons[page]);
+                this.getScreenHandler().removePageChangeListener(this.pageButtons[page]);
+            }
+
+            this.pageButtons[page] = null;
+        }
     }
 
     @Override
     protected void init() {
         super.init();
-        this.clearEnderChestListener();
+        this.clearListeners();
 
         int x = (this.width - this.backgroundWidth) / 2;
         int y = (this.height - this.backgroundHeight) / 2;
         this.addDrawableChild(this.enderChestButton = new EnderChestButton(x + 7 + 18, y + 35 + 18));
         this.getScreenHandler().getInventory().addListener(this.enderChestButton);
+
+        int buttonX = x + this.backgroundWidth - 3;
+        int buttonY = y + 17;
+        for (int page = 0; page < 3; page++) {
+            this.addDrawableChild(this.pageButtons[page] = new PageButton(buttonX, buttonY, page));
+            this.getScreenHandler().getInventory().addListener(this.pageButtons[page]);
+            this.getScreenHandler().addPageChangeListener(this.pageButtons[page]);
+        }
     }
 
     @Override
     public void removed() {
         super.removed();
-        this.clearEnderChestListener();
+        this.clearListeners();
     }
 
     @Override
     public void onClose() {
         super.onClose();
-        this.clearEnderChestListener();
+        this.clearListeners();
     }
 
     /* Input */
@@ -178,6 +196,33 @@ public class SnailInventoryScreen extends HandledScreen<SnailScreenHandler> {
         @Override
         public void onInventoryChanged(Inventory sender) {
             this.visible = this.active = SnailInventoryScreen.this.getScreenHandler().hasEnderChest();
+        }
+    }
+
+    private class PageButton extends TexturedButtonWidget implements InventoryChangedListener, SnailScreenHandler.InventoryPageChangeListener {
+        private final int page;
+
+        public PageButton(int x, int y, int page) {
+            super(x, y + page * 18 + 1, 15, 16, 211 + page * 15, 0, 16, TEXTURE,
+                    256, 256,
+                    btn -> {
+                        SnailInventoryScreen.this.getScreenHandler().requestStoragePage(page);
+                    });
+            this.page = page;
+
+            this.visible = SnailInventoryScreen.this.getScreenHandler().hasChest(this.page);
+            this.onCurrentPageSet(SnailInventoryScreen.this.getScreenHandler().getCurrentStoragePage());
+        }
+
+        @Override
+        public void onInventoryChanged(Inventory sender) {
+            this.visible = SnailInventoryScreen.this.getScreenHandler().hasChest(page);
+        }
+
+        @Override
+        public void onCurrentPageSet(int page) {
+            this.active = this.page != page;
+            this.setFocused(this.page == page);
         }
     }
 }

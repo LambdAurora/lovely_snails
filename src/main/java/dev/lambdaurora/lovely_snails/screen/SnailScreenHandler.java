@@ -36,10 +36,14 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.server.network.ServerPlayerEntity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class SnailScreenHandler extends ScreenHandler implements InventoryChangedListener {
     private final PlayerEntity player;
     private final SimpleInventory inventory;
     private final SnailEntity entity;
+    private final List<InventoryPageChangeListener> pageChangeListeners = new ArrayList<>();
     private int currentStoragePage;
 
     public SnailScreenHandler(int syncId, PlayerInventory playerInventory, PacketByteBuf buf) {
@@ -171,6 +175,10 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
             buffer.writeByte(page);
             ServerPlayNetworking.send(serverPlayerEntity, LovelySnailsRegistry.SNAIL_SET_STORAGE_PAGE, buffer);
         }
+
+        for (var listener : this.pageChangeListeners) {
+            listener.onCurrentPageSet(page);
+        }
     }
 
     /**
@@ -199,6 +207,14 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
             }
         }
         return 0;
+    }
+
+    public void addPageChangeListener(InventoryPageChangeListener listener) {
+        this.pageChangeListeners.add(listener);
+    }
+
+    public void removePageChangeListener(InventoryPageChangeListener listener) {
+        this.pageChangeListeners.remove(listener);
     }
 
     @Override
@@ -308,7 +324,15 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
                 }
                 default -> getOpeningStoragePage(this.getInventory());
             };
+
+            for (var listener : this.pageChangeListeners) {
+                listener.onCurrentPageSet(this.currentStoragePage);
+            }
         }
+    }
+
+    public interface InventoryPageChangeListener {
+        void onCurrentPageSet(int page);
     }
 
     private static class SaddleSlot extends Slot {

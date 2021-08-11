@@ -19,5 +19,10 @@
 
 ### 1.0.2
 
-- Fix shift-click behavior in snail inventory.
-  - Fix chests being transferable to baby snails.
+- Fixed shift-click behavior in snail inventory.
+  - Fixed chests being transferable to baby snails.
+
+### 1.0.3
+
+- Added inventory page buttons to improve accessibility.
+- Fixed baby snails collision box.
