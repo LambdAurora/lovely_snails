@@ -24,8 +24,8 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(PassiveEntity.class)
 public interface PassiveEntityAccessor {
-    @Accessor("CHILD")
-    static TrackedData<Boolean> lovely_snails$getChild() {
-        throw new UnsupportedOperationException("Mixin injection failed.");
-    }
+	@Accessor("CHILD")
+	static TrackedData<Boolean> lovely_snails$getChild() {
+		throw new UnsupportedOperationException("Mixin injection failed.");
+	}
 }

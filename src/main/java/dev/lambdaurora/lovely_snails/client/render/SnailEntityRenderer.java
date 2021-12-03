@@ -34,20 +34,20 @@ import net.minecraft.util.Identifier;
  * @since 1.0.0
  */
 public class SnailEntityRenderer extends MobEntityRenderer<SnailEntity, SnailModel> {
-    public static final Identifier TEXTURE = LovelySnails.id("textures/entity/snail/snail.png");
+	public static final Identifier TEXTURE = LovelySnails.id("textures/entity/snail/snail.png");
 
-    public SnailEntityRenderer(EntityRendererFactory.Context context) {
-        super(context, new SnailModel(context.getPart(LovelySnailsClient.SNAIL_MODEL_LAYER)), .5f);
+	public SnailEntityRenderer(EntityRendererFactory.Context context) {
+		super(context, new SnailModel(context.getPart(LovelySnailsClient.SNAIL_MODEL_LAYER)), .5f);
 
-        this.addFeature(new SaddleFeatureRenderer<>(this,
-                new SnailModel(context.getPart(LovelySnailsClient.SNAIL_SADDLE_MODEL_LAYER)),
-                LovelySnails.id("textures/entity/snail/saddle.png")));
-        this.addFeature(new SnailDecorFeatureRenderer(this, context));
-        this.addFeature(new SnailChestFeatureRenderer(this, context));
-    }
+		this.addFeature(new SaddleFeatureRenderer<>(this,
+				new SnailModel(context.getPart(LovelySnailsClient.SNAIL_SADDLE_MODEL_LAYER)),
+				LovelySnails.id("textures/entity/snail/saddle.png")));
+		this.addFeature(new SnailDecorFeatureRenderer(this, context));
+		this.addFeature(new SnailChestFeatureRenderer(this, context));
+	}
 
-    @Override
-    public Identifier getTexture(SnailEntity entity) {
-        return TEXTURE;
-    }
+	@Override
+	public Identifier getTexture(SnailEntity entity) {
+		return TEXTURE;
+	}
 }

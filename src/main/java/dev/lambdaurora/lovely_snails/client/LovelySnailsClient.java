@@ -42,30 +42,30 @@ import net.minecraft.client.render.entity.model.EntityModelLayer;
  */
 @Environment(EnvType.CLIENT)
 public class LovelySnailsClient implements ClientModInitializer {
-    public static final EntityModelLayer SNAIL_MODEL_LAYER = new EntityModelLayer(LovelySnails.id("snail"), "main");
-    public static final EntityModelLayer SNAIL_SADDLE_MODEL_LAYER = new EntityModelLayer(LovelySnails.id("snail"), "saddle");
-    public static final EntityModelLayer SNAIL_DECOR_MODEL_LAYER = new EntityModelLayer(LovelySnails.id("snail"), "decor");
+	public static final EntityModelLayer SNAIL_MODEL_LAYER = new EntityModelLayer(LovelySnails.id("snail"), "main");
+	public static final EntityModelLayer SNAIL_SADDLE_MODEL_LAYER = new EntityModelLayer(LovelySnails.id("snail"), "saddle");
+	public static final EntityModelLayer SNAIL_DECOR_MODEL_LAYER = new EntityModelLayer(LovelySnails.id("snail"), "decor");
 
-    @SuppressWarnings("UnstableApiUsage")
-    @Override
-    public void onInitializeClient() {
-        EntityRendererRegistry.INSTANCE.register(LovelySnailsRegistry.SNAIL_ENTITY_TYPE, SnailEntityRenderer::new);
-        EntityModelLayerRegistry.registerModelLayer(SNAIL_MODEL_LAYER, () -> SnailModel.model(Dilation.NONE));
-        EntityModelLayerRegistry.registerModelLayer(SNAIL_SADDLE_MODEL_LAYER, () -> SnailModel.model(new Dilation(0.5f)));
-        EntityModelLayerRegistry.registerModelLayer(SNAIL_DECOR_MODEL_LAYER, () -> SnailModel.model(new Dilation(0.25f)));
+	@SuppressWarnings("UnstableApiUsage")
+	@Override
+	public void onInitializeClient() {
+		EntityRendererRegistry.INSTANCE.register(LovelySnailsRegistry.SNAIL_ENTITY_TYPE, SnailEntityRenderer::new);
+		EntityModelLayerRegistry.registerModelLayer(SNAIL_MODEL_LAYER, () -> SnailModel.model(Dilation.NONE));
+		EntityModelLayerRegistry.registerModelLayer(SNAIL_SADDLE_MODEL_LAYER, () -> SnailModel.model(new Dilation(0.5f)));
+		EntityModelLayerRegistry.registerModelLayer(SNAIL_DECOR_MODEL_LAYER, () -> SnailModel.model(new Dilation(0.25f)));
 
-        ScreenRegistry.register(LovelySnailsRegistry.SNAIL_SCREEN_HANDLER_TYPE, SnailInventoryScreen::new);
+		ScreenRegistry.register(LovelySnailsRegistry.SNAIL_SCREEN_HANDLER_TYPE, SnailInventoryScreen::new);
 
-        ClientPlayNetworking.registerGlobalReceiver(LovelySnailsRegistry.SNAIL_SET_STORAGE_PAGE,
-                (client, handler, buf, responseSender) -> {
-                    int syncId = buf.readVarInt();
-                    byte storagePage = buf.readByte();
-                    client.execute(() -> {
-                        if (client.player.currentScreenHandler instanceof SnailScreenHandler snailScreenHandler
-                                && snailScreenHandler.syncId == syncId) {
-                            snailScreenHandler.setCurrentStoragePage(storagePage);
-                        }
-                    });
-                });
-    }
+		ClientPlayNetworking.registerGlobalReceiver(LovelySnailsRegistry.SNAIL_SET_STORAGE_PAGE,
+				(client, handler, buf, responseSender) -> {
+					int syncId = buf.readVarInt();
+					byte storagePage = buf.readByte();
+					client.execute(() -> {
+						if (client.player.currentScreenHandler instanceof SnailScreenHandler snailScreenHandler
+								&& snailScreenHandler.syncId == syncId) {
+							snailScreenHandler.setCurrentStoragePage(storagePage);
+						}
+					});
+				});
+	}
 }

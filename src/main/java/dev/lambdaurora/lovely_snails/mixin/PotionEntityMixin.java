@@ -31,22 +31,22 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 @Mixin(PotionEntity.class)
 public abstract class PotionEntityMixin extends ThrownItemEntity {
-    public PotionEntityMixin(EntityType<? extends ThrownItemEntity> entityType, World world) {
-        super(entityType, world);
-    }
+	public PotionEntityMixin(EntityType<? extends ThrownItemEntity> entityType, World world) {
+		super(entityType, world);
+	}
 
-    @Inject(
-            method = "damageEntitiesHurtByWater",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/world/World;getEntitiesByClass(Ljava/lang/Class;Lnet/minecraft/util/math/Box;Ljava/util/function/Predicate;)Ljava/util/List;"
-            ),
-            locals = LocalCapture.CAPTURE_FAILHARD
-    )
-    private void onWaterSplash(CallbackInfo ci, Box box) {
-        var snails = this.getWorld().getNonSpectatingEntities(SnailEntity.class, box);
-        for (var snail : snails) {
-            snail.onWaterSplashed(this.getOwner());
-        }
-    }
+	@Inject(
+			method = "damageEntitiesHurtByWater",
+			at = @At(
+					value = "INVOKE",
+					target = "Lnet/minecraft/world/World;getEntitiesByClass(Ljava/lang/Class;Lnet/minecraft/util/math/Box;Ljava/util/function/Predicate;)Ljava/util/List;"
+			),
+			locals = LocalCapture.CAPTURE_FAILHARD
+	)
+	private void onWaterSplash(CallbackInfo ci, Box box) {
+		var snails = this.getWorld().getNonSpectatingEntities(SnailEntity.class, box);
+		for (var snail : snails) {
+			snail.onWaterSplashed(this.getOwner());
+		}
+	}
 }

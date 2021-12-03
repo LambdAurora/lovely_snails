@@ -39,33 +39,33 @@ import net.minecraft.util.Identifier;
  * @since 1.0.0
  */
 public class SnailDecorFeatureRenderer extends FeatureRenderer<SnailEntity, SnailModel> {
-    private static final Identifier[] TEXTURES;
-    private final SnailModel model;
+	private static final Identifier[] TEXTURES;
+	private final SnailModel model;
 
-    public SnailDecorFeatureRenderer(FeatureRendererContext<SnailEntity, SnailModel> featureRendererContext, EntityRendererFactory.Context context) {
-        super(featureRendererContext);
+	public SnailDecorFeatureRenderer(FeatureRendererContext<SnailEntity, SnailModel> featureRendererContext, EntityRendererFactory.Context context) {
+		super(featureRendererContext);
 
-        this.model = new SnailModel(context.getPart(LovelySnailsClient.SNAIL_DECOR_MODEL_LAYER));
-    }
+		this.model = new SnailModel(context.getPart(LovelySnailsClient.SNAIL_DECOR_MODEL_LAYER));
+	}
 
-    @Override
-    public void render(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, SnailEntity entity,
-                       float limbAngle, float limbDistance, float tickDelta, float animationProgress, float headYaw, float headPitch) {
-        var dyeColor = entity.getCarpetColor();
-        if (dyeColor == null) return;
-        var texture = TEXTURES[dyeColor.getId()];
+	@Override
+	public void render(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, SnailEntity entity,
+	                   float limbAngle, float limbDistance, float tickDelta, float animationProgress, float headYaw, float headPitch) {
+		var dyeColor = entity.getCarpetColor();
+		if (dyeColor == null) return;
+		var texture = TEXTURES[dyeColor.getId()];
 
-        this.getContextModel().copyStateTo(this.model);
-        this.model.setAngles(entity, limbAngle, limbDistance, animationProgress, headYaw, headPitch);
-        var vertexConsumer = vertexConsumers.getBuffer(RenderLayer.getEntityCutoutNoCull(texture));
-        this.model.render(matrices, vertexConsumer, light, OverlayTexture.DEFAULT_UV, 1.f, 1.f, 1.f, 1.f);
-    }
+		this.getContextModel().copyStateTo(this.model);
+		this.model.setAngles(entity, limbAngle, limbDistance, animationProgress, headYaw, headPitch);
+		var vertexConsumer = vertexConsumers.getBuffer(RenderLayer.getEntityCutoutNoCull(texture));
+		this.model.render(matrices, vertexConsumer, light, OverlayTexture.DEFAULT_UV, 1.f, 1.f, 1.f, 1.f);
+	}
 
-    static {
-        var colors = DyeColor.values();
-        TEXTURES = new Identifier[colors.length];
-        for (var color : colors) {
-            TEXTURES[color.getId()] = LovelySnails.id("textures/entity/snail/decor/" + color.getName() + ".png");
-        }
-    }
+	static {
+		var colors = DyeColor.values();
+		TEXTURES = new Identifier[colors.length];
+		for (var color : colors) {
+			TEXTURES[color.getId()] = LovelySnails.id("textures/entity/snail/decor/" + color.getName() + ".png");
+		}
+	}
 }

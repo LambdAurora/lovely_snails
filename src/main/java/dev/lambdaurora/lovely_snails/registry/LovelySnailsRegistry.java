@@ -48,61 +48,61 @@ import static dev.lambdaurora.lovely_snails.LovelySnails.id;
  * @since 1.0.0
  */
 public final class LovelySnailsRegistry {
-    private LovelySnailsRegistry() {
-        throw new UnsupportedOperationException("Someone tried to instantiate a class only containing static definitions. How?");
-    }
+	private LovelySnailsRegistry() {
+		throw new UnsupportedOperationException("Someone tried to instantiate a class only containing static definitions. How?");
+	}
 
-    /* Items */
+	/* Items */
 
-    public static final SpawnEggItem SNAIL_SPAWN_EGG_ITEM;
+	public static final SpawnEggItem SNAIL_SPAWN_EGG_ITEM;
 
-    /* Screen handlers */
+	/* Screen handlers */
 
-    public static final ScreenHandlerType<SnailScreenHandler> SNAIL_SCREEN_HANDLER_TYPE =
-            ScreenHandlerRegistry.registerExtended(id("snail"), SnailScreenHandler::new);
+	public static final ScreenHandlerType<SnailScreenHandler> SNAIL_SCREEN_HANDLER_TYPE =
+			ScreenHandlerRegistry.registerExtended(id("snail"), SnailScreenHandler::new);
 
-    /* Entities */
+	/* Entities */
 
-    public static final EntityType<SnailEntity> SNAIL_ENTITY_TYPE = Registry.register(Registry.ENTITY_TYPE, id("snail"),
-            FabricEntityTypeBuilder.<SnailEntity>createMob()
-                    .spawnGroup(SpawnGroup.CREATURE)
-                    .entityFactory(SnailEntity::new)
-                    .defaultAttributes(SnailEntity::createSnailAttributes)
-                    .dimensions(EntityDimensions.changing(1.5f, 2.f))
-                    .spawnRestriction(SpawnRestriction.Location.NO_RESTRICTIONS, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
-                            SnailEntity::canSpawn)
-                    .build()
-    );
+	public static final EntityType<SnailEntity> SNAIL_ENTITY_TYPE = Registry.register(Registry.ENTITY_TYPE, id("snail"),
+			FabricEntityTypeBuilder.<SnailEntity>createMob()
+					.spawnGroup(SpawnGroup.CREATURE)
+					.entityFactory(SnailEntity::new)
+					.defaultAttributes(SnailEntity::createSnailAttributes)
+					.dimensions(EntityDimensions.changing(1.5f, 2.f))
+					.spawnRestriction(SpawnRestriction.Location.NO_RESTRICTIONS, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
+							SnailEntity::canSpawn)
+					.build()
+	);
 
-    /* Sounds */
+	/* Sounds */
 
-    public static final SoundEvent SNAIL_DEATH_SOUND_EVENT = registerSound("entity.lovely_snails.snail.death");
-    public static final SoundEvent SNAIL_HURT_SOUND_EVENT = registerSound("entity.lovely_snails.snail.hurt");
+	public static final SoundEvent SNAIL_DEATH_SOUND_EVENT = registerSound("entity.lovely_snails.snail.death");
+	public static final SoundEvent SNAIL_HURT_SOUND_EVENT = registerSound("entity.lovely_snails.snail.hurt");
 
-    /* Packet */
+	/* Packet */
 
-    public static final Identifier SNAIL_SET_STORAGE_PAGE = id("snail_set_storage_page");
+	public static final Identifier SNAIL_SET_STORAGE_PAGE = id("snail_set_storage_page");
 
-    /* Tags */
+	/* Tags */
 
-    public static final Tag<Block> SNAIL_SPAWN_BLOCKS = TagFactory.BLOCK.create(id("snail_spawn_blocks"));
-    public static final Tag<Item> SNAIL_BREEDING_ITEMS = TagFactory.ITEM.create(id("snail_breeding_items"));
-    public static final Tag<Item> SNAIL_FOOD_ITEMS = TagFactory.ITEM.create(id("snail_food_items"));
+	public static final Tag<Block> SNAIL_SPAWN_BLOCKS = TagFactory.BLOCK.create(id("snail_spawn_blocks"));
+	public static final Tag<Item> SNAIL_BREEDING_ITEMS = TagFactory.ITEM.create(id("snail_breeding_items"));
+	public static final Tag<Item> SNAIL_FOOD_ITEMS = TagFactory.ITEM.create(id("snail_food_items"));
 
-    private static <T extends Item> T register(String name, T item) {
-        return Registry.register(Registry.ITEM, id(name), item);
-    }
+	private static <T extends Item> T register(String name, T item) {
+		return Registry.register(Registry.ITEM, id(name), item);
+	}
 
-    private static SoundEvent registerSound(String path) {
-        var id = id(path);
-        return Registry.register(Registry.SOUND_EVENT, id, new SoundEvent(id));
-    }
+	private static SoundEvent registerSound(String path) {
+		var id = id(path);
+		return Registry.register(Registry.SOUND_EVENT, id, new SoundEvent(id));
+	}
 
-    public static void init() {
-    }
+	public static void init() {
+	}
 
-    static {
-        SNAIL_SPAWN_EGG_ITEM = register("snail_spawn_egg", new SpawnEggItem(SNAIL_ENTITY_TYPE, 0xff36201c, 0xffd58d51,
-                new FabricItemSettings().group(ItemGroup.MISC)));
-    }
+	static {
+		SNAIL_SPAWN_EGG_ITEM = register("snail_spawn_egg", new SpawnEggItem(SNAIL_ENTITY_TYPE, 0xff36201c, 0xffd58d51,
+				new FabricItemSettings().group(ItemGroup.MISC)));
+	}
 }

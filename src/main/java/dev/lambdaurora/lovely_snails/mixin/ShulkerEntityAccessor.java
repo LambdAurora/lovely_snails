@@ -24,8 +24,8 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(ShulkerEntity.class)
 public interface ShulkerEntityAccessor {
-    @Accessor("COVERED_ARMOR_BONUS")
-    static EntityAttributeModifier lovely_snails$getCoveredArmorBonus() {
-        throw new UnsupportedOperationException("Mixin injection failed.");
-    }
+	@Accessor("COVERED_ARMOR_BONUS")
+	static EntityAttributeModifier lovely_snails$getCoveredArmorBonus() {
+		throw new UnsupportedOperationException("Mixin injection failed.");
+	}
 }

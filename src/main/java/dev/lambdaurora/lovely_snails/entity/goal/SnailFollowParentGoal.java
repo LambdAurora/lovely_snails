@@ -29,75 +29,75 @@ import net.minecraft.entity.ai.goal.Goal;
  * @since 1.0.0
  */
 public class SnailFollowParentGoal extends Goal {
-    private final SnailEntity self;
-    private final double speed;
-    private SnailEntity parent;
-    private int delay;
+	private final SnailEntity self;
+	private final double speed;
+	private SnailEntity parent;
+	private int delay;
 
-    public SnailFollowParentGoal(SnailEntity self, double speed) {
-        this.self = self;
-        this.speed = speed;
-    }
+	public SnailFollowParentGoal(SnailEntity self, double speed) {
+		this.self = self;
+		this.speed = speed;
+	}
 
-    @Override
-    public boolean canStart() {
-        if (this.self.getBreedingAge() >= 0) {
-            return false;
-        } else {
-            var closeSnails = this.self.world.getNonSpectatingEntities(SnailEntity.class,
-                    this.self.getBoundingBox().expand(8.0, 4.0, 8.0)
-            );
-            SnailEntity closestParent = null;
-            double closestParentDistance = Double.MAX_VALUE;
+	@Override
+	public boolean canStart() {
+		if (this.self.getBreedingAge() >= 0) {
+			return false;
+		} else {
+			var closeSnails = this.self.world.getNonSpectatingEntities(SnailEntity.class,
+					this.self.getBoundingBox().expand(8.0, 4.0, 8.0)
+			);
+			SnailEntity closestParent = null;
+			double closestParentDistance = Double.MAX_VALUE;
 
-            for (var snail : closeSnails) {
-                if (!snail.isBaby()) {
-                    double snailDistance = this.self.squaredDistanceTo(snail);
-                    if (!(snailDistance > closestParentDistance)) {
-                        closestParentDistance = snailDistance;
-                        closestParent = snail;
-                    }
-                }
-            }
+			for (var snail : closeSnails) {
+				if (!snail.isBaby()) {
+					double snailDistance = this.self.squaredDistanceTo(snail);
+					if (!(snailDistance > closestParentDistance)) {
+						closestParentDistance = snailDistance;
+						closestParent = snail;
+					}
+				}
+			}
 
-            if (closestParent == null) {
-                return false;
-            } else if (closestParentDistance < 9.0) {
-                return false;
-            } else {
-                this.parent = closestParent;
-                return true;
-            }
-        }
-    }
+			if (closestParent == null) {
+				return false;
+			} else if (closestParentDistance < 9.0) {
+				return false;
+			} else {
+				this.parent = closestParent;
+				return true;
+			}
+		}
+	}
 
-    @Override
-    public boolean shouldContinue() {
-        if (!this.self.isBaby()) {
-            return false;
-        } else if (!this.parent.isAlive()) {
-            return false;
-        } else {
-            double parentDistance = this.self.squaredDistanceTo(this.parent);
-            return !(parentDistance < 9.0) && !(parentDistance > 256.0);
-        }
-    }
+	@Override
+	public boolean shouldContinue() {
+		if (!this.self.isBaby()) {
+			return false;
+		} else if (!this.parent.isAlive()) {
+			return false;
+		} else {
+			double parentDistance = this.self.squaredDistanceTo(this.parent);
+			return !(parentDistance < 9.0) && !(parentDistance > 256.0);
+		}
+	}
 
-    @Override
-    public void start() {
-        this.delay = 0;
-    }
+	@Override
+	public void start() {
+		this.delay = 0;
+	}
 
-    @Override
-    public void stop() {
-        this.parent = null;
-    }
+	@Override
+	public void stop() {
+		this.parent = null;
+	}
 
-    @Override
-    public void tick() {
-        if (--this.delay <= 0) {
-            this.delay = 10;
-            this.self.getNavigation().startMovingTo(this.parent, this.speed);
-        }
-    }
+	@Override
+	public void tick() {
+		if (--this.delay <= 0) {
+			this.delay = 10;
+			this.self.getNavigation().startMovingTo(this.parent, this.speed);
+		}
+	}
 }

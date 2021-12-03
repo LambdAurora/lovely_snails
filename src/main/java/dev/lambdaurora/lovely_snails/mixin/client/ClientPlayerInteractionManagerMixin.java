@@ -29,15 +29,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ClientPlayerInteractionManager.class)
 public class ClientPlayerInteractionManagerMixin {
-    @Shadow
-    @Final
-    private MinecraftClient client;
+	@Shadow
+	@Final
+	private MinecraftClient client;
 
-    @Inject(method = "hasRidingInventory", at = @At("HEAD"), cancellable = true)
-    private void onHasRidingInventory(CallbackInfoReturnable<Boolean> cir) {
-        //noinspection ConstantConditions
-        if (this.client.player.hasVehicle() && this.client.player.getVehicle() instanceof SnailEntity) {
-            cir.setReturnValue(true);
-        }
-    }
+	@Inject(method = "hasRidingInventory", at = @At("HEAD"), cancellable = true)
+	private void onHasRidingInventory(CallbackInfoReturnable<Boolean> cir) {
+		//noinspection ConstantConditions
+		if (this.client.player.hasVehicle() && this.client.player.getVehicle() instanceof SnailEntity) {
+			cir.setReturnValue(true);
+		}
+	}
 }

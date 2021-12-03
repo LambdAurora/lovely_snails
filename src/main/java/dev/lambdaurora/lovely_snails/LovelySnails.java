@@ -42,68 +42,68 @@ import net.minecraft.world.biome.Biome;
  * @since 1.0.0
  */
 public class LovelySnails implements ModInitializer {
-    public static final String NAMESPACE = "lovely_snails";
+	public static final String NAMESPACE = "lovely_snails";
 
-    @Override
-    public void onInitialize() {
-        LovelySnailsRegistry.init();
+	@Override
+	public void onInitialize() {
+		LovelySnailsRegistry.init();
 
-        ServerPlayNetworking.registerGlobalReceiver(LovelySnailsRegistry.SNAIL_SET_STORAGE_PAGE,
-                (server, player, handler, buf, responseSender) -> {
-                    int syncId = buf.readVarInt();
-                    byte storagePage = buf.readByte();
-                    server.execute(() -> {
-                        if (handler.getPlayer().currentScreenHandler instanceof SnailScreenHandler snailScreenHandler
-                                && snailScreenHandler.syncId == syncId) {
-                            snailScreenHandler.setCurrentStoragePage(storagePage);
-                        }
-                    });
-                });
+		ServerPlayNetworking.registerGlobalReceiver(LovelySnailsRegistry.SNAIL_SET_STORAGE_PAGE,
+				(server, player, handler, buf, responseSender) -> {
+					int syncId = buf.readVarInt();
+					byte storagePage = buf.readByte();
+					server.execute(() -> {
+						if (handler.getPlayer().currentScreenHandler instanceof SnailScreenHandler snailScreenHandler
+								&& snailScreenHandler.syncId == syncId) {
+							snailScreenHandler.setCurrentStoragePage(storagePage);
+						}
+					});
+				});
 
-        BiomeModifications.addSpawn(BiomeSelectors.categories(Biome.Category.SWAMP),
-                SpawnGroup.CREATURE, LovelySnailsRegistry.SNAIL_ENTITY_TYPE, 10, 1, 3);
-        BiomeModifications.addSpawn(BiomeSelectors.categories(Biome.Category.MUSHROOM)
-                        .or(BiomeSelectors.includeByKey(RegistryKey.of(Registry.BIOME_KEY, new Identifier("dark_forest")))),
-                SpawnGroup.CREATURE, LovelySnailsRegistry.SNAIL_ENTITY_TYPE, 8, 1, 3);
-    }
+		BiomeModifications.addSpawn(BiomeSelectors.categories(Biome.Category.SWAMP),
+				SpawnGroup.CREATURE, LovelySnailsRegistry.SNAIL_ENTITY_TYPE, 10, 1, 3);
+		BiomeModifications.addSpawn(BiomeSelectors.categories(Biome.Category.MUSHROOM)
+						.or(BiomeSelectors.includeByKey(RegistryKey.of(Registry.BIOME_KEY, new Identifier("dark_forest")))),
+				SpawnGroup.CREATURE, LovelySnailsRegistry.SNAIL_ENTITY_TYPE, 8, 1, 3);
+	}
 
-    public static Identifier id(String path) {
-        return new Identifier(NAMESPACE, path);
-    }
+	public static Identifier id(String path) {
+		return new Identifier(NAMESPACE, path);
+	}
 
-    public static void readInventoryNbt(NbtCompound nbt, String key, Inventory stacks, int start) {
-        var inventoryNbt = nbt.getList(key, NbtElement.COMPOUND_TYPE);
+	public static void readInventoryNbt(NbtCompound nbt, String key, Inventory stacks, int start) {
+		var inventoryNbt = nbt.getList(key, NbtElement.COMPOUND_TYPE);
 
-        for (int i = 0; i < inventoryNbt.size(); ++i) {
-            var slotNbt = inventoryNbt.getCompound(i);
-            int slotId = slotNbt.getByte("slot") & 255;
-            if (slotId < stacks.size()) {
-                stacks.setStack(start + slotId, ItemStack.fromNbt(slotNbt));
-            }
-        }
-    }
+		for (int i = 0; i < inventoryNbt.size(); ++i) {
+			var slotNbt = inventoryNbt.getCompound(i);
+			int slotId = slotNbt.getByte("slot") & 255;
+			if (slotId < stacks.size()) {
+				stacks.setStack(start + slotId, ItemStack.fromNbt(slotNbt));
+			}
+		}
+	}
 
-    public static NbtCompound writeInventoryNbt(NbtCompound nbt, String key, Inventory stacks, int start, int end) {
-        return writeInventoryNbt(nbt, key, stacks, start, end, true);
-    }
+	public static NbtCompound writeInventoryNbt(NbtCompound nbt, String key, Inventory stacks, int start, int end) {
+		return writeInventoryNbt(nbt, key, stacks, start, end, true);
+	}
 
-    public static NbtCompound writeInventoryNbt(NbtCompound nbt, String key, Inventory stacks, int start, int end, boolean setIfEmpty) {
-        var inventoryNbt = new NbtList();
+	public static NbtCompound writeInventoryNbt(NbtCompound nbt, String key, Inventory stacks, int start, int end, boolean setIfEmpty) {
+		var inventoryNbt = new NbtList();
 
-        for (int i = start; i < end; ++i) {
-            var slotStack = stacks.getStack(i);
-            if (!slotStack.isEmpty()) {
-                var slotNbt = new NbtCompound();
-                slotNbt.putByte("slot", (byte) (i - start));
-                slotStack.writeNbt(slotNbt);
-                inventoryNbt.add(slotNbt);
-            }
-        }
+		for (int i = start; i < end; ++i) {
+			var slotStack = stacks.getStack(i);
+			if (!slotStack.isEmpty()) {
+				var slotNbt = new NbtCompound();
+				slotNbt.putByte("slot", (byte) (i - start));
+				slotStack.writeNbt(slotNbt);
+				inventoryNbt.add(slotNbt);
+			}
+		}
 
-        if (!inventoryNbt.isEmpty() || setIfEmpty) {
-            nbt.put(key, inventoryNbt);
-        }
+		if (!inventoryNbt.isEmpty() || setIfEmpty) {
+			nbt.put(key, inventoryNbt);
+		}
 
-        return nbt;
-    }
+		return nbt;
+	}
 }

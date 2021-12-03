@@ -24,6 +24,6 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(DataTracker.class)
 public interface DataTrackerAccessor {
-    @Invoker("getEntry")
-    <T> DataTracker.Entry<T> lovely_snails$getEntry(TrackedData<T> trackedData);
+	@Invoker("getEntry")
+	<T> DataTracker.Entry<T> lovely_snails$getEntry(TrackedData<T> trackedData);
 }
