@@ -26,9 +26,7 @@ import dev.lambdaurora.lovely_snails.mixin.ShulkerEntityAccessor;
 import dev.lambdaurora.lovely_snails.registry.LovelySnailsRegistry;
 import dev.lambdaurora.lovely_snails.screen.SnailScreenHandler;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
-import net.minecraft.block.Block;
-import net.minecraft.block.CarpetBlock;
-import net.minecraft.block.DyedCarpetBlock;
+import net.minecraft.block.*;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.goal.*;
@@ -201,11 +199,13 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
                 var adultDimensions = this.getType().getDimensions();
                 float width = adultDimensions.width * .8f;
                 float eyeHeight = this.getEyeHeight(EntityPose.STANDING, adultDimensions);
+                var pos = new BlockPos(this.getX(), this.getY() + eyeHeight, this.getZ());
                 var box = Box.of(new Vec3d(this.getX(), this.getY() + eyeHeight, this.getZ()), width, 1.0E-6, width);
 
                 // Adult form will suffocate, so we must prevent the growth until the player moves the snail.
-                boolean willSuffocate = this.world.getBlockCollisions(this, box, (state, pos) -> state.shouldSuffocate(this.world, pos))
-                        .findAny().isPresent();
+                boolean willSuffocate = this.world.getStatesInBox(box)
+                        .filter(Predicate.not(AbstractBlock.AbstractBlockState::isAir))
+                        .anyMatch(state -> state.shouldSuffocate(this.world, pos));
                 if (willSuffocate) {
                     this.world.sendEntityStatus(this, (byte) 10);
                     return;
@@ -498,7 +498,7 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
             var biome = this.world.getBiome(this.getBlockPos());
 
             int baseSatisfaction;
-            if (biome.isCold(this.getBlockPos())) baseSatisfaction = 15;
+            if (biome.method_39927(this.getBlockPos())) baseSatisfaction = 15;
             else baseSatisfaction = 5;
             this.satisfies(baseSatisfaction);
         }
@@ -608,7 +608,7 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 
             int baseSatisfaction;
             if (downfall < .4f) baseSatisfaction = 20;
-            else if (biome.isCold(this.getBlockPos())) baseSatisfaction = 10;
+            else if (biome.method_39927(this.getBlockPos())) baseSatisfaction = 10;
             else baseSatisfaction = 15;
             this.satisfies(baseSatisfaction);
         }

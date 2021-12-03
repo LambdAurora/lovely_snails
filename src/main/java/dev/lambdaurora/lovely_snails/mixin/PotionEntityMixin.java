@@ -44,7 +44,7 @@ public abstract class PotionEntityMixin extends ThrownItemEntity {
             locals = LocalCapture.CAPTURE_FAILHARD
     )
     private void onWaterSplash(CallbackInfo ci, Box box) {
-        var snails = this.getEntityWorld().getNonSpectatingEntities(SnailEntity.class, box);
+        var snails = this.getWorld().getNonSpectatingEntities(SnailEntity.class, box);
         for (var snail : snails) {
             snail.onWaterSplashed(this.getOwner());
         }

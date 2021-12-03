@@ -43,7 +43,7 @@ public class SnailHideGoal extends Goal {
     }
 
     private boolean isThereScaryEntitiesAround() {
-        var scaryEntities = this.snail.getEntityWorld().getOtherEntities(
+        var scaryEntities = this.snail.getWorld().getOtherEntities(
                 this.snail,
                 this.snail.getBoundingBox().expand(this.vitalSpaceDistance, 3, this.vitalSpaceDistance),
                 EntityPredicates.EXCEPT_CREATIVE_OR_SPECTATOR.and(entity -> entity instanceof HostileEntity)

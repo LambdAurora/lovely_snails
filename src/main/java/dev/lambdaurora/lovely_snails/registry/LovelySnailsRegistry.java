@@ -22,7 +22,7 @@ import dev.lambdaurora.lovely_snails.screen.SnailScreenHandler;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
 import net.fabricmc.fabric.api.screenhandler.v1.ScreenHandlerRegistry;
-import net.fabricmc.fabric.api.tag.TagRegistry;
+import net.fabricmc.fabric.api.tag.TagFactory;
 import net.minecraft.block.Block;
 import net.minecraft.entity.EntityDimensions;
 import net.minecraft.entity.EntityType;
@@ -85,9 +85,9 @@ public final class LovelySnailsRegistry {
 
     /* Tags */
 
-    public static final Tag<Block> SNAIL_SPAWN_BLOCKS = TagRegistry.block(id("snail_spawn_blocks"));
-    public static final Tag<Item> SNAIL_BREEDING_ITEMS = TagRegistry.item(id("snail_breeding_items"));
-    public static final Tag<Item> SNAIL_FOOD_ITEMS = TagRegistry.item(id("snail_food_items"));
+    public static final Tag<Block> SNAIL_SPAWN_BLOCKS = TagFactory.BLOCK.create(id("snail_spawn_blocks"));
+    public static final Tag<Item> SNAIL_BREEDING_ITEMS = TagFactory.ITEM.create(id("snail_breeding_items"));
+    public static final Tag<Item> SNAIL_FOOD_ITEMS = TagFactory.ITEM.create(id("snail_food_items"));
 
     private static <T extends Item> T register(String name, T item) {
         return Registry.register(Registry.ITEM, id(name), item);

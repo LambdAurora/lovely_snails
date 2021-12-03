@@ -48,7 +48,7 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
 
     public SnailScreenHandler(int syncId, PlayerInventory playerInventory, PacketByteBuf buf) {
         this(syncId, playerInventory,
-                playerInventory.player.getEntityWorld().getEntityById(buf.readVarInt()) instanceof SnailEntity snail ? snail : null,
+                playerInventory.player.getWorld().getEntityById(buf.readVarInt()) instanceof SnailEntity snail ? snail : null,
                 buf.readByte()
         );
     }
