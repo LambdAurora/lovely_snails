@@ -66,10 +66,7 @@ import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Arm;
-import net.minecraft.util.DyeColor;
-import net.minecraft.util.Hand;
+import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
@@ -78,6 +75,8 @@ import net.minecraft.world.*;
 import net.minecraft.world.event.GameEvent;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 import java.util.function.Predicate;
 
@@ -95,6 +94,7 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 	private static final TrackedData<Byte> SNAIL_FLAGS = DataTracker.registerData(SnailEntity.class, TrackedDataHandlerRegistry.BYTE);
 	private static final TrackedData<Byte> CHEST_FLAGS = DataTracker.registerData(SnailEntity.class, TrackedDataHandlerRegistry.BYTE);
 	private static final TrackedData<Integer> CARPET_COLOR = DataTracker.registerData(SnailEntity.class, TrackedDataHandlerRegistry.INTEGER);
+	private static final TrackedData<Integer> TRACKED_SNAIL_TYPE = DataTracker.registerData(SnailEntity.class, TrackedDataHandlerRegistry.INTEGER);
 	private static final int SADDLED_FLAG = 0b0000_0001;
 	private static final int SCARED_FLAG = 0b0000_0010;
 	private static final int INTERACTION_COOLDOWN_FLAG = 0b0000_0100;
@@ -103,6 +103,13 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 	public static final int CARPET_SLOT = 1;
 
 	private static final int SATISFACTION_START = -256;
+
+	/*
+	 Enum names correspond to the .png filenames for textures
+	 'Special' variants should go at the end of the Enum so that they don't get spawned normally.
+	 */
+	public enum SNAIL_TYPE {DEFAULT, CHOCOLATE, HONEY, MACCHIATO, NINJA, OAT, OCHRE, PINK, REDSHELL, SILVER, MOON}
+	public static final Map<SNAIL_TYPE, Identifier> TEXTURES = new HashMap<>();
 
 	private SimpleInventory inventory;
 	private int satisfaction;
@@ -123,6 +130,17 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 				.add(EntityAttributes.GENERIC_FOLLOW_RANGE, 48.0);
 	}
 
+	public Identifier getTexture() {
+		return TEXTURES.getOrDefault(this.getSnailType(), (Identifier)TEXTURES.get(SNAIL_TYPE.DEFAULT));
+	}
+	public SNAIL_TYPE getSnailType() {
+		return SNAIL_TYPE.values()[this.dataTracker.get(TRACKED_SNAIL_TYPE)];
+	}
+
+	public void setSnailType(SNAIL_TYPE type) {
+		this.dataTracker.set(TRACKED_SNAIL_TYPE, type.ordinal());
+	}
+
 	public static boolean canSpawn(EntityType<? extends AnimalEntity> type, WorldAccess world, SpawnReason spawnReason, BlockPos pos, Random random) {
 		var spawnBlock = world.getBlockState(pos.down());
 		return world.getBaseLightLevel(pos, 0) > 8 && spawnBlock.isIn(LovelySnailsRegistry.SNAIL_SPAWN_BLOCKS);
@@ -133,6 +151,14 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 	                             @Nullable NbtCompound entityNbt) {
 		this.setBaby(true);
 		this.satisfaction = SATISFACTION_START + this.random.nextInt(10);
+
+		// 10% chance of special moon snail type if full moon, similar to black cats.
+		if (world.getMoonSize() > 0.9F && this.random.nextDouble() <= 0.1) {
+			this.setSnailType(SNAIL_TYPE.MOON);
+		} else {
+			this.setSnailType(SNAIL_TYPE.values()[new Random().nextInt(SNAIL_TYPE.values().length - 1)]);
+		}
+
 		return super.initialize(world, difficulty, spawnReason, entityData, entityNbt);
 	}
 
@@ -314,6 +340,7 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 		this.dataTracker.startTracking(SNAIL_FLAGS, (byte) 0);
 		this.dataTracker.startTracking(CHEST_FLAGS, (byte) 0);
 		this.dataTracker.startTracking(CARPET_COLOR, -1);
+		this.dataTracker.startTracking(TRACKED_SNAIL_TYPE, 0);
 	}
 
 	/* Serialization */
@@ -326,6 +353,7 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 		this.setSatisfaction(nbt.contains("satisfaction", NbtElement.INT_TYPE) ?
 				nbt.getInt("satisfaction") : SATISFACTION_START);
 		this.setInteractionCooldown(nbt.getShort("interaction_cooldown"));
+		this.setSnailType(SNAIL_TYPE.values()[nbt.getInt("SnailType")]);
 
 		this.readSpecialSlot(nbt, "saddle", SADDLE_SLOT, stack -> stack.isOf(Items.SADDLE));
 		this.readSpecialSlot(nbt, "decor", CARPET_SLOT,
@@ -358,6 +386,7 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 
 		nbt.putInt("satisfaction", this.getSatisfaction());
 		nbt.putShort("interaction_cooldown", this.getInteractionCooldown());
+		nbt.putInt("SnailType", this.getSnailType().ordinal());
 
 		this.writeSpecialSlot(nbt, "saddle", SADDLE_SLOT);
 		this.writeSpecialSlot(nbt, "decor", CARPET_SLOT);
@@ -446,9 +475,9 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 
 	public void openEnderChestInventory(PlayerEntity player) {
 		if (!this.world.isClient() && (!this.hasPassengers() || this.hasPassenger(player)) && this.isTamed()) {
-			player.openHandledScreen(new SimpleNamedScreenHandlerFactory((syncId, playerInventory, playerEntity) -> {
-				return GenericContainerScreenHandler.createGeneric9x3(syncId, playerInventory, player.getEnderChestInventory());
-			}, new TranslatableText("container.enderchest")));
+			player.openHandledScreen(new SimpleNamedScreenHandlerFactory((syncId, playerInventory, playerEntity) ->
+					GenericContainerScreenHandler.createGeneric9x3(syncId, playerInventory, player.getEnderChestInventory()),
+					new TranslatableText("container.enderchest")));
 		}
 	}
 
@@ -822,6 +851,15 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 			}
 		}
 
+		/*
+		TODO: Expand genetics / breeding mechanics for selecting snail variant.
+		This currently just randomly picks one of the parent types.
+		*/
+		if (otherParent instanceof SnailEntity) {
+			SNAIL_TYPE type = this.random.nextBoolean() ? this.getSnailType() : ((SnailEntity)otherParent).getSnailType();
+			assert child != null;
+			child.setSnailType(type);
+		}
 		return child;
 	}
 
@@ -855,6 +893,13 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 		public ScreenHandler createMenu(int syncId, PlayerInventory inv, PlayerEntity player) {
 			var snailInv = this.snail().inventory;
 			return new SnailScreenHandler(syncId, inv, snailInv, this.snail(), SnailScreenHandler.getOpeningStoragePage(snailInv));
+		}
+	}
+
+	static {
+		/* Turn Enum names into texture locations for the corresponding snail type */
+		for (var type : SNAIL_TYPE.values()) {
+			TEXTURES.put(type, LovelySnails.id("textures/entity/snail/" + type.name().toLowerCase() + ".png"));
 		}
 	}
 }
