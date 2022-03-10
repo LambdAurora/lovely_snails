@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 LambdAurora <email@lambdaurora.dev>
+ * Copyright (c) 2021-2022 LambdAurora <email@lambdaurora.dev>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -85,7 +85,7 @@ import java.util.function.Predicate;
  * Represents the snail entity.
  *
  * @author LambdAurora
- * @version 1.0.3
+ * @version 1.0.4
  * @since 1.0.0
  */
 public class SnailEntity extends TameableEntity implements InventoryChangedListener, Saddleable {
@@ -501,7 +501,7 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 			var biome = this.world.getBiome(this.getBlockPos());
 
 			int baseSatisfaction;
-			if (biome.method_39927(this.getBlockPos())) baseSatisfaction = 15;
+			if (biome.value().doesNotSnow(this.getBlockPos())) baseSatisfaction = 15;
 			else baseSatisfaction = 5;
 			this.satisfies(baseSatisfaction);
 		}
@@ -607,11 +607,11 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 
 		if (this.canInteract()) {
 			var biome = this.world.getBiome(this.getBlockPos());
-			var downfall = biome.getDownfall();
+			var downfall = biome.value().getDownfall();
 
 			int baseSatisfaction;
 			if (downfall < .4f) baseSatisfaction = 20;
-			else if (biome.method_39927(this.getBlockPos())) baseSatisfaction = 10;
+			else if (biome.value().doesNotSnow(this.getBlockPos())) baseSatisfaction = 10;
 			else baseSatisfaction = 15;
 			this.satisfies(baseSatisfaction);
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 LambdAurora <email@lambdaurora.dev>
+ * Copyright (c) 2021-2022 LambdAurora <email@lambdaurora.dev>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,7 +22,6 @@ import dev.lambdaurora.lovely_snails.screen.SnailScreenHandler;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
 import net.fabricmc.fabric.api.screenhandler.v1.ScreenHandlerRegistry;
-import net.fabricmc.fabric.api.tag.TagFactory;
 import net.minecraft.block.Block;
 import net.minecraft.entity.EntityDimensions;
 import net.minecraft.entity.EntityType;
@@ -33,10 +32,11 @@ import net.minecraft.item.ItemGroup;
 import net.minecraft.item.SpawnEggItem;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.sound.SoundEvent;
-import net.minecraft.tag.Tag;
+import net.minecraft.tag.TagKey;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.Heightmap;
+import net.minecraft.world.biome.Biome;
 
 import static dev.lambdaurora.lovely_snails.LovelySnails.id;
 
@@ -44,7 +44,7 @@ import static dev.lambdaurora.lovely_snails.LovelySnails.id;
  * Represents the Lovely Snails' registry.
  *
  * @author LambdAurora
- * @version 1.0.0
+ * @version 1.0.4
  * @since 1.0.0
  */
 public final class LovelySnailsRegistry {
@@ -85,9 +85,11 @@ public final class LovelySnailsRegistry {
 
 	/* Tags */
 
-	public static final Tag<Block> SNAIL_SPAWN_BLOCKS = TagFactory.BLOCK.create(id("snail_spawn_blocks"));
-	public static final Tag<Item> SNAIL_BREEDING_ITEMS = TagFactory.ITEM.create(id("snail_breeding_items"));
-	public static final Tag<Item> SNAIL_FOOD_ITEMS = TagFactory.ITEM.create(id("snail_food_items"));
+	public static final TagKey<Block> SNAIL_SPAWN_BLOCKS = TagKey.of(Registry.BLOCK_KEY, id("snail_spawn_blocks"));
+	public static final TagKey<Item> SNAIL_BREEDING_ITEMS = TagKey.of(Registry.ITEM_KEY, id("snail_breeding_items"));
+	public static final TagKey<Item> SNAIL_FOOD_ITEMS = TagKey.of(Registry.ITEM_KEY, id("snail_food_items"));
+	public static final TagKey<Biome> SNAIL_REGULAR_SPAWN_BIOMES = TagKey.of(Registry.BIOME_KEY, id("snail_spawn"));
+	public static final TagKey<Biome> SNAIL_SWAMP_LIKE_SPAWN_BIOMES = TagKey.of(Registry.BIOME_KEY, id("swamp_like_spawn"));
 
 	private static <T extends Item> T register(String name, T item) {
 		return Registry.register(Registry.ITEM, id(name), item);

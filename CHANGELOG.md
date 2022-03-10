@@ -26,3 +26,10 @@
 
 - Added inventory page buttons to improve accessibility.
 - Fixed baby snails collision box.
+
+### 1.0.4
+
+- Updated to 1.18.2.
+- Added snail spawn biome tags:
+  - `lovely_snails:snail_spawn` for a spawn weight of 8
+  - `lovely_snails:swamp_like_spawn` for a spawn weight of 10

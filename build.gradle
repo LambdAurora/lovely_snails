@@ -5,13 +5,13 @@ plugins {
 	id 'org.quiltmc.gradle.licenser' version '1.0.+'
 	id 'java-library'
 	id 'maven-publish'
-	id 'com.modrinth.minotaur' version '1.2.+'
+	id 'com.modrinth.minotaur' version '2.+'
 }
+
 
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
-import com.modrinth.minotaur.TaskModrinthUpload
-import com.modrinth.minotaur.request.VersionType
+import com.modrinth.minotaur.dependencies.ModDependency
 import com.modrinth.minotaur.responses.ResponseError
 import org.apache.http.client.config.CookieSpecs
 import org.apache.http.client.config.RequestConfig
@@ -49,6 +49,11 @@ String parseReadme() {
 	readme = readme.replaceAll(excludeRegex, '')
 	readme = readme.replaceAll(linkRegex, '![$1](https://raw.githubusercontent.com/LambdAurora/lovely_snails/1.17/$2)')
 	return readme
+}
+
+loom {
+	// Enable runtime only log4j, forces mods to use SLF4J for logging.
+	runtimeOnlyLog4j = true
 }
 
 repositories {
@@ -99,20 +104,16 @@ license {
 	include '**/*.java'
 }
 
-task publishModrinth(type: TaskModrinthUpload) {
-	dependsOn(build)
-	onlyIf {
-		System.getenv('MODRINTH_TOKEN')
-	}
-
-	token = System.getenv('MODRINTH_TOKEN')
+modrinth {
 	projectId = project.modrinth_id
-	versionNumber = version
 	versionName = "Lovely Snails ${project.mod_version} (${getMCVersionString()})"
+	versionType = isMCVersionNonRelease() ? "beta" : "release"
 	uploadFile = remapJar
-	addGameVersion((String) project.minecraft_version)
-	addLoader('fabric')
-	versionType = isMCVersionNonRelease() ? VersionType.BETA : VersionType.RELEASE
+	gameVersions = [project.minecraft_version]
+	loaders = ["fabric"]
+	dependencies = [
+			new ModDependency("P7dR8mSH", "required")
+	]
 
 	// Changelog fetching
 	def changelogText = file('CHANGELOG.md').text.replaceAll('\\r\\n', '\n')
@@ -131,32 +132,36 @@ task publishModrinth(type: TaskModrinthUpload) {
 				changelog += '\n' + line
 			else break
 		}
-	}
-
-	// Readme
-	doFirst {
-		final def client = HttpClientBuilder.create().setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.IGNORE_COOKIES).build()).build()
-		final def patch = new HttpPatch((String) (apiURL + '/v1/mod/' + projectId))
-		patch.addHeader("Authorization", token)
-
-		var json = new JsonObject()
-		json.addProperty("body", parseReadme())
-		patch.setEntity(EntityBuilder.create()
-				.setText(json.toString())
-				.setContentType(ContentType.APPLICATION_JSON)
-				.build())
-
-		final def response = client.execute(patch)
-		final int status = response.getStatusLine().getStatusCode()
-
-		final def gson = new GsonBuilder().create()
-		if (status == 200) {
-			project.getLogger().lifecycle("Successfully updated readme to ${projectId}.")
-		} else {
-			errorInfo = gson.fromJson(EntityUtils.toString(response.getEntity()), ResponseError.class)
-			project.getLogger().error("Upload failed! Status: ${status} Error: ${errorInfo.getError()} Reason: ${errorInfo.getDescription()}")
-			throw new GradleException("Upload failed! Status: ${status} Reason: ${errorInfo.getDescription()}")
+	} else {
+		afterEvaluate {
+			tasks.modrinth.setEnabled(false)
 		}
+	}
+}
+
+tasks.modrinth.dependsOn(build)
+tasks.modrinth.doFirst {
+	final def client = HttpClientBuilder.create().setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.IGNORE_COOKIES).build()).build()
+	final def patch = new HttpPatch((String) (modrinth.apiUrl.get() + '/project/' + projectId))
+	patch.addHeader("Authorization", token)
+
+	var json = new JsonObject()
+	json.addProperty("body", parseReadme())
+	patch.setEntity(EntityBuilder.create()
+			.setText(json.toString())
+			.setContentType(ContentType.APPLICATION_JSON)
+			.build())
+
+	final def response = client.execute(patch)
+	final int status = response.getStatusLine().getStatusCode()
+
+	final def gson = new GsonBuilder().create()
+	if (status == 200) {
+		project.getLogger().lifecycle("Successfully updated readme to ${projectId}.")
+	} else {
+		errorInfo = gson.fromJson(EntityUtils.toString(response.getEntity()), ResponseError.class)
+		project.getLogger().error("Upload failed! Status: ${status} Error: ${errorInfo.getError()} Reason: ${errorInfo.getDescription()}")
+		throw new GradleException("Upload failed! Status: ${status} Reason: ${errorInfo.getDescription()}")
 	}
 }
 

@@ -5,14 +5,14 @@
   "client": [
     "client.ClientPlayerInteractionManagerMixin"
   ],
-  "injectors": {
-    "defaultRequire": 1
-  },
   "mixins": [
     "DataTrackerAccessor",
     "PassiveEntityAccessor",
     "PotionEntityMixin",
     "ServerPlayNetworkHandlerMixin",
     "ShulkerEntityAccessor"
-  ]
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
 }
