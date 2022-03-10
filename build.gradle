@@ -142,8 +142,8 @@ modrinth {
 tasks.modrinth.dependsOn(build)
 tasks.modrinth.doFirst {
 	final def client = HttpClientBuilder.create().setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.IGNORE_COOKIES).build()).build()
-	final def patch = new HttpPatch((String) (modrinth.apiUrl.get() + '/project/' + projectId))
-	patch.addHeader("Authorization", token)
+	final def patch = new HttpPatch((String) (modrinth.apiUrl.get() + '/project/' + modrinth.projectId.get()))
+	patch.addHeader("Authorization", modrinth.token.get())
 
 	var json = new JsonObject()
 	json.addProperty("body", parseReadme())
@@ -157,7 +157,7 @@ tasks.modrinth.doFirst {
 
 	final def gson = new GsonBuilder().create()
 	if (status == 200) {
-		project.getLogger().lifecycle("Successfully updated readme to ${projectId}.")
+		project.getLogger().lifecycle("Successfully updated readme to ${modrinth.projectId.get()}.")
 	} else {
 		errorInfo = gson.fromJson(EntityUtils.toString(response.getEntity()), ResponseError.class)
 		project.getLogger().error("Upload failed! Status: ${status} Error: ${errorInfo.getError()} Reason: ${errorInfo.getDescription()}")
