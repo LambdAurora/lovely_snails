@@ -142,7 +142,7 @@ modrinth {
 tasks.modrinth.dependsOn(build)
 tasks.modrinth.doFirst {
 	final def client = HttpClientBuilder.create().setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.IGNORE_COOKIES).build()).build()
-	final def patch = new HttpPatch((String) (modrinth.apiUrl.get() + '/project/' + modrinth.projectId.get()))
+	final def patch = new HttpPatch((String) (modrinth.apiUrl.get() + '/project/' + project.modrinth_id))
 	patch.addHeader("Authorization", modrinth.token.get())
 
 	var json = new JsonObject()
@@ -156,12 +156,16 @@ tasks.modrinth.doFirst {
 	final int status = response.getStatusLine().getStatusCode()
 
 	final def gson = new GsonBuilder().create()
-	if (status == 200) {
+	if (status == 200 || status == 204) {
 		project.getLogger().lifecycle("Successfully updated readme to ${modrinth.projectId.get()}.")
 	} else {
+		if (response.getEntity() == null) {
+			project.getLogger().error("Readme update failed! Status: ${status} Reason: ${response.statusLine.reasonPhrase}")
+			throw new GradleException("Readme update failed! Status: ${status} Reason: ${response.statusLine.reasonPhrase}")
+		}
 		errorInfo = gson.fromJson(EntityUtils.toString(response.getEntity()), ResponseError.class)
-		project.getLogger().error("Upload failed! Status: ${status} Error: ${errorInfo.getError()} Reason: ${errorInfo.getDescription()}")
-		throw new GradleException("Upload failed! Status: ${status} Reason: ${errorInfo.getDescription()}")
+		project.getLogger().error("Readme update failed! Status: ${status} Error: ${errorInfo.getError()} Reason: ${errorInfo.getDescription()}")
+		throw new GradleException("Readme failed! Status: ${status} Reason: ${errorInfo.getDescription()}")
 	}
 }
 
