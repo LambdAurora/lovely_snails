@@ -97,7 +97,7 @@ modrinth {
 	versionType = isMCVersionNonRelease() ? "beta" : "release"
 	uploadFile = remapJar
 	gameVersions = [project.minecraft_version]
-	loaders = ["fabric"]
+	loaders = ["fabric", "quilt"]
 	dependencies = [
 			new ModDependency("P7dR8mSH", "required")
 	]
