@@ -49,6 +49,8 @@ public class SnailChestFeatureRenderer extends FeatureRenderer<SnailEntity, Snai
 	@Override
 	public void render(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, SnailEntity entity,
 	                   float limbAngle, float limbDistance, float tickDelta, float animationProgress, float headYaw, float headPitch) {
+		if (entity.isBaby()) return;
+
 		var itemRenderer = MinecraftClient.getInstance().getItemRenderer();
 		this.getContextModel().copyStateTo(this.model);
 

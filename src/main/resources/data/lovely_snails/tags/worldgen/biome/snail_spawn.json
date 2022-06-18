@@ -8,6 +8,10 @@
     {
       "id": "minecraft:mushroom_fields",
       "required": false
+    },
+    {
+      "id": "#c:mushroom",
+      "required": false
     }
   ]
 }

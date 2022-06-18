@@ -18,10 +18,11 @@
 package dev.lambdaurora.lovely_snails.registry;
 
 import dev.lambdaurora.lovely_snails.entity.SnailEntity;
+import dev.lambdaurora.lovely_snails.item.SnailSpawnEggItem;
 import dev.lambdaurora.lovely_snails.screen.SnailScreenHandler;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
-import net.fabricmc.fabric.api.screenhandler.v1.ScreenHandlerRegistry;
+import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.minecraft.block.Block;
 import net.minecraft.entity.EntityDimensions;
 import net.minecraft.entity.EntityType;
@@ -59,7 +60,7 @@ public final class LovelySnailsRegistry {
 	/* Screen handlers */
 
 	public static final ScreenHandlerType<SnailScreenHandler> SNAIL_SCREEN_HANDLER_TYPE =
-			ScreenHandlerRegistry.registerExtended(id("snail"), SnailScreenHandler::new);
+			Registry.register(Registry.SCREEN_HANDLER, id("snail"), new ExtendedScreenHandlerType<>(SnailScreenHandler::new));
 
 	/* Entities */
 
@@ -104,7 +105,7 @@ public final class LovelySnailsRegistry {
 	}
 
 	static {
-		SNAIL_SPAWN_EGG_ITEM = register("snail_spawn_egg", new SpawnEggItem(SNAIL_ENTITY_TYPE, 0xff36201c, 0xffd58d51,
+		SNAIL_SPAWN_EGG_ITEM = register("snail_spawn_egg", new SnailSpawnEggItem(SNAIL_ENTITY_TYPE, 0xff36201c, 0xffd58d51,
 				new FabricItemSettings().group(ItemGroup.MISC)));
 	}
 }

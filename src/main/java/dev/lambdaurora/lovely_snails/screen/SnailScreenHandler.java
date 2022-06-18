@@ -34,7 +34,9 @@ import net.minecraft.item.Items;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
+import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.server.network.ServerPlayerEntity;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +45,7 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
 	private final PlayerEntity player;
 	private final SimpleInventory inventory;
 	private final SnailEntity entity;
+	private final ChestSlot[] chestSlots = new ChestSlot[3];
 	private final List<InventoryPageChangeListener> pageChangeListeners = new ArrayList<>();
 	private int currentStoragePage;
 
@@ -68,11 +71,11 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
 		inventory.onOpen(playerInventory.player);
 		this.inventory.addListener(this);
 
-		this.addSlot(new SaddleSlot(inventory, SnailEntity.SADDLE_SLOT, 26, 18, entity));
+		this.addSlot(new SaddleSlot(inventory, SnailEntity.SADDLE_SLOT, 26, 18));
 		this.addSlot(new DecorSlot(inventory, SnailEntity.CARPET_SLOT, 26, 36));
-		this.addSlot(new ChestSlot(inventory, 2, 8, 18, 0));
-		this.addSlot(new ChestSlot(inventory, 3, 8, 36, 1));
-		this.addSlot(new ChestSlot(inventory, 4, 8, 54, 2));
+		this.addSlot(this.chestSlots[0] = new ChestSlot(inventory, SnailEntity.FIRST_CHEST_SLOT, 8, 18, 0));
+		this.addSlot(this.chestSlots[1] = new ChestSlot(inventory, SnailEntity.SECOND_CHEST_SLOT, 8, 36, 1));
+		this.addSlot(this.chestSlots[2] = new ChestSlot(inventory, SnailEntity.THIRD_CHEST_SLOT, 8, 54, 2));
 
 		for (int page = 0; page < 3; page++) {
 			for (int row = 0; row < 3; row++) {
@@ -230,50 +233,79 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
 		return this.insertItem(currentStack, 5 + page * 15, 5 + page * 15 + 15, false);
 	}
 
+	private @Nullable ItemStack attemptToTransferSlotToChestSlots(ItemStack currentStack) {
+		for (int i = 0; i < this.chestSlots.length; i++) {
+			int slot = SnailEntity.FIRST_CHEST_SLOT + i;
+
+			if (this.chestSlots[i].canInsert(currentStack) && !this.chestSlots[i].hasStack()
+					&& !this.insertItem(currentStack, slot, slot + 1, false)) {
+				return ItemStack.EMPTY;
+			}
+		}
+
+		return null;
+	}
+
+	private @Nullable ItemStack attemptToTransferToSnail(PlayerEntity player, ItemStack currentStack) {
+		if (!this.snail().canUseSnail(player)) return null;
+
+		ItemStack chestResult;
+
+		if ((chestResult = this.attemptToTransferSlotToChestSlots(currentStack)) != null) {
+			return chestResult;
+		} else if (this.getSlot(SnailEntity.CARPET_SLOT).canInsert(currentStack) && !this.getSlot(SnailEntity.CARPET_SLOT).hasStack()) {
+			if (!this.insertItem(currentStack, 1, 2, false)) {
+				return ItemStack.EMPTY;
+			}
+		} else if (this.getSlot(SnailEntity.SADDLE_SLOT).canInsert(currentStack)) {
+			if (!this.insertItem(currentStack, 0, 1, false)) {
+				return ItemStack.EMPTY;
+			}
+		} else if (!this.attemptToTransferSlotToCurrentPage(currentStack)) {
+			return ItemStack.EMPTY;
+		}
+
+		return null;
+	}
+
+	@Override
+	public void onSlotClick(int slotIndex, int button, SlotActionType actionType, PlayerEntity player) {
+		if (slotIndex < this.inventory.size() && !this.snail().canUseSnail(player))
+			return;
+
+		super.onSlotClick(slotIndex, button, actionType, player);
+	}
+
 	@Override
 	public ItemStack transferSlot(PlayerEntity player, int index) {
 		var stack = ItemStack.EMPTY;
 		var slot = this.slots.get(index);
+
 		if (slot.hasStack()) {
 			var currentStack = slot.getStack();
 			stack = currentStack.copy();
 			int inventorySize = this.inventory.size();
+
+			ItemStack insertionIntoSnail;
+
 			if (index < inventorySize) {
-				if (!this.insertItem(currentStack, inventorySize, this.slots.size(), true)) {
+				if (this.snail().canUseSnail(player) && !this.insertItem(currentStack, inventorySize, this.slots.size(), true)) {
 					return ItemStack.EMPTY;
 				}
-			} else if (this.getSlot(2).canInsert(currentStack) && !this.getSlot(2).hasStack()) {
-				if (!this.insertItem(currentStack, 2, 3, false)) {
-					return ItemStack.EMPTY;
-				}
-			} else if (this.getSlot(3).canInsert(currentStack) && !this.getSlot(3).hasStack()) {
-				if (!this.insertItem(currentStack, 3, 4, false)) {
-					return ItemStack.EMPTY;
-				}
-			} else if (this.getSlot(4).canInsert(currentStack) && !this.getSlot(4).hasStack()) {
-				if (!this.insertItem(currentStack, 4, 5, false)) {
-					return ItemStack.EMPTY;
-				}
-			} else if (this.getSlot(SnailEntity.CARPET_SLOT).canInsert(currentStack) && !this.getSlot(SnailEntity.CARPET_SLOT).hasStack()) {
-				if (!this.insertItem(currentStack, 1, 2, false)) {
-					return ItemStack.EMPTY;
-				}
-			} else if (this.getSlot(SnailEntity.SADDLE_SLOT).canInsert(currentStack)) {
-				if (!this.insertItem(currentStack, 0, 1, false)) {
-					return ItemStack.EMPTY;
-				}
-			} else if (!this.attemptToTransferSlotToCurrentPage(currentStack)) {
-				int end = inventorySize + 27;
-				int m = end + 9;
-				if (index >= end && index < m) {
-					if (!this.insertItem(currentStack, inventorySize, end, false)) {
+			} else if ((insertionIntoSnail = this.attemptToTransferToSnail(player, currentStack)) != null) {
+				return insertionIntoSnail;
+			} else {
+				int playerInventoryEnd = inventorySize + 27;
+				int hotbarEnd = playerInventoryEnd + 9;
+				if (index >= playerInventoryEnd && index < hotbarEnd) {
+					if (!this.insertItem(currentStack, inventorySize, playerInventoryEnd, false)) {
 						return ItemStack.EMPTY;
 					}
-				} else if (index < end) {
-					if (!this.insertItem(currentStack, end, m, false)) {
+				} else if (index < playerInventoryEnd) {
+					if (!this.insertItem(currentStack, playerInventoryEnd, hotbarEnd, false)) {
 						return ItemStack.EMPTY;
 					}
-				} else if (!this.insertItem(currentStack, end, end, false)) {
+				} else if (!this.insertItem(currentStack, playerInventoryEnd, playerInventoryEnd, false)) {
 					return ItemStack.EMPTY;
 				}
 
@@ -335,26 +367,42 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
 		void onCurrentPageSet(int page);
 	}
 
-	private static class SaddleSlot extends Slot {
-		private final SnailEntity snail;
-
-		public SaddleSlot(Inventory inventory, int index, int x, int y, SnailEntity snail) {
+	private class SnailSlot extends Slot {
+		public SnailSlot(Inventory inventory, int index, int x, int y) {
 			super(inventory, index, x, y);
-			this.snail = snail;
+		}
+
+		@Override
+		public boolean canTakeItems(PlayerEntity playerEntity) {
+			return this.snail().canUseSnail(playerEntity);
+		}
+
+		protected SnailScreenHandler screenHandler() {
+			return SnailScreenHandler.this;
+		}
+
+		protected SnailEntity snail() {
+			return this.screenHandler().snail();
+		}
+	}
+
+	private class SaddleSlot extends SnailSlot {
+		public SaddleSlot(Inventory inventory, int index, int x, int y) {
+			super(inventory, index, x, y);
 		}
 
 		@Override
 		public boolean canInsert(ItemStack stack) {
-			return stack.isOf(Items.SADDLE) && !this.hasStack() && this.snail.canBeSaddled();
+			return stack.isOf(Items.SADDLE) && !this.hasStack() && this.isEnabled();
 		}
 
 		@Override
 		public boolean isEnabled() {
-			return this.snail.canBeSaddled();
+			return this.snail().canBeSaddled();
 		}
 	}
 
-	private static class DecorSlot extends Slot {
+	private class DecorSlot extends SnailSlot {
 		public DecorSlot(Inventory inventory, int index, int x, int y) {
 			super(inventory, index, x, y);
 		}
@@ -375,7 +423,7 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
 		}
 	}
 
-	private class ChestSlot extends Slot {
+	private class ChestSlot extends SnailSlot {
 		private final int storagePage;
 
 		public ChestSlot(Inventory inventory, int index, int x, int y, int storagePage) {
@@ -385,7 +433,7 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
 
 		@Override
 		public boolean isEnabled() {
-			return !SnailScreenHandler.this.snail().isBaby();
+			return !this.snail().isBaby();
 		}
 
 		@Override
@@ -395,7 +443,7 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
 
 		@Override
 		public boolean canTakeItems(PlayerEntity playerEntity) {
-			return super.canTakeItems(playerEntity) && !SnailScreenHandler.this.hasItemsInStoragePage(this.storagePage);
+			return super.canTakeItems(playerEntity) && !this.screenHandler().hasItemsInStoragePage(this.storagePage);
 		}
 
 		@Override
@@ -404,7 +452,7 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
 		}
 	}
 
-	private class StorageSlot extends Slot {
+	private class StorageSlot extends SnailSlot {
 		private final int storagePage;
 
 		public StorageSlot(Inventory inventory, int index, int x, int y, int storagePage) {
@@ -414,7 +462,7 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
 
 		@Override
 		public boolean isEnabled() {
-			return SnailScreenHandler.this.hasChest(this.storagePage) && SnailScreenHandler.this.currentStoragePage == this.storagePage;
+			return this.screenHandler().hasChest(this.storagePage) && this.screenHandler().currentStoragePage == this.storagePage;
 		}
 
 		@Override

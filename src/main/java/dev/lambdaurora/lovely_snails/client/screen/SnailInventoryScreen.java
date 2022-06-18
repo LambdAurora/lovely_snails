@@ -43,7 +43,7 @@ import net.minecraft.util.math.MathHelper;
  * Represents the snail inventory screen.
  *
  * @author LambdAurora
- * @version 1.0.3
+ * @version 1.1.0
  * @since 1.0.0
  */
 @Environment(EnvType.CLIENT)
@@ -103,8 +103,8 @@ public class SnailInventoryScreen extends HandledScreen<SnailScreenHandler> {
 	}
 
 	@Override
-	public void onClose() {
-		super.onClose();
+	public void closeScreen() {
+		super.closeScreen();
 		this.clearListeners();
 	}
 

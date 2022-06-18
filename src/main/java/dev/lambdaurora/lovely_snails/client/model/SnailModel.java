@@ -17,9 +17,9 @@
 
 package dev.lambdaurora.lovely_snails.client.model;
 
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import dev.lambdaurora.lovely_snails.entity.SnailEntity;
 import net.minecraft.client.model.*;
-import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.entity.model.EntityModel;
 import net.minecraft.client.util.math.MatrixStack;
 
@@ -29,7 +29,7 @@ import static net.minecraft.client.render.entity.model.EntityModelPartNames.*;
  * Represents the snail entity model.
  *
  * @author LambdAurora
- * @version 1.0.0
+ * @version 1.1.0
  * @since 1.0.0
  */
 public class SnailModel extends EntityModel<SnailEntity> {

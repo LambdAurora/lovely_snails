@@ -33,3 +33,10 @@
 - Added snail spawn biome tags:
   - `lovely_snails:snail_spawn` for a spawn weight of 8
   - `lovely_snails:swamp_like_spawn` for a spawn weight of 10
+
+## 1.1.0
+
+- Updated to 1.19.
+- Added `locked` NBT tag for snails, allow to entirely lock movement and the inventory to the owner only.
+- Moved the Snail Spawn Egg to be in the same place as Vanilla would put Spawn Eggs in the creative inventory.
+- Stopped rendering chests if the snail is a baby. Not naturally possible, but it happened.

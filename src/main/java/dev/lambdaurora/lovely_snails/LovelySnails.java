@@ -30,13 +30,12 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.util.Identifier;
-import net.minecraft.world.biome.Biome;
 
 /**
  * Represents the Lovely Snails mod.
  *
  * @author LambdAurora
- * @version 1.0.4
+ * @version 1.1.0
  * @since 1.0.0
  */
 public class LovelySnails implements ModInitializer {
@@ -58,11 +57,9 @@ public class LovelySnails implements ModInitializer {
 					});
 				});
 
-		BiomeModifications.addSpawn(BiomeSelectors.categories(Biome.Category.SWAMP)
-						.or(BiomeSelectors.tag(LovelySnailsRegistry.SNAIL_SWAMP_LIKE_SPAWN_BIOMES)),
+		BiomeModifications.addSpawn(BiomeSelectors.tag(LovelySnailsRegistry.SNAIL_SWAMP_LIKE_SPAWN_BIOMES),
 				SpawnGroup.CREATURE, LovelySnailsRegistry.SNAIL_ENTITY_TYPE, 10, 1, 3);
-		BiomeModifications.addSpawn(BiomeSelectors.categories(Biome.Category.MUSHROOM)
-						.or(BiomeSelectors.tag(LovelySnailsRegistry.SNAIL_REGULAR_SPAWN_BIOMES)),
+		BiomeModifications.addSpawn(BiomeSelectors.tag(LovelySnailsRegistry.SNAIL_REGULAR_SPAWN_BIOMES),
 				SpawnGroup.CREATURE, LovelySnailsRegistry.SNAIL_ENTITY_TYPE, 8, 1, 3);
 	}
 

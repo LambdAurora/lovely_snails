@@ -2,7 +2,7 @@
   "replace": false,
   "values": [
     {
-      "id": "minecraft:swamp",
+      "id": "#c:swamp",
       "required": false
     }
   ]

@@ -2,6 +2,8 @@
   "replace": false,
   "values": [
     "minecraft:grass_block",
-    "minecraft:mycelium"
+    "minecraft:mud",
+    "minecraft:mycelium",
+    "minecraft:podzol"
   ]
 }
