@@ -38,5 +38,6 @@
 
 - Updated to 1.19.
 - Added `locked` NBT tag for snails, allow to entirely lock movement and the inventory to the owner only.
+- Added Russian translations ([#9](https://github.com/LambdAurora/lovely_snails/pull/9)).
 - Moved the Snail Spawn Egg to be in the same place as Vanilla would put Spawn Eggs in the creative inventory.
 - Stopped rendering chests if the snail is a baby. Not naturally possible, but it happened.
