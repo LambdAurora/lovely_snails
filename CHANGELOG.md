@@ -42,3 +42,8 @@
 - Added Canadian French translations.
 - Moved the Snail Spawn Egg to be in the same place as Vanilla would put Spawn Eggs in the creative inventory.
 - Stopped rendering chests if the snail is a baby. Not naturally possible, but it happened.
+
+### 1.1.1
+
+- Updated to 1.19.3.
+- Improved a little the spawn logic code.

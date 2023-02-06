@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 LambdAurora <email@lambdaurora.dev>
+ * Copyright (c) 2021-2023 LambdAurora <email@lambdaurora.dev>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -26,10 +26,7 @@ import dev.lambdaurora.lovely_snails.mixin.ShulkerEntityAccessor;
 import dev.lambdaurora.lovely_snails.registry.LovelySnailsRegistry;
 import dev.lambdaurora.lovely_snails.screen.SnailScreenHandler;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
-import net.minecraft.block.AbstractBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.CarpetBlock;
-import net.minecraft.block.DyedCarpetBlock;
+import net.minecraft.block.*;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.goal.*;
@@ -84,7 +81,7 @@ import java.util.function.Predicate;
  * Represents the snail entity.
  *
  * @author LambdAurora
- * @version 1.1.0
+ * @version 1.1.1
  * @since 1.0.0
  */
 public class SnailEntity extends TameableEntity implements InventoryChangedListener, Saddleable {
@@ -128,7 +125,7 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 
 	public static boolean canSpawn(EntityType<? extends AnimalEntity> type, WorldAccess world, SpawnReason spawnReason, BlockPos pos, RandomGenerator random) {
 		var spawnBlock = world.getBlockState(pos.down());
-		return world.getBaseLightLevel(pos, 0) > 8 && spawnBlock.isIn(LovelySnailsRegistry.SNAIL_SPAWN_BLOCKS);
+		return world.getLightLevel(LightType.SKY, pos) > 8 && spawnBlock.isIn(LovelySnailsRegistry.SNAIL_SPAWN_BLOCKS);
 	}
 
 	@Override

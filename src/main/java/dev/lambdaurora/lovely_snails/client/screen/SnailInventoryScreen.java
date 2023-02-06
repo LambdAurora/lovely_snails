@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 LambdAurora <email@lambdaurora.dev>
+ * Copyright (c) 2021-2023 LambdAurora <email@lambdaurora.dev>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -43,7 +43,7 @@ import net.minecraft.util.math.MathHelper;
  * Represents the snail inventory screen.
  *
  * @author LambdAurora
- * @version 1.1.0
+ * @version 1.1.1
  * @since 1.0.0
  */
 @Environment(EnvType.CLIENT)
@@ -53,7 +53,7 @@ public class SnailInventoryScreen extends HandledScreen<SnailScreenHandler> {
 	private float mouseX;
 	private float mouseY;
 	private EnderChestButton enderChestButton;
-	private PageButton[] pageButtons = new PageButton[3];
+	private final PageButton[] pageButtons = new PageButton[3];
 
 	public SnailInventoryScreen(SnailScreenHandler handler, PlayerInventory inventory, Text title) {
 		super(handler, inventory, handler.snail().getDisplayName());

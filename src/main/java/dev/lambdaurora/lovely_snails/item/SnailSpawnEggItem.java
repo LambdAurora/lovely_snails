@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 LambdAurora <email@lambdaurora.dev>
+ * Copyright (c) 2022-2023 LambdAurora <email@lambdaurora.dev>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,43 +17,25 @@
 
 package dev.lambdaurora.lovely_snails.item;
 
+import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.mob.MobEntity;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemGroups;
 import net.minecraft.item.SpawnEggItem;
-import net.minecraft.util.collection.DefaultedList;
 
 /**
  * Represents a spawn egg that will try to sneak in where the spawn eggs are.
  *
  * @author LambdAurora
- * @version 1.1.0
+ * @version 1.1.1
  * @since 1.1.0
  */
 public class SnailSpawnEggItem extends SpawnEggItem {
 	public SnailSpawnEggItem(EntityType<? extends MobEntity> entityType, int primaryColor, int secondaryColor, Settings settings) {
 		super(entityType, primaryColor, secondaryColor, settings);
-	}
 
-	@SuppressWarnings("deprecated")
-	@Override
-	public void appendStacks(ItemGroup group, DefaultedList<ItemStack> stacks) {
-		if (this.isInGroup(group)) {
-			String name = this.getBuiltInRegistryHolder().getRegistryKey().getValue().getPath();
-
-			for (int i = 0; i < stacks.size(); i++) {
-				var currentStack = stacks.get(i);
-
-				if (currentStack.getItem() instanceof SpawnEggItem) {
-					String otherName = currentStack.getItem().getBuiltInRegistryHolder().getRegistryKey().getValue().getPath();
-
-					if (otherName.compareTo(name) > 0) {
-						stacks.add(i, new ItemStack(this));
-						return;
-					}
-				}
-			}
-		}
+		ItemGroupEvents.modifyEntriesEvent(ItemGroups.SPAWN_EGGS).register(entries -> {
+			entries.addItem(this);
+		});
 	}
 }

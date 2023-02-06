@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 LambdAurora <email@lambdaurora.dev>
+ * Copyright (c) 2021-2023 LambdAurora <email@lambdaurora.dev>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -28,13 +28,13 @@ import net.minecraft.client.render.entity.feature.FeatureRenderer;
 import net.minecraft.client.render.entity.feature.FeatureRendererContext;
 import net.minecraft.client.render.model.json.ModelTransformation;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.Vec3f;
+import net.minecraft.util.math.Axis;
 
 /**
  * Renders the chests on a snail.
  *
  * @author LambdAurora
- * @version 1.0.0
+ * @version 1.1.1
  * @since 1.0.0
  */
 public class SnailChestFeatureRenderer extends FeatureRenderer<SnailEntity, SnailModel> {
@@ -48,7 +48,7 @@ public class SnailChestFeatureRenderer extends FeatureRenderer<SnailEntity, Snai
 
 	@Override
 	public void render(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, SnailEntity entity,
-	                   float limbAngle, float limbDistance, float tickDelta, float animationProgress, float headYaw, float headPitch) {
+			float limbAngle, float limbDistance, float tickDelta, float animationProgress, float headYaw, float headPitch) {
 		if (entity.isBaby()) return;
 
 		var itemRenderer = MinecraftClient.getInstance().getItemRenderer();
@@ -59,9 +59,9 @@ public class SnailChestFeatureRenderer extends FeatureRenderer<SnailEntity, Snai
 		var rightChest = entity.getChest(0);
 		if (!rightChest.isEmpty()) {
 			matrices.push();
-			matrices.multiply(Vec3f.POSITIVE_X.getDegreesQuaternion(180));
-			matrices.multiply(Vec3f.POSITIVE_X.getRadialQuaternion(shellRotation));
-			matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(90));
+			matrices.multiply(Axis.X_POSITIVE.rotationDegrees(180));
+			matrices.multiply(Axis.X_POSITIVE.rotation(shellRotation));
+			matrices.multiply(Axis.Y_POSITIVE.rotationDegrees(90));
 			matrices.translate(.65, 0.2, -.505);
 			matrices.scale(1.25f, 1.25f, 1.25f);
 			itemRenderer.renderItem(rightChest, ModelTransformation.Mode.FIXED, light, OverlayTexture.DEFAULT_UV,
@@ -72,8 +72,8 @@ public class SnailChestFeatureRenderer extends FeatureRenderer<SnailEntity, Snai
 		var backChest = entity.getChest(1);
 		if (!backChest.isEmpty()) {
 			matrices.push();
-			matrices.multiply(Vec3f.POSITIVE_X.getDegreesQuaternion(180));
-			matrices.multiply(Vec3f.POSITIVE_X.getRadialQuaternion(shellRotation));
+			matrices.multiply(Axis.X_POSITIVE.rotationDegrees(180));
+			matrices.multiply(Axis.X_POSITIVE.rotation(shellRotation));
 			matrices.translate(0, 0.2, -.94);
 			matrices.scale(1.25f, 1.25f, 1.25f);
 			itemRenderer.renderItem(backChest, ModelTransformation.Mode.FIXED, light, OverlayTexture.DEFAULT_UV,
@@ -84,9 +84,9 @@ public class SnailChestFeatureRenderer extends FeatureRenderer<SnailEntity, Snai
 		var leftChest = entity.getChest(2);
 		if (!leftChest.isEmpty()) {
 			matrices.push();
-			matrices.multiply(Vec3f.POSITIVE_X.getDegreesQuaternion(180));
-			matrices.multiply(Vec3f.POSITIVE_X.getRadialQuaternion(shellRotation));
-			matrices.multiply(Vec3f.NEGATIVE_Y.getDegreesQuaternion(90));
+			matrices.multiply(Axis.X_POSITIVE.rotationDegrees(180));
+			matrices.multiply(Axis.X_POSITIVE.rotation(shellRotation));
+			matrices.multiply(Axis.Y_NEGATIVE.rotationDegrees(90));
 			matrices.translate(-.65, 0.2, -.505);
 			matrices.scale(1.25f, 1.25f, 1.25f);
 			itemRenderer.renderItem(leftChest, ModelTransformation.Mode.FIXED, light, OverlayTexture.DEFAULT_UV,

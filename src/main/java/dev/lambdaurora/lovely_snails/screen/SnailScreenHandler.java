@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 LambdAurora <email@lambdaurora.dev>
+ * Copyright (c) 2021-2023 LambdAurora <email@lambdaurora.dev>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -277,7 +277,7 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
 	}
 
 	@Override
-	public ItemStack transferSlot(PlayerEntity player, int index) {
+	public ItemStack quickTransfer(PlayerEntity player, int index) {
 		var stack = ItemStack.EMPTY;
 		var slot = this.slots.get(index);
 
