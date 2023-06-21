@@ -44,7 +44,7 @@ String parseReadme() {
 	def linkRegex = /!\[([A-z_ ]+)]\((images\/[A-z.\/_]+)\)/
 
 	def readme = (String) file('README.md').text
-	readme = readme.replaceAll(linkRegex, '![$1](https://raw.githubusercontent.com/LambdAurora/lovely_snails/1.19.3/$2)')
+	readme = readme.replaceAll(linkRegex, '![$1](https://raw.githubusercontent.com/LambdAurora/lovely_snails/1.20/$2)')
 	return readme
 }
 

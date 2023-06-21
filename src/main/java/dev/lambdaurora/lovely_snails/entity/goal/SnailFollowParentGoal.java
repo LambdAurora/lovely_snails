@@ -44,7 +44,7 @@ public class SnailFollowParentGoal extends Goal {
 		if (this.self.getBreedingAge() >= 0) {
 			return false;
 		} else {
-			var closeSnails = this.self.world.getNonSpectatingEntities(SnailEntity.class,
+			var closeSnails = this.self.getWorld().getNonSpectatingEntities(SnailEntity.class,
 					this.self.getBoundingBox().expand(8.0, 4.0, 8.0)
 			);
 			SnailEntity closestParent = null;

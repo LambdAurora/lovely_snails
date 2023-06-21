@@ -47,3 +47,9 @@
 
 - Updated to 1.19.3.
 - Improved a little the spawn logic code.
+
+### 1.1.2
+
+- Updated to 1.20.1.
+- Added moss blocks and moss carpets as valid spawn blocks for snails.
+- Added hanging roots, melon seeds, pumpkin seeds, torchflower seeds, and wheat seeds as snail food.

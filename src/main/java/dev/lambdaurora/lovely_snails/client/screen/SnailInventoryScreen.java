@@ -24,13 +24,13 @@ import dev.lambdaurora.lovely_snails.screen.SnailScreenHandler;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
 import net.minecraft.client.gui.widget.TexturedButtonWidget;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.client.sound.SoundManager;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.InventoryChangedListener;
@@ -137,43 +137,43 @@ public class SnailInventoryScreen extends HandledScreen<SnailScreenHandler> {
 	/* Rendering */
 
 	@Override
-	protected void drawBackground(MatrixStack matrices, float delta, int mouseX, int mouseY) {
+	protected void drawBackground(GuiGraphics graphics, float delta, int mouseX, int mouseY) {
 		RenderSystem.setShader(GameRenderer::getPositionTexShader);
 		RenderSystem.setShaderColor(1.f, 1.f, 1.f, 1.f);
-		RenderSystem.setShaderTexture(0, TEXTURE);
 		int x = (this.width - this.backgroundWidth) / 2;
 		int y = (this.height - this.backgroundHeight) / 2;
-		this.drawTexture(matrices, x, y, 0, 0, this.backgroundWidth, this.backgroundHeight);
+		graphics.drawTexture(TEXTURE, x, y, 0, 0, this.backgroundWidth, this.backgroundHeight);
 
 		if (this.entity.canBeSaddled()) {
-			this.drawTexture(matrices, x + 7 + 18, y + 35 - 18, 18, this.backgroundHeight + 54, 18, 18);
+			graphics.drawTexture(TEXTURE, x + 7 + 18, y + 35 - 18, 18, this.backgroundHeight + 54, 18, 18);
 		}
 
-		this.drawTexture(matrices, x + 7 + 18, y + 35, 36, this.backgroundHeight + 54, 18, 18);
+		graphics.drawTexture(TEXTURE, x + 7 + 18, y + 35, 36, this.backgroundHeight + 54, 18, 18);
 
 		if (!this.entity.isBaby()) {
 			for (int row = y + 17; row <= y + 35 + 18; row += 18) {
-				this.drawTexture(matrices, x + 7, row, 54, this.backgroundHeight + 54, 18, 18);
+				graphics.drawTexture(TEXTURE, x + 7, row, 54, this.backgroundHeight + 54, 18, 18);
 			}
 		}
 
 		if (this.getScreenHandler().hasChests()) {
-			this.drawTexture(matrices, x + 98, y + 17, 0, this.backgroundHeight, 5 * 18, 54);
+			graphics.drawTexture(TEXTURE, x + 98, y + 17, 0, this.backgroundHeight, 5 * 18, 54);
 		}
 
-		InventoryScreen.drawEntity(x + 70, y + 60, 17,
-				(x + 51) - this.mouseX,
-				(y + 75 - 50) - this.mouseY,
-				this.entity);
+		InventoryScreen.drawEntity(
+				graphics, x + 70, y + 60, 17,
+				(x + 51) - this.mouseX, (y + 75 - 50) - this.mouseY,
+				this.entity
+		);
 	}
 
 	@Override
-	public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
-		this.renderBackground(matrices);
+	public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
+		this.renderBackground(graphics);
 		this.mouseX = mouseX;
 		this.mouseY = mouseY;
-		super.render(matrices, mouseX, mouseY, delta);
-		this.drawMouseoverTooltip(matrices, mouseX, mouseY);
+		super.render(graphics, mouseX, mouseY, delta);
+		this.drawMouseoverTooltip(graphics, mouseX, mouseY);
 	}
 
 	private class EnderChestButton extends TexturedButtonWidget implements InventoryChangedListener {

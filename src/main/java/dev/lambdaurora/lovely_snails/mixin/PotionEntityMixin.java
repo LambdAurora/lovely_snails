@@ -36,7 +36,7 @@ public abstract class PotionEntityMixin extends ThrownItemEntity {
 	}
 
 	@Inject(
-			method = "damageEntitiesHurtByWater",
+			method = "applyWaterEffects",
 			at = @At(
 					value = "INVOKE",
 					target = "Lnet/minecraft/world/World;getEntitiesByClass(Ljava/lang/Class;Lnet/minecraft/util/math/Box;Ljava/util/function/Predicate;)Ljava/util/List;"

@@ -26,7 +26,7 @@ import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.EntityRendererFactory;
 import net.minecraft.client.render.entity.feature.FeatureRenderer;
 import net.minecraft.client.render.entity.feature.FeatureRendererContext;
-import net.minecraft.client.render.model.json.ModelTransformation;
+import net.minecraft.client.render.model.json.ModelTransformationMode;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.Axis;
 
@@ -64,8 +64,8 @@ public class SnailChestFeatureRenderer extends FeatureRenderer<SnailEntity, Snai
 			matrices.multiply(Axis.Y_POSITIVE.rotationDegrees(90));
 			matrices.translate(.65, 0.2, -.505);
 			matrices.scale(1.25f, 1.25f, 1.25f);
-			itemRenderer.renderItem(rightChest, ModelTransformation.Mode.FIXED, light, OverlayTexture.DEFAULT_UV,
-					matrices, vertexConsumers, 0);
+			itemRenderer.renderItem(rightChest, ModelTransformationMode.FIXED, light, OverlayTexture.DEFAULT_UV,
+					matrices, vertexConsumers, entity.getWorld(), 0);
 			matrices.pop();
 		}
 
@@ -76,8 +76,8 @@ public class SnailChestFeatureRenderer extends FeatureRenderer<SnailEntity, Snai
 			matrices.multiply(Axis.X_POSITIVE.rotation(shellRotation));
 			matrices.translate(0, 0.2, -.94);
 			matrices.scale(1.25f, 1.25f, 1.25f);
-			itemRenderer.renderItem(backChest, ModelTransformation.Mode.FIXED, light, OverlayTexture.DEFAULT_UV,
-					matrices, vertexConsumers, 0);
+			itemRenderer.renderItem(backChest, ModelTransformationMode.FIXED, light, OverlayTexture.DEFAULT_UV,
+					matrices, vertexConsumers, entity.getWorld(), 0);
 			matrices.pop();
 		}
 
@@ -89,8 +89,8 @@ public class SnailChestFeatureRenderer extends FeatureRenderer<SnailEntity, Snai
 			matrices.multiply(Axis.Y_NEGATIVE.rotationDegrees(90));
 			matrices.translate(-.65, 0.2, -.505);
 			matrices.scale(1.25f, 1.25f, 1.25f);
-			itemRenderer.renderItem(leftChest, ModelTransformation.Mode.FIXED, light, OverlayTexture.DEFAULT_UV,
-					matrices, vertexConsumers, 0);
+			itemRenderer.renderItem(leftChest, ModelTransformationMode.FIXED, light, OverlayTexture.DEFAULT_UV,
+					matrices, vertexConsumers, entity.getWorld(), 0);
 			matrices.pop();
 		}
 	}
