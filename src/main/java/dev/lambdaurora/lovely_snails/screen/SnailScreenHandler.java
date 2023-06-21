@@ -277,9 +277,9 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
 	}
 
 	@Override
-	public ItemStack quickTransfer(PlayerEntity player, int index) {
+	public ItemStack quickTransfer(PlayerEntity player, int fromIndex) {
 		var stack = ItemStack.EMPTY;
-		var slot = this.slots.get(index);
+		var slot = this.slots.get(fromIndex);
 
 		if (slot.hasStack()) {
 			var currentStack = slot.getStack();
@@ -288,7 +288,7 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
 
 			ItemStack insertionIntoSnail;
 
-			if (index < inventorySize) {
+			if (fromIndex < inventorySize) {
 				if (this.snail().canUseSnail(player) && !this.insertItem(currentStack, inventorySize, this.slots.size(), true)) {
 					return ItemStack.EMPTY;
 				}
@@ -297,11 +297,11 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
 			} else {
 				int playerInventoryEnd = inventorySize + 27;
 				int hotbarEnd = playerInventoryEnd + 9;
-				if (index >= playerInventoryEnd && index < hotbarEnd) {
+				if (fromIndex >= playerInventoryEnd && fromIndex < hotbarEnd) {
 					if (!this.insertItem(currentStack, inventorySize, playerInventoryEnd, false)) {
 						return ItemStack.EMPTY;
 					}
-				} else if (index < playerInventoryEnd) {
+				} else if (fromIndex < playerInventoryEnd) {
 					if (!this.insertItem(currentStack, playerInventoryEnd, hotbarEnd, false)) {
 						return ItemStack.EMPTY;
 					}
