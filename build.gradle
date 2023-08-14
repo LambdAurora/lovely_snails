@@ -164,8 +164,6 @@ curseforge {
 		addGameVersion "Quilt"
 		addGameVersion "Java 17"
 		addGameVersion "Java 18"
-		addGameVersion "Client"
-		addGameVersion "Server"
 
 		// Changelog fetching
 		def changelogContent = fetchChangelog()
