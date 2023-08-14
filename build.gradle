@@ -1,6 +1,6 @@
 plugins {
 	id 'fabric-loom' version '1.2.+'
-	id 'io.github.juuxel.loom-quiltflower' version '1.8.+'
+	id 'io.github.juuxel.loom-vineflower' version '1.11.+'
 	id 'org.quiltmc.gradle.licenser' version '2.0.+'
 	id 'java-library'
 	id 'maven-publish'
@@ -164,6 +164,8 @@ curseforge {
 		addGameVersion "Quilt"
 		addGameVersion "Java 17"
 		addGameVersion "Java 18"
+		addGameVersion "Client"
+		addGameVersion "Server"
 
 		// Changelog fetching
 		def changelogContent = fetchChangelog()

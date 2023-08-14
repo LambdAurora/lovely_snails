@@ -6,8 +6,8 @@
     "client.ClientPlayerInteractionManagerMixin"
   ],
   "mixins": [
-    "DataTrackerAccessor",
     "PassiveEntityAccessor",
+    "PassiveEntityMixin",
     "PotionEntityMixin",
     "ServerPlayNetworkHandlerMixin",
     "ShulkerEntityAccessor"

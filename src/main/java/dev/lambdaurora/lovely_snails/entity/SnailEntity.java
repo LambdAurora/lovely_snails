@@ -20,7 +20,6 @@ package dev.lambdaurora.lovely_snails.entity;
 import dev.lambdaurora.lovely_snails.LovelySnails;
 import dev.lambdaurora.lovely_snails.entity.goal.SnailFollowParentGoal;
 import dev.lambdaurora.lovely_snails.entity.goal.SnailHideGoal;
-import dev.lambdaurora.lovely_snails.mixin.DataTrackerAccessor;
 import dev.lambdaurora.lovely_snails.mixin.PassiveEntityAccessor;
 import dev.lambdaurora.lovely_snails.mixin.ShulkerEntityAccessor;
 import dev.lambdaurora.lovely_snails.registry.LovelySnailsRegistry;
@@ -84,7 +83,7 @@ import java.util.function.Predicate;
  * Represents the snail entity.
  *
  * @author LambdAurora
- * @version 1.1.1
+ * @version 1.1.3
  * @since 1.0.0
  */
 public class SnailEntity extends TameableEntity implements InventoryChangedListener, Saddleable {
@@ -338,8 +337,6 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 	@Override
 	protected void initDataTracker() {
 		super.initDataTracker();
-
-		((DataTrackerAccessor) this.dataTracker).lovely_snails$getEntry(CHILD).set(true); // Replace default value.
 
 		this.dataTracker.startTracking(SNAIL_FLAGS, (byte) 0);
 		this.dataTracker.startTracking(CHEST_FLAGS, (byte) 0);

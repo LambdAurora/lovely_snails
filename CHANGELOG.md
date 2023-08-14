@@ -53,3 +53,8 @@
 - Updated to 1.20.1.
 - Added moss blocks and moss carpets as valid spawn blocks for snails.
 - Added hanging roots, melon seeds, pumpkin seeds, torchflower seeds, and wheat seeds as snail food.
+
+### 1.1.3
+
+- Fixed adult snails appearing small after reconnect due to network desynchronizations
+  ([#13](https://github.com/LambdAurora/lovely_snails/issues/13), [#14](https://github.com/LambdAurora/lovely_snails/issues/14)).
