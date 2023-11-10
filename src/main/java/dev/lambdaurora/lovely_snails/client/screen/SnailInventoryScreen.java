@@ -162,8 +162,8 @@ public class SnailInventoryScreen extends HandledScreen<SnailScreenHandler> {
 		}
 
 		InventoryScreen.drawEntity(
-				graphics, x + 26, y + 18,
-				x + 78,
+				graphics, x + 40, y + 8,
+				x + 100,
 				y + 70, 17,
 				0.25F,
 				this.mouseX, this.mouseY,
