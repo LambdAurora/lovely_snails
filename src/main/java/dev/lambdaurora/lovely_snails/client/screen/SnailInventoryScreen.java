@@ -112,17 +112,17 @@ public class SnailInventoryScreen extends HandledScreen<SnailScreenHandler> {
 	/* Input */
 
 	@Override
-	public boolean mouseScrolled(double mouseX, double mouseY, double amount, double d) {
+	public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
 		int x = (this.width - this.backgroundWidth) / 2;
 		int y = (this.height - this.backgroundHeight) / 2;
 		if (mouseX > x + 98 && mouseY > y + 17 && mouseX <= x + 98 + 5 * 18 && mouseY <= y + 17 + 54) {
 			int oldPage = this.getScreenHandler().getCurrentStoragePage();
-			int newPage = MathHelper.clamp(oldPage + (amount > 0 ? -1 : 1), 0, 2);
+			int newPage = MathHelper.clamp(oldPage + (scrollY > 0 ? -1 : 1), 0, 2);
 			if (oldPage == newPage)
 				return true;
 
 			if (!this.getScreenHandler().hasChest(newPage)) {
-				int otherNewPage = MathHelper.clamp(newPage + (amount > 0 ? -1 : 1), 0, 2);
+				int otherNewPage = MathHelper.clamp(newPage + (scrollY > 0 ? -1 : 1), 0, 2);
 				if (newPage == otherNewPage || !this.getScreenHandler().hasChest(otherNewPage))
 					return true;
 
@@ -132,7 +132,7 @@ public class SnailInventoryScreen extends HandledScreen<SnailScreenHandler> {
 			this.getScreenHandler().requestStoragePage(newPage);
 			return true;
 		}
-		return super.mouseScrolled(mouseX, mouseY, amount, d);
+		return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
 	}
 
 	/* Rendering */
@@ -165,7 +165,7 @@ public class SnailInventoryScreen extends HandledScreen<SnailScreenHandler> {
 				graphics, x + 40, y + 8,
 				x + 100,
 				y + 70, 17,
-				0.25F,
+				0.25f,
 				this.mouseX, this.mouseY,
 				this.entity
 		);
