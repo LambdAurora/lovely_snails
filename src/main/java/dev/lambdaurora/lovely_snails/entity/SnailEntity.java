@@ -169,7 +169,7 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 		this.setSnailFlag(SCARED_FLAG, scared);
 
 		if (!this.getWorld().isClient()) {
-			this.getAttributeInstance(EntityAttributes.GENERIC_ARMOR).removeModifier(SCARED_ARMOR_BONUS);
+			this.getAttributeInstance(EntityAttributes.GENERIC_ARMOR).removeModifier(SCARED_ARMOR_BONUS.getId());
 			if (scared) {
 				this.getAttributeInstance(EntityAttributes.GENERIC_ARMOR).addPersistentModifier(SCARED_ARMOR_BONUS);
 			}
@@ -292,11 +292,11 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 	}
 
 	@Override
-	public double getMountedHeightOffset() {
+	public float getHeightOffset(Entity entity) {
 		if (!this.isBaby())
 			return this.getDimensions(EntityPose.STANDING).height * 0.95f;
 		else
-			return super.getMountedHeightOffset();
+			return super.getHeightOffset(entity);
 	}
 
 	@Override
@@ -827,7 +827,7 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 
 	@Override
 	protected void onGrowUp() {
-		if (!this.getWorld().isClient() && !this.isBaby() && this.getWorld().getGameRules().getBoolean(GameRules.DO_MOB_LOOT)) {
+		if (!this.getWorld().isClient() && !this.isBaby() && this.getWorld().getGameRules().getBooleanValue(GameRules.DO_MOB_LOOT)) {
 			this.dropStack(new ItemStack(Items.SLIME_BALL, 1 + this.random.nextInt(2)));
 		}
 	}
