@@ -131,8 +131,10 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 	}
 
 	@Override
-	public EntityData initialize(ServerWorldAccess world, LocalDifficulty difficulty, SpawnReason spawnReason, @Nullable EntityData entityData,
-			@Nullable NbtCompound entityNbt) {
+	public EntityData initialize(
+			ServerWorldAccess world, LocalDifficulty difficulty, SpawnReason spawnReason,
+			@Nullable EntityData entityData, @Nullable NbtCompound entityNbt
+	) {
 		this.setBaby(true);
 		this.satisfaction = SATISFACTION_START + this.random.nextInt(10);
 		return super.initialize(world, difficulty, spawnReason, entityData, entityNbt);
@@ -341,6 +343,17 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 		this.dataTracker.startTracking(SNAIL_FLAGS, (byte) 0);
 		this.dataTracker.startTracking(CHEST_FLAGS, (byte) 0);
 		this.dataTracker.startTracking(CARPET_COLOR, -1);
+
+		this.calculateDimensions();
+	}
+
+	@Override
+	public void onTrackedDataUpdate(TrackedData<?> data) {
+		super.onTrackedDataUpdate(data);
+
+		if (data.equals(CHILD)) {
+			this.calculateDimensions();
+		}
 	}
 
 	/* Serialization */

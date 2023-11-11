@@ -58,3 +58,8 @@
 
 - Fixed adult snails appearing small after reconnect due to network desynchronizations
   ([#13](https://github.com/LambdAurora/lovely_snails/issues/13), [#14](https://github.com/LambdAurora/lovely_snails/issues/14)).
+
+### 1.1.4
+
+- Updated to 1.20.2 ([#16](https://github.com/LambdAurora/lovely_snails/pull/16)).
+- Fixed more snail client synchronization issues.

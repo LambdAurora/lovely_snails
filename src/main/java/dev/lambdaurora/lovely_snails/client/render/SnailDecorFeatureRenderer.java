@@ -49,8 +49,10 @@ public class SnailDecorFeatureRenderer extends FeatureRenderer<SnailEntity, Snai
 	}
 
 	@Override
-	public void render(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, SnailEntity entity,
-	                   float limbAngle, float limbDistance, float tickDelta, float animationProgress, float headYaw, float headPitch) {
+	public void render(
+			MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, SnailEntity entity,
+			float limbAngle, float limbDistance, float tickDelta, float animationProgress, float headYaw, float headPitch
+	) {
 		var dyeColor = entity.getCarpetColor();
 		if (dyeColor == null) return;
 		var texture = TEXTURES[dyeColor.getId()];
