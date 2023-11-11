@@ -27,7 +27,8 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
-import net.minecraft.client.gui.widget.TexturedButtonWidget;
+import net.minecraft.client.gui.widget.ClickableWidgetStateTextures;
+import net.minecraft.client.gui.widget.button.TexturedButtonWidget;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.client.sound.SoundManager;
@@ -84,13 +85,13 @@ public class SnailInventoryScreen extends HandledScreen<SnailScreenHandler> {
 
 		int x = (this.width - this.backgroundWidth) / 2;
 		int y = (this.height - this.backgroundHeight) / 2;
-		this.addDrawableChild(this.enderChestButton = new EnderChestButton(x + 7 + 18, y + 35 + 18));
+		this.addDrawableSelectableElement(this.enderChestButton = new EnderChestButton(x + 7 + 18, y + 35 + 18));
 		this.getScreenHandler().getInventory().addListener(this.enderChestButton);
 
 		int buttonX = x + this.backgroundWidth - 3;
 		int buttonY = y + 17;
 		for (int page = 0; page < 3; page++) {
-			this.addDrawableChild(this.pageButtons[page] = new PageButton(buttonX, buttonY, page));
+			this.addDrawableSelectableElement(this.pageButtons[page] = new PageButton(buttonX, buttonY, page));
 			this.getScreenHandler().getInventory().addListener(this.pageButtons[page]);
 			this.getScreenHandler().addPageChangeListener(this.pageButtons[page]);
 		}
@@ -111,17 +112,17 @@ public class SnailInventoryScreen extends HandledScreen<SnailScreenHandler> {
 	/* Input */
 
 	@Override
-	public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
+	public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
 		int x = (this.width - this.backgroundWidth) / 2;
 		int y = (this.height - this.backgroundHeight) / 2;
 		if (mouseX > x + 98 && mouseY > y + 17 && mouseX <= x + 98 + 5 * 18 && mouseY <= y + 17 + 54) {
 			int oldPage = this.getScreenHandler().getCurrentStoragePage();
-			int newPage = MathHelper.clamp(oldPage + (amount > 0 ? -1 : 1), 0, 2);
+			int newPage = MathHelper.clamp(oldPage + (scrollY > 0 ? -1 : 1), 0, 2);
 			if (oldPage == newPage)
 				return true;
 
 			if (!this.getScreenHandler().hasChest(newPage)) {
-				int otherNewPage = MathHelper.clamp(newPage + (amount > 0 ? -1 : 1), 0, 2);
+				int otherNewPage = MathHelper.clamp(newPage + (scrollY > 0 ? -1 : 1), 0, 2);
 				if (newPage == otherNewPage || !this.getScreenHandler().hasChest(otherNewPage))
 					return true;
 
@@ -131,7 +132,7 @@ public class SnailInventoryScreen extends HandledScreen<SnailScreenHandler> {
 			this.getScreenHandler().requestStoragePage(newPage);
 			return true;
 		}
-		return super.mouseScrolled(mouseX, mouseY, amount);
+		return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
 	}
 
 	/* Rendering */
@@ -161,15 +162,18 @@ public class SnailInventoryScreen extends HandledScreen<SnailScreenHandler> {
 		}
 
 		InventoryScreen.drawEntity(
-				graphics, x + 70, y + 60, 17,
-				(x + 51) - this.mouseX, (y + 75 - 50) - this.mouseY,
+				graphics, x + 40, y + 8,
+				x + 100,
+				y + 70, 17,
+				0.25f,
+				this.mouseX, this.mouseY,
 				this.entity
 		);
 	}
 
 	@Override
 	public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
-		this.renderBackground(graphics);
+		this.renderBackground(graphics, mouseX, mouseY, delta);
 		this.mouseX = mouseX;
 		this.mouseY = mouseY;
 		super.render(graphics, mouseX, mouseY, delta);
@@ -178,8 +182,10 @@ public class SnailInventoryScreen extends HandledScreen<SnailScreenHandler> {
 
 	private class EnderChestButton extends TexturedButtonWidget implements InventoryChangedListener {
 		public EnderChestButton(int x, int y) {
-			super(x, y, 18, 18, 0, 0, 18, LovelySnails.id("textures/gui/snail_ender_chest_button.png"),
-					18, 36,
+			super(x, y, 18, 18,
+					new ClickableWidgetStateTextures(
+							LovelySnails.id("snail_ender_chest_button"),
+							LovelySnails.id("snail_ender_chest_button_highlighted")),
 					btn -> {
 						var client = MinecraftClient.getInstance();
 						var screenHandler = SnailInventoryScreen.this.getScreenHandler();
@@ -203,8 +209,11 @@ public class SnailInventoryScreen extends HandledScreen<SnailScreenHandler> {
 		private final int page;
 
 		public PageButton(int x, int y, int page) {
-			super(x, y + page * 18 + 1, 15, 16, 211 + page * 15, 0, 16, TEXTURE,
-					256, 256,
+			super(x, y + page * 18 + 1, 15, 16,
+					new ClickableWidgetStateTextures(
+							LovelySnails.id("container/snail_page_" + (page + 1) + "_button"),
+							LovelySnails.id("container/snail_page_" + (page + 1) + "_button_highlighted")
+					),
 					btn -> {
 						SnailInventoryScreen.this.getScreenHandler().requestStoragePage(page);
 					});
