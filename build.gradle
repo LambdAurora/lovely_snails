@@ -1,18 +1,18 @@
 plugins {
-	id 'fabric-loom' version '1.2.+'
-	id 'io.github.juuxel.loom-vineflower' version '1.11.+'
-	id 'org.quiltmc.gradle.licenser' version '2.0.+'
+	id 'fabric-loom' version '1.4.+'
+	id 'dev.yumi.gradle.licenser' version '1.0.+'
 	id 'java-library'
 	id 'maven-publish'
 	id 'com.modrinth.minotaur' version '2.+'
-	id 'com.matthewprenger.cursegradle' version '1.4.+'
+	id 'net.darkhax.curseforgegradle' version '1.1.+'
 }
 
 import com.modrinth.minotaur.dependencies.ModDependency
+import net.darkhax.curseforgegradle.TaskPublishCurseForge
 
 group = project.maven_group
 version = "${project.mod_version}+${project.minecraft_version}"
-archivesBaseName = project.archives_base_name
+base.archivesName = project.archives_base_name
 
 // This field defines the Java version your mod target.
 def targetJavaVersion = 17
@@ -123,7 +123,6 @@ jar {
 
 license {
 	rule file('HEADER')
-	include '**/*.java'
 }
 
 modrinth {
@@ -151,57 +150,36 @@ modrinth {
 }
 tasks.modrinth.dependsOn(tasks.modrinthSyncBody)
 
-curseforge {
+tasks.register('curseforge', TaskPublishCurseForge) {
+	setGroup("publishing")
+
 	if (System.getenv("CURSEFORGE_TOKEN")) {
-		apiKey = System.getenv("CURSEFORGE_TOKEN")
+		apiToken = System.getenv("CURSEFORGE_TOKEN")
+	} else {
+		setEnabled(false)
+		return
 	}
 
-	project {
-		id = project.curseforge_id
-		releaseType = this.getVersionType()
-		addGameVersion project.minecraft_version
-		addGameVersion "Fabric"
-		addGameVersion "Quilt"
-		addGameVersion "Java 17"
-		addGameVersion "Java 18"
+	// Changelog fetching
+	def changelogContent = fetchChangelog()
 
-		// Changelog fetching
-		def changelogContent = fetchChangelog()
-
-		if (changelogContent) {
-			changelogType = "markdown"
-			changelog = "Changelog:\n\n${changelogContent}"
-		} else {
-			afterEvaluate {
-				uploadTask.setEnabled(false)
-			}
-		}
-
-		mainArtifact(remapJar) {
-			displayName = "Lovely Snails ${project.mod_version} (${project.minecraft_version})"
-
-			relations {
-				requiredDependency "fabric-api"
-				optionalDependency "modmenu"
-			}
-		}
-
-		afterEvaluate {
-			uploadTask.setGroup("publishing")
-			uploadTask.dependsOn("remapJar")
-		}
-	}
-}
-tasks.curseforge.setGroup("publishing")
-
-// configure the maven publication
-publishing {
-	publications {
-		mavenJava(MavenPublication) {
-			from(components.java)
-		}
+	if (changelogContent) {
+		changelogContent = "Changelog:\n\n${changelogContent}"
+	} else {
+		setEnabled(false)
+		return
 	}
 
-	repositories {
-	}
+	def mainFile = upload(project.curseforge_id, tasks.remapJar)
+	mainFile.releaseType = this.getVersionType()
+	mainFile.addGameVersion(project.minecraft_version)
+	mainFile.addModLoader("Fabric", "Quilt")
+	mainFile.addJavaVersion("Java 17", "Java 18")
+
+	mainFile.displayName = "Lovely Snails ${project.mod_version} (${project.minecraft_version})"
+	mainFile.addRequirement("fabric-api")
+	mainFile.addOptional("modmenu")
+
+	mainFile.changelogType = "markdown"
+	mainFile.changelog = changelogContent
 }

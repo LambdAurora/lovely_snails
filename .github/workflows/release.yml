@@ -26,13 +26,6 @@ jobs:
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
           CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
 
-      - name: Synchronize Mod description
-        uses: gradle/gradle-build-action@v2
-        with:
-          arguments: modrinthSyncBody --stacktrace
-        env:
-          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
-
       - uses: actions/upload-artifact@v3
         with:
           name: Artifacts
