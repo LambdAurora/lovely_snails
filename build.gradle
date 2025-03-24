@@ -1,6 +1,6 @@
 plugins {
 	id 'fabric-loom' version '1.4.+'
-	id 'dev.yumi.gradle.licenser' version '1.0.+'
+	id 'dev.yumi.gradle.licenser' version '1.2.+'
 	id 'java-library'
 	id 'maven-publish'
 	id 'com.modrinth.minotaur' version '2.+'
@@ -122,7 +122,7 @@ jar {
 }
 
 license {
-	rule file('HEADER')
+	rule file('codeformat/HEADER')
 }
 
 modrinth {
