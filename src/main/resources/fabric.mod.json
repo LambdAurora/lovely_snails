@@ -1,41 +1,38 @@
 {
-  "schemaVersion": 1,
-  "id": "lovely_snails",
-  "version": "${version}",
-  "name": "Lovely Snails",
-  "description": "Adds some big snails. Made for Modfest 1.17.",
-  "authors": [
-    "LambdAurora"
-  ],
-  "contributors": [
-    "Arathain"
-  ],
-  "contact": {
-    "homepage": "https://modrinth.com/mod/lovely_snails",
-    "sources": "https://github.com/LambdAurora/lovely_snails.git",
-    "issues": "https://github.com/LambdAurora/lovely_snails/issues"
-  },
-  "license": "Lambda License",
-  "icon": "assets/lovely_snails/icon.png",
-  "environment": "*",
-  "entrypoints": {
-    "main": [
-      "dev.lambdaurora.lovely_snails.LovelySnails"
-    ],
-    "client": [
-      "dev.lambdaurora.lovely_snails.client.LovelySnailsClient"
-    ]
-  },
-  "mixins": [
-    "lovely_snails.mixins.json"
-  ],
-  "depends": {
-    "minecraft": "~1.20",
-    "fabricloader": ">=0.14.20",
-    "fabric": ">=0.83.0",
-    "java": ">=17"
-  },
-  "recommends": {
-    "quilt_loader": ">=0.19.1"
-  }
+	"schemaVersion": 1,
+	"id": "lovely_snails",
+	"version": "${version}",
+	"name": "Lovely Snails",
+	"description": "Adds some big snails. Made for Modfest 1.17.",
+	"authors": [
+		"LambdAurora"
+	],
+	"contributors": [
+		"Arathain"
+	],
+	"contact": {
+		"homepage": "https://modrinth.com/mod/lovely_snails",
+		"sources": "https://github.com/LambdAurora/lovely_snails.git",
+		"issues": "https://github.com/LambdAurora/lovely_snails/issues"
+	},
+	"license": "Lambda License",
+	"icon": "assets/lovely_snails/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"dev.lambdaurora.lovely_snails.LovelySnails"
+		],
+		"client": [
+			"dev.lambdaurora.lovely_snails.client.LovelySnailsClient"
+		]
+	},
+	"mixins": [
+		"lovely_snails.mixins.json"
+	],
+	"depends": {
+		"minecraft": "~1.20 <1.20.2-",
+		"fabricloader": ">=0.16.10",
+		"fabric-api": ">=0.92.2+1.20.1",
+		"java": ">=17"
+	}
 }

@@ -9,19 +9,19 @@
 
 package dev.lambdaurora.lovely_snails.client.render;
 
+import com.mojang.blaze3d.vertex.MatrixStack;
 import dev.lambdaurora.lovely_snails.LovelySnails;
 import dev.lambdaurora.lovely_snails.client.LovelySnailsClient;
 import dev.lambdaurora.lovely_snails.client.model.SnailModel;
 import dev.lambdaurora.lovely_snails.entity.SnailEntity;
-import net.minecraft.client.render.OverlayTexture;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.entity.EntityRendererFactory;
-import net.minecraft.client.render.entity.feature.FeatureRenderer;
-import net.minecraft.client.render.entity.feature.FeatureRendererContext;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.DyeColor;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.entity.RenderLayerParent;
+import net.minecraft.client.renderer.entity.layers.RenderLayer;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.DyeColor;
 
 /**
  * Renders decoration on a snail.
@@ -30,27 +30,27 @@ import net.minecraft.util.Identifier;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class SnailDecorFeatureRenderer extends FeatureRenderer<SnailEntity, SnailModel> {
+public class SnailDecorFeatureRenderer extends RenderLayer<SnailEntity, SnailModel> {
 	private static final Identifier[] TEXTURES;
 	private final SnailModel model;
 
-	public SnailDecorFeatureRenderer(FeatureRendererContext<SnailEntity, SnailModel> featureRendererContext, EntityRendererFactory.Context context) {
+	public SnailDecorFeatureRenderer(RenderLayerParent<SnailEntity, SnailModel> featureRendererContext, EntityRendererProvider.Context context) {
 		super(featureRendererContext);
 
-		this.model = new SnailModel(context.getPart(LovelySnailsClient.SNAIL_DECOR_MODEL_LAYER));
+		this.model = new SnailModel(context.bakeLayer(LovelySnailsClient.SNAIL_DECOR_MODEL_LAYER));
 	}
 
 	@Override
-	public void render(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, SnailEntity entity,
-	                   float limbAngle, float limbDistance, float tickDelta, float animationProgress, float headYaw, float headPitch) {
+	public void render(MatrixStack matrices, MultiBufferSource bufferSource, int light, SnailEntity entity,
+			float limbAngle, float limbDistance, float tickDelta, float animationProgress, float headYaw, float headPitch) {
 		var dyeColor = entity.getCarpetColor();
 		if (dyeColor == null) return;
 		var texture = TEXTURES[dyeColor.getId()];
 
-		this.getContextModel().copyStateTo(this.model);
-		this.model.setAngles(entity, limbAngle, limbDistance, animationProgress, headYaw, headPitch);
-		var vertexConsumer = vertexConsumers.getBuffer(RenderLayer.getEntityCutoutNoCull(texture));
-		this.model.render(matrices, vertexConsumer, light, OverlayTexture.DEFAULT_UV, 1.f, 1.f, 1.f, 1.f);
+		this.getParentModel().copyPropertiesTo(this.model);
+		this.model.setupAnim(entity, limbAngle, limbDistance, animationProgress, headYaw, headPitch);
+		var vertexConsumer = bufferSource.getBuffer(RenderType.entityCutoutNoCull(texture));
+		this.model.renderToBuffer(matrices, vertexConsumer, light, OverlayTexture.NO_OVERLAY, 1.f, 1.f, 1.f, 1.f);
 	}
 
 	static {

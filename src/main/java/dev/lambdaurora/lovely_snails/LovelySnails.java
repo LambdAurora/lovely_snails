@@ -15,13 +15,13 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
 import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.entity.SpawnGroup;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.Container;
+import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.item.ItemStack;
 
 /**
  * Represents the Lovely Snails mod.
@@ -42,7 +42,7 @@ public class LovelySnails implements ModInitializer {
 					int syncId = buf.readVarInt();
 					byte storagePage = buf.readByte();
 					server.execute(() -> {
-						if (handler.getPlayer().currentScreenHandler instanceof SnailScreenHandler snailScreenHandler
+						if (handler.getPlayer().containerMenu instanceof SnailScreenHandler snailScreenHandler
 								&& snailScreenHandler.syncId == syncId) {
 							snailScreenHandler.setCurrentStoragePage(storagePage);
 						}
@@ -50,40 +50,40 @@ public class LovelySnails implements ModInitializer {
 				});
 
 		BiomeModifications.addSpawn(BiomeSelectors.tag(LovelySnailsRegistry.SNAIL_SWAMP_LIKE_SPAWN_BIOMES),
-				SpawnGroup.CREATURE, LovelySnailsRegistry.SNAIL_ENTITY_TYPE, 10, 1, 3);
+				MobCategory.CREATURE, LovelySnailsRegistry.SNAIL_ENTITY_TYPE, 10, 1, 3);
 		BiomeModifications.addSpawn(BiomeSelectors.tag(LovelySnailsRegistry.SNAIL_REGULAR_SPAWN_BIOMES),
-				SpawnGroup.CREATURE, LovelySnailsRegistry.SNAIL_ENTITY_TYPE, 8, 1, 3);
+				MobCategory.CREATURE, LovelySnailsRegistry.SNAIL_ENTITY_TYPE, 8, 1, 3);
 	}
 
 	public static Identifier id(String path) {
 		return new Identifier(NAMESPACE, path);
 	}
 
-	public static void readInventoryNbt(NbtCompound nbt, String key, Inventory stacks, int start) {
+	public static void readInventoryNbt(NbtCompound nbt, String key, Container stacks, int start) {
 		var inventoryNbt = nbt.getList(key, NbtElement.COMPOUND_TYPE);
 
 		for (int i = 0; i < inventoryNbt.size(); ++i) {
 			var slotNbt = inventoryNbt.getCompound(i);
 			int slotId = slotNbt.getByte("slot") & 255;
 			if (slotId < stacks.size()) {
-				stacks.setStack(start + slotId, ItemStack.fromNbt(slotNbt));
+				stacks.setItem(start + slotId, ItemStack.of(slotNbt));
 			}
 		}
 	}
 
-	public static NbtCompound writeInventoryNbt(NbtCompound nbt, String key, Inventory stacks, int start, int end) {
+	public static NbtCompound writeInventoryNbt(NbtCompound nbt, String key, Container stacks, int start, int end) {
 		return writeInventoryNbt(nbt, key, stacks, start, end, true);
 	}
 
-	public static NbtCompound writeInventoryNbt(NbtCompound nbt, String key, Inventory stacks, int start, int end, boolean setIfEmpty) {
+	public static NbtCompound writeInventoryNbt(NbtCompound nbt, String key, Container stacks, int start, int end, boolean setIfEmpty) {
 		var inventoryNbt = new NbtList();
 
 		for (int i = start; i < end; ++i) {
-			var slotStack = stacks.getStack(i);
+			var slotStack = stacks.getItem(i);
 			if (!slotStack.isEmpty()) {
 				var slotNbt = new NbtCompound();
 				slotNbt.putByte("slot", (byte) (i - start));
-				slotStack.writeNbt(slotNbt);
+				slotStack.save(slotNbt);
 				inventoryNbt.add(slotNbt);
 			}
 		}

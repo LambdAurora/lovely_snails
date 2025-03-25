@@ -1,17 +1,17 @@
 {
-  "replace": false,
-  "values": [
-    {
-      "id": "minecraft:dark_forest",
-      "required": false
-    },
-    {
-      "id": "minecraft:mushroom_fields",
-      "required": false
-    },
-    {
-      "id": "#c:mushroom",
-      "required": false
-    }
-  ]
+	"replace": false,
+	"values": [
+		{
+			"id": "minecraft:dark_forest",
+			"required": false
+		},
+		{
+			"id": "minecraft:mushroom_fields",
+			"required": false
+		},
+		{
+			"id": "#c:mushroom",
+			"required": false
+		}
+	]
 }

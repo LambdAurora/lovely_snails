@@ -9,15 +9,15 @@
 
 package dev.lambdaurora.lovely_snails.mixin;
 
-import net.minecraft.entity.data.TrackedData;
-import net.minecraft.entity.passive.PassiveEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.monster.Shulker;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-@Mixin(PassiveEntity.class)
-public interface PassiveEntityAccessor {
-	@Accessor("CHILD")
-	static TrackedData<Boolean> lovely_snails$getChild() {
+@Mixin(Shulker.class)
+public interface ShulkerAccessor {
+	@Accessor("COVERED_ARMOR_MODIFIER")
+	static AttributeModifier lovely_snails$getCoveredArmorModifier() {
 		throw new UnsupportedOperationException("Mixin injection failed.");
 	}
 }

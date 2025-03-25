@@ -12,61 +12,57 @@ package dev.lambdaurora.lovely_snails.entity;
 import dev.lambdaurora.lovely_snails.LovelySnails;
 import dev.lambdaurora.lovely_snails.entity.goal.SnailFollowParentGoal;
 import dev.lambdaurora.lovely_snails.entity.goal.SnailHideGoal;
-import dev.lambdaurora.lovely_snails.mixin.PassiveEntityAccessor;
-import dev.lambdaurora.lovely_snails.mixin.ShulkerEntityAccessor;
+import dev.lambdaurora.lovely_snails.mixin.AgeableMobAccessor;
+import dev.lambdaurora.lovely_snails.mixin.ShulkerAccessor;
 import dev.lambdaurora.lovely_snails.registry.LovelySnailsRegistry;
 import dev.lambdaurora.lovely_snails.screen.SnailScreenHandler;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
-import net.minecraft.block.AbstractBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.CarpetBlock;
-import net.minecraft.block.DyedCarpetBlock;
-import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.entity.*;
-import net.minecraft.entity.ai.goal.*;
-import net.minecraft.entity.attribute.DefaultAttributeContainer;
-import net.minecraft.entity.attribute.EntityAttributeModifier;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.data.DataTracker;
-import net.minecraft.entity.data.TrackedData;
-import net.minecraft.entity.data.TrackedDataHandlerRegistry;
-import net.minecraft.entity.mob.MobEntity;
-import net.minecraft.entity.passive.AnimalEntity;
-import net.minecraft.entity.passive.PassiveEntity;
-import net.minecraft.entity.passive.TameableEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.inventory.InventoryChangedListener;
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.screen.GenericContainerScreenHandler;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Arm;
-import net.minecraft.util.DyeColor;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.random.RandomGenerator;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Text;
+import net.minecraft.network.syncher.EntityDataTracker;
+import net.minecraft.network.syncher.TrackedEntityData;
+import net.minecraft.network.syncher.TrackedEntityDataSerializers;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.*;
-import net.minecraft.world.event.GameEvent;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.goal.*;
+import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.vehicle.DismountHelper;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ChestMenu;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LightLayer;
+import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.CarpetBlock;
+import net.minecraft.world.level.block.WoolCarpetBlock;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Predicate;
@@ -75,16 +71,16 @@ import java.util.function.Predicate;
  * Represents the snail entity.
  *
  * @author LambdAurora
- * @version 1.1.3
+ * @version 1.1.5
  * @since 1.0.0
  */
-public class SnailEntity extends TameableEntity implements InventoryChangedListener, Saddleable {
-	private static final EntityAttributeModifier SCARED_ARMOR_BONUS = ShulkerEntityAccessor.lovely_snails$getCoveredArmorBonus();
+public class SnailEntity extends TamableAnimal implements ContainerListener, Saddleable {
+	private static final AttributeModifier SCARED_ARMOR_BONUS = ShulkerAccessor.lovely_snails$getCoveredArmorModifier();
 
-	private static final TrackedData<Boolean> CHILD = PassiveEntityAccessor.lovely_snails$getChild();
-	private static final TrackedData<Byte> SNAIL_FLAGS = DataTracker.registerData(SnailEntity.class, TrackedDataHandlerRegistry.BYTE);
-	private static final TrackedData<Byte> CHEST_FLAGS = DataTracker.registerData(SnailEntity.class, TrackedDataHandlerRegistry.BYTE);
-	private static final TrackedData<Integer> CARPET_COLOR = DataTracker.registerData(SnailEntity.class, TrackedDataHandlerRegistry.INTEGER);
+	private static final TrackedEntityData<Boolean> CHILD = AgeableMobAccessor.lovely_snails$getChild();
+	private static final TrackedEntityData<Byte> SNAIL_FLAGS = EntityDataTracker.registerData(SnailEntity.class, TrackedEntityDataSerializers.BYTE);
+	private static final TrackedEntityData<Byte> CHEST_FLAGS = EntityDataTracker.registerData(SnailEntity.class, TrackedEntityDataSerializers.BYTE);
+	private static final TrackedEntityData<Integer> CARPET_COLOR = EntityDataTracker.registerData(SnailEntity.class, TrackedEntityDataSerializers.INT);
 	private static final int SADDLED_FLAG = 0b0000_0001;
 	private static final int SCARED_FLAG = 0b0000_0010;
 	private static final int INTERACTION_COOLDOWN_FLAG = 0b0000_0100;
@@ -98,36 +94,38 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 
 	private static final int SATISFACTION_START = -256;
 
-	private SimpleInventory inventory;
+	private SimpleContainer inventory;
 	private int satisfaction;
 	private short interactionCooldown;
 	private boolean reading;
 
-	public SnailEntity(EntityType<? extends SnailEntity> entityType, World world) {
-		super(entityType, world);
+	public SnailEntity(EntityType<? extends SnailEntity> entityType, Level level) {
+		super(entityType, level);
 		this.updateInventory();
-		this.setStepHeight(1.f);
+		this.setMaxUpStep(1.f);
 	}
 
-	public static DefaultAttributeContainer.Builder createSnailAttributes() {
-		return MobEntity.createAttributes()
-				.add(EntityAttributes.GENERIC_MAX_HEALTH, 20.0)
-				.add(EntityAttributes.GENERIC_MOVEMENT_SPEED, .3f)
-				.add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 2.0)
-				.add(EntityAttributes.GENERIC_FOLLOW_RANGE, 48.0);
+	public static AttributeSupplier.Builder createSnailAttributes() {
+		return Mob.createMobAttributes()
+				.add(Attributes.MAX_HEALTH, 20.0)
+				.add(Attributes.MOVEMENT_SPEED, .3f)
+				.add(Attributes.ATTACK_DAMAGE, 2.0)
+				.add(Attributes.FOLLOW_RANGE, 48.0);
 	}
 
-	public static boolean canSpawn(EntityType<? extends AnimalEntity> type, WorldAccess world, SpawnReason spawnReason, BlockPos pos, RandomGenerator random) {
-		var spawnBlock = world.getBlockState(pos.down());
-		return world.getLightLevel(LightType.SKY, pos) > 8 && spawnBlock.isIn(LovelySnailsRegistry.SNAIL_SPAWN_BLOCKS);
+	public static boolean canSpawn(EntityType<? extends Animal> type, ServerLevelAccessor level, MobSpawnType spawnReason, BlockPos pos, RandomSource random) {
+		var spawnBlock = level.getBlockState(pos.below());
+		return level.getBrightness(LightLayer.SKY, pos) > 8 && spawnBlock.is(LovelySnailsRegistry.SNAIL_SPAWN_BLOCKS);
 	}
 
 	@Override
-	public EntityData initialize(ServerWorldAccess world, LocalDifficulty difficulty, SpawnReason spawnReason, @Nullable EntityData entityData,
-			@Nullable NbtCompound entityNbt) {
-		this.setBaby(true);
+	public @NotNull SpawnGroupData finalizeSpawn(
+			ServerLevelAccessor world, DifficultyInstance difficulty, MobSpawnType spawnReason,
+			@Nullable SpawnGroupData entityData, @Nullable NbtCompound entityNbt
+	) {
 		this.satisfaction = SATISFACTION_START + this.random.nextInt(10);
-		return super.initialize(world, difficulty, spawnReason, entityData, entityNbt);
+		this.setBaby(true);
+		return super.finalizeSpawn(world, difficulty, spawnReason, entityData, entityNbt);
 	}
 
 	protected boolean getSnailFlag(int bitmask) {
@@ -160,16 +158,16 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 	public void setScared(boolean scared) {
 		this.setSnailFlag(SCARED_FLAG, scared);
 
-		if (!this.getWorld().isClient()) {
-			this.getAttributeInstance(EntityAttributes.GENERIC_ARMOR).removeModifier(SCARED_ARMOR_BONUS);
+		if (!this.level().isClientSide()) {
+			this.getAttribute(Attributes.ARMOR).removeModifier(SCARED_ARMOR_BONUS);
 			if (scared) {
-				this.getAttributeInstance(EntityAttributes.GENERIC_ARMOR).addPersistentModifier(SCARED_ARMOR_BONUS);
+				this.getAttribute(Attributes.ARMOR).addPermanentModifier(SCARED_ARMOR_BONUS);
 			}
 		}
 	}
 
 	public int getSatisfaction() {
-		if (this.getWorld().isClient()) {
+		if (this.level().isClientSide()) {
 			return this.dataTracker.get(CHILD) ? -1 : 1;
 		} else {
 			return this.satisfaction;
@@ -179,7 +177,7 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 	public void setSatisfaction(int satisfaction) {
 		this.satisfaction = satisfaction;
 
-		this.setBaby(satisfaction < 0);
+		this.setBaby(this.shouldBeBaby());
 	}
 
 	/**
@@ -188,7 +186,7 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 	 * @param baseSatisfaction the base satisfaction amount
 	 */
 	public void satisfies(int baseSatisfaction) {
-		World world = this.getWorld();
+		Level level = this.level();
 
 		if (this.isBaby()) {
 			this.putInteractionOnCooldown();
@@ -197,16 +195,16 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 			if (newSatisfaction >= 0) {
 				var adultDimensions = this.getType().getDimensions();
 				float width = adultDimensions.width * .8f;
-				float eyeHeight = this.getEyeHeight(EntityPose.STANDING, adultDimensions);
-				var pos = BlockPos.create(this.getX(), this.getY() + eyeHeight, this.getZ());
-				var box = Box.of(new Vec3d(this.getX(), this.getY() + eyeHeight, this.getZ()), width, 1.0E-6, width);
+				float eyeHeight = this.getEyeHeight(Pose.STANDING, adultDimensions);
+				var pos = BlockPos.ofFloored(this.getX(), this.getY() + eyeHeight, this.getZ());
+				var box = AABB.ofSize(new Vec3(this.getX(), this.getY() + eyeHeight, this.getZ()), width, 1.0E-6, width);
 
 				// Adult form will suffocate, so we must prevent the growth until the player moves the snail.
-				boolean willSuffocate = world.getStatesInBox(box)
-						.filter(Predicate.not(AbstractBlock.AbstractBlockState::isAir))
-						.anyMatch(state -> state.shouldSuffocate(this.getWorld(), pos));
+				boolean willSuffocate = level.getBlockStates(box)
+						.filter(Predicate.not(BlockBehaviour.BlockStateBase::isAir))
+						.anyMatch(state -> state.isSuffocating(this.level(), pos));
 				if (willSuffocate) {
-					world.sendEntityStatus(this, (byte) 10);
+					level.broadcastEntityEvent(this, (byte) 10);
 					return;
 				}
 			}
@@ -214,11 +212,11 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 			this.setSatisfaction(newSatisfaction);
 		}
 
-		world.sendEntityStatus(this, (byte) 8);
+		level.broadcastEntityEvent(this, (byte) 8);
 	}
 
 	public short getInteractionCooldown() {
-		if (this.getWorld().isClient()) {
+		if (this.level().isClientSide()) {
 			return (short) (this.getSnailFlag(INTERACTION_COOLDOWN_FLAG) ? 1 : 0);
 		} else {
 			return this.interactionCooldown;
@@ -266,12 +264,12 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 	 * @param entity the entity that attempts to interact in any meaningful way with the snail
 	 */
 	public boolean canUseSnail(Entity entity) {
-		return !this.isLocked() || (entity instanceof LivingEntity livingEntity && this.isOwner(livingEntity));
+		return !this.isLocked() || (entity instanceof LivingEntity living && this.isOwnedBy(living));
 	}
 
 	public static @Nullable DyeColor getColorFromCarpet(ItemStack color) {
-		var block = Block.getBlockFromItem(color.getItem());
-		return block instanceof DyedCarpetBlock dyedCarpetBlock ? dyedCarpetBlock.getDyeColor() : null;
+		var block = Block.byItem(color.getItem());
+		return block instanceof WoolCarpetBlock dyedCarpetBlock ? dyedCarpetBlock.getColor() : null;
 	}
 
 	public void setCarpetColor(@Nullable DyeColor color) {
@@ -284,44 +282,49 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 	}
 
 	@Override
-	public double getMountedHeightOffset() {
+	public double getPassengersRidingOffset() {
 		if (!this.isBaby())
-			return this.getDimensions(EntityPose.STANDING).height * 0.95f;
+			return this.getDimensions(Pose.STANDING).height * 0.95f;
 		else
-			return super.getMountedHeightOffset();
+			return super.getPassengersRidingOffset();
 	}
 
 	@Override
-	public void handleStatus(byte status) {
-		if (status == 8) {
+	public void handleEntityEvent(byte event) {
+		if (event == 8) {
 			for (int i = 0; i < 7; ++i) {
 				double xOffset = this.random.nextGaussian() * 0.02;
 				double yOffset = this.random.nextGaussian() * 0.02;
 				double zOffset = this.random.nextGaussian() * 0.02;
-				this.getWorld().addParticle(this.random.nextBoolean() ? ParticleTypes.HAPPY_VILLAGER : ParticleTypes.HEART,
-						this.getParticleX(1.0), this.getRandomBodyY() + 0.5, this.getParticleZ(1.0),
+				this.level().addParticle(this.random.nextBoolean() ? ParticleTypes.HAPPY_VILLAGER : ParticleTypes.HEART,
+						this.getRandomX(1.0), this.getRandomY() + 0.5, this.getRandomZ(1.0),
 						xOffset, yOffset, zOffset);
 			}
-		} else if (status == 9) {
+		} else if (event == 9) {
 			for (int i = 0; i < 7; ++i) {
 				double xOffset = this.random.nextGaussian() * 0.02;
 				double yOffset = this.random.nextGaussian() * 0.02;
 				double zOffset = this.random.nextGaussian() * 0.02;
-				this.getWorld().addParticle(ParticleTypes.ANGRY_VILLAGER,
-						this.getParticleX(1.0), this.getRandomBodyY() + 0.5, this.getParticleZ(1.0),
+				this.level().addParticle(ParticleTypes.ANGRY_VILLAGER,
+						this.getRandomX(1.0), this.getRandomY() + 0.5, this.getRandomZ(1.0),
 						xOffset, yOffset, zOffset);
 			}
-		} else if (status == 10) {
+		} else if (event == 10) {
 			for (int i = 0; i < 7; ++i) {
 				double xOffset = this.random.nextGaussian() * 0.02;
 				double yOffset = this.random.nextGaussian() * 0.02;
 				double zOffset = this.random.nextGaussian() * 0.02;
-				this.getWorld().addParticle(this.random.nextBoolean() ? ParticleTypes.ANGRY_VILLAGER : ParticleTypes.SMOKE,
-						this.getParticleX(1.0), this.getRandomBodyY() + 0.5, this.getParticleZ(1.0),
+				this.level().addParticle(this.random.nextBoolean() ? ParticleTypes.ANGRY_VILLAGER : ParticleTypes.SMOKE,
+						this.getRandomX(1.0), this.getRandomY() + 0.5, this.getRandomZ(1.0),
 						xOffset, yOffset, zOffset);
 			}
 		} else
-			super.handleStatus(status);
+			super.handleEntityEvent(event);
+	}
+
+	@Override
+	public boolean requiresCustomPersistence() {
+		return super.requiresCustomPersistence() || this.isTame();
 	}
 
 	/* Data Tracker Stuff */
@@ -347,7 +350,7 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 		this.setInteractionCooldown(nbt.getShort("interaction_cooldown"));
 		this.setLocked(nbt.getBoolean("locked"));
 
-		this.readSpecialSlot(nbt, "saddle", SADDLE_SLOT, stack -> stack.isOf(Items.SADDLE));
+		this.readSpecialSlot(nbt, "saddle", SADDLE_SLOT, stack -> stack.is(Items.SADDLE));
 		this.readSpecialSlot(nbt, "decor", CARPET_SLOT,
 				stack -> stack.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof CarpetBlock
 		);
@@ -361,14 +364,14 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 
 	private void readSpecialSlot(NbtCompound nbt, String name, int slot, Predicate<ItemStack> predicate) {
 		if (nbt.contains(name, NbtElement.COMPOUND_TYPE)) {
-			var stack = ItemStack.fromNbt(nbt.getCompound(name));
+			var stack = ItemStack.of(nbt.getCompound(name));
 			if (predicate.test(stack)) {
-				this.inventory.setStack(slot, stack);
+				this.inventory.setItem(slot, stack);
 				return;
 			}
 		}
 
-		this.inventory.setStack(slot, ItemStack.EMPTY);
+		this.inventory.setItem(slot, ItemStack.EMPTY);
 	}
 
 	@Override
@@ -388,25 +391,25 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 	}
 
 	public void writeSpecialSlot(NbtCompound nbt, String name, int slot) {
-		if (!this.inventory.getStack(slot).isEmpty()) {
-			nbt.put(name, this.inventory.getStack(slot).writeNbt(new NbtCompound()));
+		if (!this.inventory.getItem(slot).isEmpty()) {
+			nbt.put(name, this.inventory.getItem(slot).save(new NbtCompound()));
 		}
 	}
 
 	/* AI */
 
 	@Override
-	protected void initGoals() {
-		super.initGoals();
+	protected void registerGoals() {
+		super.registerGoals();
 
-		this.goalSelector.add(0, new SwimGoal(this));
-		this.goalSelector.add(1, new EscapeDangerGoal(this, 1.2));
-		this.goalSelector.add(1, new SnailHideGoal(this, 5));
-		this.goalSelector.add(2, new AnimalMateGoal(this, 1.0, SnailEntity.class));
-		this.goalSelector.add(4, new SnailFollowParentGoal(this, 1.0));
-		this.goalSelector.add(6, new WanderAroundFarGoal(this, 0.7));
-		this.goalSelector.add(7, new LookAtEntityGoal(this, PlayerEntity.class, 6.f));
-		this.goalSelector.add(8, new LookAroundGoal(this));
+		this.goalSelector.addGoal(0, new FloatGoal(this));
+		this.goalSelector.addGoal(1, new PanicGoal(this, 1.2));
+		this.goalSelector.addGoal(1, new SnailHideGoal(this, 5));
+		this.goalSelector.addGoal(2, new BreedGoal(this, 1.0, SnailEntity.class));
+		this.goalSelector.addGoal(4, new SnailFollowParentGoal(this, 1.0));
+		this.goalSelector.addGoal(6, new WaterAvoidingRandomStrollGoal(this, 0.7));
+		this.goalSelector.addGoal(7, new LookAtPlayerGoal(this, Player.class, 6.f));
+		this.goalSelector.addGoal(8, new RandomLookAroundGoal(this));
 	}
 
 	/* Inventory */
@@ -432,25 +435,25 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 	}
 
 	public ItemStack getSaddle() {
-		return this.inventory.getStack(SADDLE_SLOT);
+		return this.inventory.getItem(SADDLE_SLOT);
 	}
 
 	/**
 	 * Syncs the flags with the inventory.
 	 */
 	public void syncInventoryToFlags() {
-		if (!this.getWorld().isClient()) {
+		if (!this.level().isClientSide()) {
 			this.setSnailFlag(SADDLED_FLAG, !this.getSaddle().isEmpty());
-			this.setCarpetColor(getColorFromCarpet(this.inventory.getStack(CARPET_SLOT)));
+			this.setCarpetColor(getColorFromCarpet(this.inventory.getItem(CARPET_SLOT)));
 
 			int chestFlags = 0;
 			for (int chest = 0; chest < 3; chest++) {
-				var chestStack = this.inventory.getStack(2 + chest);
+				var chestStack = this.inventory.getItem(2 + chest);
 				int flag = 0;
 
-				if (chestStack.isOf(Items.CHEST))
+				if (chestStack.is(Items.CHEST))
 					flag = 1;
-				else if (chestStack.isOf(Items.ENDER_CHEST))
+				else if (chestStack.is(Items.ENDER_CHEST))
 					flag = 2;
 
 				chestFlags |= flag << chest * 2;
@@ -459,48 +462,48 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 		}
 	}
 
-	public void openInventory(PlayerEntity player) {
-		if (!this.getWorld().isClient() && (!this.hasPassengers() || this.hasPassenger(player)) && this.isTamed()) {
-			player.openHandledScreen(new SnailScreenHandlerFactory());
+	public void openInventory(Player player) {
+		if (!this.level().isClientSide() && (!this.isVehicle() || this.hasPassenger(player)) && this.isTame()) {
+			player.openMenu(new SnailScreenHandlerFactory());
 		}
 	}
 
-	public void openEnderChestInventory(PlayerEntity player) {
-		if (!this.getWorld().isClient() && (!this.hasPassengers() || this.hasPassenger(player)) && this.isTamed()) {
-			player.openHandledScreen(new SimpleNamedScreenHandlerFactory((syncId, playerInventory, playerEntity) -> {
-				return GenericContainerScreenHandler.createGeneric9x3(syncId, playerInventory, player.getEnderChestInventory());
+	public void openEnderChestInventory(Player player) {
+		if (!this.level().isClientSide() && (!this.isVehicle() || this.hasPassenger(player)) && this.isTame()) {
+			player.openMenu(new SimpleMenuProvider((syncId, playerInventory, playerEntity) -> {
+				return ChestMenu.threeRows(syncId, playerInventory, player.getEnderChestInventory());
 			}, Text.translatable("container.enderchest")));
 		}
 	}
 
-	public boolean isInventoryDifferent(Inventory inventory) {
+	public boolean isInventoryDifferent(Container inventory) {
 		return this.inventory != inventory;
 	}
 
 	@Override
-	protected void dropInventory() {
-		super.dropInventory();
+	protected void dropEquipment() {
+		super.dropEquipment();
 
 		if (this.inventory != null) {
 			for (int slot = 0; slot < this.inventory.size(); ++slot) {
-				var stack = this.inventory.getStack(slot);
+				var stack = this.inventory.getItem(slot);
 				if (!stack.isEmpty() && !EnchantmentHelper.hasVanishingCurse(stack))
-					this.dropStack(stack);
+					this.spawnAtLocation(stack);
 			}
 		}
 	}
 
 	protected void updateInventory() {
 		var previousInventory = this.inventory;
-		this.inventory = new SimpleInventory(this.getInventorySize());
+		this.inventory = new SimpleContainer(this.getInventorySize());
 		if (previousInventory != null) {
 			previousInventory.removeListener(this);
 			int maxSize = Math.min(previousInventory.size(), this.inventory.size());
 
 			for (int slot = 0; slot < maxSize; ++slot) {
-				var stack = previousInventory.getStack(slot);
+				var stack = previousInventory.getItem(slot);
 				if (!stack.isEmpty()) {
-					this.inventory.setStack(slot, stack.copy());
+					this.inventory.setItem(slot, stack.copy());
 				}
 			}
 		}
@@ -510,19 +513,19 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 	}
 
 	@Override
-	public void onInventoryChanged(Inventory sender) {
+	public void onContainerChanged(Container sender) {
 		boolean previouslySaddled = this.isSaddled();
 		boolean hadDecor = this.getCarpetColor() != null;
 		this.syncInventoryToFlags();
 		if (this.age > 20 && !previouslySaddled && this.isSaddled()) {
-			this.playSound(SoundEvents.ENTITY_HORSE_SADDLE, .5f, 1.f);
+			this.playSound(SoundEvents.HORSE_SADDLE, .5f, 1.f);
 		}
 
-		if (!this.reading && !this.getWorld().isClient() && !hadDecor && this.getCarpetColor() != null && this.canSatisfy()) {
-			var biome = this.getWorld().getBiome(this.getBlockPos());
+		if (!this.reading && !this.level().isClientSide() && !hadDecor && this.getCarpetColor() != null && this.canSatisfy()) {
+			var biome = this.level().getBiome(this.getBlockPos());
 
 			int baseSatisfaction;
-			if (biome.value().doesNotSnow(this.getBlockPos())) baseSatisfaction = 15;
+			if (biome.value().warmEnoughToRain(this.getBlockPos())) baseSatisfaction = 15;
 			else baseSatisfaction = 5;
 			this.satisfies(baseSatisfaction);
 		}
@@ -531,98 +534,97 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 	/* Interaction */
 
 	@Override
-	public ActionResult interactMob(PlayerEntity player, Hand hand) {
-		World world = this.getWorld();
-		var handStack = player.getStackInHand(hand);
+	public InteractionResult mobInteract(Player player, InteractionHand hand) {
+		Level level = this.level();
+		var handStack = player.getItemInHand(hand);
 
-		if (this.isTamed() && player.shouldCancelInteraction()) {
+		if (this.isTame() && player.isSecondaryUseActive()) {
 			this.openInventory(player);
-			return ActionResult.success(world.isClient());
+			return InteractionResult.sidedSuccess(level.isClientSide());
 		}
 
-		if (this.hasPassengers()) {
-			return super.interactMob(player, hand);
+		if (this.isVehicle()) {
+			return super.mobInteract(player, hand);
 		}
 
 		if (!handStack.isEmpty()) {
-			var itemResult = handStack.useOnEntity(player, this, hand);
+			var itemResult = handStack.interactLivingEntity(player, this, hand);
 			if (itemResult.isAccepted()) {
 				return itemResult;
 			}
 
-			if (this.isBreedingItem(handStack) && !this.isScared()) {
-				if (this.isTamed() && this.canUseSnail(player)) {
-					int breedingAge = this.getBreedingAge();
+			if (this.isFood(handStack) && !this.isScared()) {
+				if (this.isTame() && this.canUseSnail(player)) {
+					int age = this.getAge();
 
-					if (!world.isClient() && breedingAge == 0 && this.canEat()) {
-						this.eat(player, hand, handStack);
-						this.lovePlayer(player);
+					if (!level.isClientSide() && age == 0 && this.canFallInLove()) {
+						this.usePlayerItem(player, hand, handStack);
+						this.setInLove(player);
 						this.emitGameEvent(GameEvent.EAT);
-						return ActionResult.SUCCESS;
-					} else if (world.isClient()) {
-						return ActionResult.CONSUME;
+						return InteractionResult.SUCCESS;
+					} else if (level.isClientSide()) {
+						return InteractionResult.CONSUME;
 					}
 				} else {
-					this.eat(player, hand, handStack);
+					this.usePlayerItem(player, hand, handStack);
 
 					if (!this.isLocked() && this.random.nextInt(3) == 0) {
-						this.setOwner(player);
-						world.sendEntityStatus(this, (byte) 7);
+						this.tame(player);
+						level.broadcastEntityEvent(this, (byte) 7);
 					} else {
-						world.sendEntityStatus(this, (byte) 6);
+						level.broadcastEntityEvent(this, (byte) 6);
 					}
 
-					this.setPersistent();
-					return ActionResult.success(world.isClient());
+					return InteractionResult.sidedSuccess(level.isClientSide());
 				}
 			}
 
-			if (!this.isTamed()) {
-				return ActionResult.CONSUME;
+			if (!this.isTame()) {
+				return InteractionResult.CONSUME;
 			}
 
-			boolean saddle = !this.isBaby() && !this.isSaddled() && handStack.isOf(Items.SADDLE);
+			boolean saddle = !this.isBaby() && !this.isSaddled() && handStack.is(Items.SADDLE);
 			if (getColorFromCarpet(handStack) != null || saddle) {
 				this.openInventory(player);
-				return ActionResult.success(world.isClient());
+				return InteractionResult.sidedSuccess(level.isClientSide());
 			}
 		}
 
-		if (this.isTamed()) {
+		if (this.isTame()) {
 			if (!this.isBaby()) {
-				if (!world.isClient()) {
+				if (!level.isClientSide()) {
 					player.setYaw(this.getYaw());
 					player.setPitch(this.getPitch());
 					player.startRiding(this);
 				}
 
-				return ActionResult.success(world.isClient());
+				return InteractionResult.sidedSuccess(level.isClientSide());
 			} else if (this.canSatisfy() && this.getOwner() == player) {
 				boolean likeItem = handStack.isIn(LovelySnailsRegistry.SNAIL_FOOD_ITEMS);
 				if (handStack.isEmpty() || likeItem) {
-					if (likeItem) this.eat(player, hand, handStack);
+					if (likeItem) this.usePlayerItem(player, hand, handStack);
 					// What about petting a snail?
-					if (!world.isClient())
+					if (!level.isClientSide())
 						this.satisfies(likeItem ? 20 : 10);
 
-					return ActionResult.success(this.getWorld().isClient());
-				} else if (handStack.isOf(Items.POISONOUS_POTATO)) {
+					return InteractionResult.sidedSuccess(level.isClientSide());
+				} else if (handStack.is(Items.POISONOUS_POTATO)) {
 					// Watch me break one of Jeb's rule.
 					// Also why the fuck would you give a poisonous potato to a snail?
-					if (!world.isClient()) {
-						this.eat(player, hand, handStack);
+					if (!level.isClientSide()) {
+						this.usePlayerItem(player, hand, handStack);
 						this.setSatisfaction(this.getSatisfaction() - 4000);
 						this.putInteractionOnCooldown();
 
-						world.sendEntityStatus(this, (byte) 9);
+						level.broadcastEntityEvent(this, (byte) 9);
 					}
 
-					return ActionResult.success(world.isClient());
+					return InteractionResult.sidedSuccess(level.isClientSide());
 				}
 			}
 		}
 
-		return super.interactMob(player, hand);
+		return super.mobInteract(player, hand);
 	}
 
 	public void onWaterSplashed(Entity waterOwner) {
@@ -630,11 +632,11 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 			return;
 
 		if (this.canSatisfy()) {
-			var biome = this.getWorld().getBiome(this.getBlockPos());
+			var biome = this.level().getBiome(this.getBlockPos());
 
 			int baseSatisfaction;
 			if (!biome.value().hasPrecipitation()) baseSatisfaction = 20;
-			else if (biome.value().doesNotSnow(this.getBlockPos())) baseSatisfaction = 10;
+			else if (biome.value().warmEnoughToRain(this.getBlockPos())) baseSatisfaction = 10;
 			else baseSatisfaction = 15;
 			this.satisfies(baseSatisfaction);
 		}
@@ -644,16 +646,16 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 	/* Saddle Stuff */
 
 	@Override
-	public boolean canBeSaddled() {
-		return this.isAlive() && !this.isBaby() && this.isTamed();
+	public boolean isSaddleable() {
+		return this.isAlive() && !this.isBaby() && this.isTame();
 	}
 
 	@Override
-	public void saddle(@Nullable SoundCategory sound) {
-		this.inventory.setStack(0, new ItemStack(Items.SADDLE));
+	public void equipSaddle(@Nullable SoundSource sound) {
+		this.inventory.setItem(0, new ItemStack(Items.SADDLE));
 
 		if (sound != null) {
-			this.getWorld().playSoundFromEntity(null, this, SoundEvents.ENTITY_HORSE_SADDLE, sound, 0.5F, 1.0F);
+			this.level().playSound(null, this, SoundEvents.HORSE_SADDLE, sound, 0.5F, 1.0F);
 		}
 	}
 
@@ -665,42 +667,41 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 	/* Riding */
 
 	@Override
-	public @Nullable LivingEntity getPrimaryPassenger() {
+	public @Nullable LivingEntity getControllingPassenger() {
+		if (this.isLocked()) return null;
+		if (!this.isSaddled()) return null;
+
 		Entity passenger = this.getFirstPassenger();
 
-		if (passenger instanceof LivingEntity livingPassenger && this.canBeControlledByRider(livingPassenger)) {
+		if (passenger instanceof LivingEntity livingPassenger) {
 			return livingPassenger;
 		} else {
 			return null;
 		}
 	}
 
-	protected boolean canBeControlledByRider(LivingEntity entity) {
-		return !this.isLocked() || this.isOwner(entity);
-	}
-
-	private @Nullable Vec3d tryDismountTowards(Vec3d vec3d, LivingEntity livingEntity) {
+	private @Nullable Vec3 tryDismountTowards(Vec3 vec3d, LivingEntity livingEntity) {
 		double targetX = this.getX() + vec3d.x;
 		double targetY = this.getBoundingBox().minY;
 		double targetZ = this.getZ() + vec3d.z;
 		var pos = new BlockPos.Mutable();
 
-		for (var pose : livingEntity.getPoses()) {
+		for (var pose : livingEntity.getDismountPoses()) {
 			pos.set(targetX, targetY, targetZ);
 			double maxDismountY = this.getBoundingBox().maxY + 0.75;
 
 			while (true) {
-				double dismountHeight = this.getWorld().getDismountHeight(pos);
+				double dismountHeight = this.level().getBlockFloorHeight(pos);
 				if (pos.getY() + dismountHeight > maxDismountY) {
 					break;
 				}
 
-				if (Dismounting.canDismountInBlock(dismountHeight)) {
-					var poseBoundingBox = livingEntity.getBoundingBox(pose);
-					var vec3d2 = new Vec3d(targetX, pos.getY() + dismountHeight, targetZ);
-					if (Dismounting.canPlaceEntityAt(this.getWorld(), livingEntity, poseBoundingBox.offset(vec3d2))) {
+				if (DismountHelper.isBlockFloorValid(dismountHeight)) {
+					var poseBoundingBox = livingEntity.getLocalBoundsForPose(pose);
+					var dismountPos = new Vec3(targetX, pos.getY() + dismountHeight, targetZ);
+					if (DismountHelper.canDismountTo(this.level(), livingEntity, poseBoundingBox.move(dismountPos))) {
 						livingEntity.setPose(pose);
-						return vec3d2;
+						return dismountPos;
 					}
 				}
 
@@ -715,16 +716,16 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 	}
 
 	@Override
-	public Vec3d updatePassengerForDismount(LivingEntity passenger) {
-		var rightDismountOffset = getPassengerDismountOffset(this.getWidth(), passenger.getWidth(),
-				this.getYaw() + (passenger.getMainArm() == Arm.RIGHT ? 90.f : -90.f));
+	public @NotNull Vec3 getDismountLocationForPassenger(LivingEntity passenger) {
+		var rightDismountOffset = getCollisionHorizontalEscapeVector(this.getBoundingWidth(), passenger.getBoundingWidth(),
+				this.getYaw() + (passenger.getMainArm() == HumanoidArm.RIGHT ? 90.f : -90.f));
 		var dismountPos = this.tryDismountTowards(rightDismountOffset, passenger);
 
 		if (dismountPos != null) {
 			return dismountPos;
 		} else {
-			var leftDismountOffset = getPassengerDismountOffset(this.getWidth(), passenger.getWidth(),
-					this.getYaw() + (passenger.getMainArm() == Arm.LEFT ? 90.f : -90.f));
+			var leftDismountOffset = getCollisionHorizontalEscapeVector(this.getBoundingWidth(), passenger.getBoundingWidth(),
+					this.getYaw() + (passenger.getMainArm() == HumanoidArm.LEFT ? 90.f : -90.f));
 			dismountPos = this.tryDismountTowards(leftDismountOffset, passenger);
 			return dismountPos != null ? dismountPos : this.getPos();
 		}
@@ -733,10 +734,10 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 	/* Movement */
 
 	@Override
-	public void tickMovement() {
-		super.tickMovement();
+	public void aiStep() {
+		super.aiStep();
 
-		if (!this.getWorld().isClient() && this.isAlive()) {
+		if (!this.level().isClientSide() && this.isAlive()) {
 			if (this.random.nextInt(900) == 0 && this.deathTime == 0) {
 				this.heal(1.f);
 			}
@@ -749,13 +750,13 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 	}
 
 	@Override
-	public void travel(Vec3d movementInput) {
+	public void travel(Vec3 movementInput) {
 		if (this.isAlive()) {
-			Entity primaryPassenger = this.getPrimaryPassenger();
+			Entity primaryPassenger = this.getControllingPassenger();
 
 			if (primaryPassenger != null && this.isSaddled() && this.canUseSnail(primaryPassenger)) {
 				if (this.isScared()) { // When the snail is scared, the snail is paralyzed.
-					this.checkBlockCollision();
+					this.checkInsideBlocks();
 					return;
 				}
 
@@ -773,15 +774,15 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 					forwardSpeed *= .25f;
 				}
 
-				if (this.isLogicalSideForUpdatingMovement()) {
-					this.setMovementSpeed((float) this.getAttributeValue(EntityAttributes.GENERIC_MOVEMENT_SPEED));
-					super.travel(new Vec3d(sidewaysSpeed, movementInput.y, forwardSpeed));
-				} else if (rider instanceof PlayerEntity) {
-					this.setVelocity(Vec3d.ZERO);
+				if (this.isControlledByLocalInstance()) {
+					this.setSpeed((float) this.getAttributeValue(Attributes.MOVEMENT_SPEED));
+					super.travel(new Vec3(sidewaysSpeed, movementInput.y, forwardSpeed));
+				} else if (rider instanceof Player) {
+					this.setVelocity(Vec3.ZERO);
 				}
 
-				this.updateLimbs(false);
-				this.tryCheckBlockCollision();
+				this.calculateEntityAnimation(false);
+				this.tryCheckInsideBlocks();
 			} else {
 				super.travel(movementInput);
 			}
@@ -790,12 +791,12 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 
 	@Override
 	public boolean isPushable() {
-		return !this.hasPassengers();
+		return !this.isVehicle();
 	}
 
 	@Override
 	protected boolean isImmobile() {
-		return super.isImmobile() && this.hasPassengers() && this.isSaddled() && this.canUseSnail(this.getPrimaryPassenger());
+		return super.isImmobile() || (this.isVehicle() && this.isSaddled() && this.canUseSnail(this.getControllingPassenger()));
 	}
 
 	/* Sounds */
@@ -813,15 +814,19 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 	/* Passive Stuff */
 
 	@Override
-	public void setBreedingAge(int age) {
-		this.breedingAge = age;
+	public void setAge(int age) {
+		this.age = age;
 	}
 
 	@Override
 	protected void onGrowUp() {
-		if (!this.getWorld().isClient() && !this.isBaby() && this.getWorld().getGameRules().getBoolean(GameRules.DO_MOB_LOOT)) {
-			this.dropStack(new ItemStack(Items.SLIME_BALL, 1 + this.random.nextInt(2)));
+		if (!this.level().isClientSide() && !this.isBaby() && this.level().getGameRules().getBoolean(GameRules.RULE_DOMOBLOOT)) {
+			this.spawnAtLocation(new ItemStack(Items.SLIME_BALL, 1 + this.random.nextInt(2)));
 		}
+	}
+
+	protected boolean shouldBeBaby() {
+		return this.satisfaction < 0;
 	}
 
 	@Override
@@ -833,7 +838,6 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 	public void setBaby(boolean baby) {
 		var wasBaby = this.dataTracker.get(CHILD);
 		this.dataTracker.set(CHILD, baby);
-		this.calculateDimensions();
 
 		if (wasBaby && !baby && !this.reading) {
 			this.onGrowUp();
@@ -843,13 +847,13 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 	/* Animal Stuff */
 
 	@Override
-	public PassiveEntity createChild(ServerWorld world, PassiveEntity otherParent) {
-		var child = LovelySnailsRegistry.SNAIL_ENTITY_TYPE.create(world);
+	public SnailEntity getBreedOffspring(ServerLevel level, AgeableMob otherParent) {
+		var child = LovelySnailsRegistry.SNAIL_ENTITY_TYPE.create(level);
 
 		if (otherParent instanceof SnailEntity) {
-			if (this.isTamed()) {
-				child.setOwnerUuid(this.getOwnerUuid());
-				child.setTamed(true);
+			if (this.isTame()) {
+				child.setOwnerUUID(this.getOwnerUUID());
+				child.setTame(true);
 			}
 		}
 
@@ -857,18 +861,13 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 	}
 
 	@Override
-	public boolean isBreedingItem(ItemStack stack) {
+	public boolean isFood(ItemStack stack) {
 		return stack.isIn(LovelySnailsRegistry.SNAIL_BREEDING_ITEMS);
 	}
 
 	@Override
-	public float getScaleFactor() {
+	public float getScale() {
 		return this.isBaby() ? 0.35f : 1.f;
-	}
-
-	@Override
-	public EntityView getEntityView() {
-		return this.getWorld();
 	}
 
 	private class SnailScreenHandlerFactory implements ExtendedScreenHandlerFactory {
@@ -877,7 +876,7 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 		}
 
 		@Override
-		public void writeScreenOpeningData(ServerPlayerEntity player, PacketByteBuf buf) {
+		public void writeScreenOpeningData(ServerPlayer player, FriendlyByteBuf buf) {
 			buf.writeVarInt(this.snail().getId());
 			buf.writeByte(SnailScreenHandler.getOpeningStoragePage(this.snail().inventory));
 		}
@@ -888,7 +887,7 @@ public class SnailEntity extends TameableEntity implements InventoryChangedListe
 		}
 
 		@Override
-		public ScreenHandler createMenu(int syncId, PlayerInventory inv, PlayerEntity player) {
+		public AbstractContainerMenu createMenu(int syncId, Inventory inv, Player player) {
 			var snailInv = this.snail().inventory;
 			return new SnailScreenHandler(syncId, inv, snailInv, this.snail(), SnailScreenHandler.getOpeningStoragePage(snailInv));
 		}

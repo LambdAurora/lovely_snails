@@ -16,45 +16,45 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.inventory.InventoryChangedListener;
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.screen.slot.SlotActionType;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Container;
+import net.minecraft.world.ContainerListener;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class SnailScreenHandler extends ScreenHandler implements InventoryChangedListener {
-	private final PlayerEntity player;
-	private final SimpleInventory inventory;
+public class SnailScreenHandler extends AbstractContainerMenu implements ContainerListener {
+	private final Player player;
+	private final SimpleContainer inventory;
 	private final SnailEntity entity;
 	private final ChestSlot[] chestSlots = new ChestSlot[3];
 	private final List<InventoryPageChangeListener> pageChangeListeners = new ArrayList<>();
 	private int currentStoragePage;
 
-	public SnailScreenHandler(int syncId, PlayerInventory playerInventory, PacketByteBuf buf) {
+	public SnailScreenHandler(int syncId, Inventory playerInventory, FriendlyByteBuf buf) {
 		this(syncId, playerInventory,
-				playerInventory.player.getWorld().getEntityById(buf.readVarInt()) instanceof SnailEntity snail ? snail : null,
+				playerInventory.player.level().getEntity(buf.readVarInt()) instanceof SnailEntity snail ? snail : null,
 				buf.readByte()
 		);
 	}
 
-	public SnailScreenHandler(int syncId, PlayerInventory playerInventory, SnailEntity snail, int currentStoragePage) {
-		this(syncId, playerInventory, new SimpleInventory(snail.getInventorySize()), snail, currentStoragePage);
+	public SnailScreenHandler(int syncId, Inventory playerInventory, SnailEntity snail, int currentStoragePage) {
+		this(syncId, playerInventory, new SimpleContainer(snail.getInventorySize()), snail, currentStoragePage);
 	}
 
-	public SnailScreenHandler(int syncId, PlayerInventory playerInventory, SimpleInventory inventory, SnailEntity entity, int currentStoragePage) {
+	public SnailScreenHandler(int syncId, Inventory playerInventory, SimpleContainer inventory, SnailEntity entity, int currentStoragePage) {
 		super(LovelySnailsRegistry.SNAIL_SCREEN_HANDLER_TYPE, syncId);
-		checkSize(inventory, entity.getInventorySize());
+		checkContainerSize(inventory, entity.getInventorySize());
 		this.player = playerInventory.player;
 		this.inventory = inventory;
 		this.entity = entity;
@@ -99,7 +99,7 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
 		return this.entity;
 	}
 
-	public SimpleInventory getInventory() {
+	public SimpleContainer getInventory() {
 		return this.inventory;
 	}
 
@@ -110,7 +110,7 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
 	 */
 	public boolean hasEnderChest() {
 		for (int i = 2; i < 5; i++) {
-			if (this.inventory.getStack(i).isOf(Items.ENDER_CHEST))
+			if (this.inventory.getItem(i).is(Items.ENDER_CHEST))
 				return true;
 		}
 		return false;
@@ -136,7 +136,7 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
 	 * @return {@code true} if there is a chest for the given storage page, else {@code false}
 	 */
 	public boolean hasChest(int page) {
-		return this.inventory.getStack(2 + page).isOf(Items.CHEST);
+		return this.inventory.getItem(2 + page).is(Items.CHEST);
 	}
 
 	/**
@@ -147,7 +147,7 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
 	 */
 	public boolean hasItemsInStoragePage(int page) {
 		for (int slot = 5 + page * 15; slot < 5 + page * 15 + 15; slot++) {
-			if (!this.inventory.getStack(slot).isEmpty())
+			if (!this.inventory.getItem(slot).isEmpty())
 				return true;
 		}
 		return false;
@@ -164,7 +164,7 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
 
 	public void setCurrentStoragePage(int page) {
 		this.currentStoragePage = page;
-		if (this.player instanceof ServerPlayerEntity serverPlayerEntity) {
+		if (this.player instanceof ServerPlayer serverPlayerEntity) {
 			var buffer = PacketByteBufs.create();
 			buffer.writeVarInt(this.syncId);
 			buffer.writeByte(page);
@@ -195,9 +195,9 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
 	 * @param inventory the inventory
 	 * @return the page to select
 	 */
-	public static int getOpeningStoragePage(Inventory inventory) {
+	public static int getOpeningStoragePage(Container inventory) {
 		for (int page = 0; page < 3; page++) {
-			if (inventory.getStack(2 + page).isOf(Items.CHEST)) {
+			if (inventory.getItem(2 + page).is(Items.CHEST)) {
 				return page;
 			}
 		}
@@ -213,24 +213,24 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
 	}
 
 	@Override
-	public boolean canUse(PlayerEntity player) {
+	public boolean stillValid(Player player) {
 		return !this.entity.isInventoryDifferent(this.inventory)
-				&& this.inventory.canPlayerUse(player)
+				&& this.inventory.stillValid(player)
 				&& this.entity.isAlive()
 				&& this.entity.distanceTo(player) < 8.f;
 	}
 
 	private boolean attemptToTransferSlotToCurrentPage(ItemStack currentStack) {
 		int page = this.getCurrentStoragePage();
-		return this.insertItem(currentStack, 5 + page * 15, 5 + page * 15 + 15, false);
+		return this.moveItemStackTo(currentStack, 5 + page * 15, 5 + page * 15 + 15, false);
 	}
 
 	private @Nullable ItemStack attemptToTransferSlotToChestSlots(ItemStack currentStack) {
 		for (int i = 0; i < this.chestSlots.length; i++) {
 			int slot = SnailEntity.FIRST_CHEST_SLOT + i;
 
-			if (this.chestSlots[i].canInsert(currentStack) && !this.chestSlots[i].hasStack()
-					&& !this.insertItem(currentStack, slot, slot + 1, false)) {
+			if (this.chestSlots[i].mayPlace(currentStack) && !this.chestSlots[i].hasItem()
+					&& !this.moveItemStackTo(currentStack, slot, slot + 1, false)) {
 				return ItemStack.EMPTY;
 			}
 		}
@@ -238,19 +238,19 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
 		return null;
 	}
 
-	private @Nullable ItemStack attemptToTransferToSnail(PlayerEntity player, ItemStack currentStack) {
+	private @Nullable ItemStack attemptToTransferToSnail(Player player, ItemStack currentStack) {
 		if (!this.snail().canUseSnail(player)) return null;
 
 		ItemStack chestResult;
 
 		if ((chestResult = this.attemptToTransferSlotToChestSlots(currentStack)) != null) {
 			return chestResult;
-		} else if (this.getSlot(SnailEntity.CARPET_SLOT).canInsert(currentStack) && !this.getSlot(SnailEntity.CARPET_SLOT).hasStack()) {
-			if (!this.insertItem(currentStack, 1, 2, false)) {
+		} else if (this.getSlot(SnailEntity.CARPET_SLOT).mayPlace(currentStack) && !this.getSlot(SnailEntity.CARPET_SLOT).hasItem()) {
+			if (!this.moveItemStackTo(currentStack, 1, 2, false)) {
 				return ItemStack.EMPTY;
 			}
-		} else if (this.getSlot(SnailEntity.SADDLE_SLOT).canInsert(currentStack)) {
-			if (!this.insertItem(currentStack, 0, 1, false)) {
+		} else if (this.getSlot(SnailEntity.SADDLE_SLOT).mayPlace(currentStack)) {
+			if (!this.moveItemStackTo(currentStack, 0, 1, false)) {
 				return ItemStack.EMPTY;
 			}
 		} else if (!this.attemptToTransferSlotToCurrentPage(currentStack)) {
@@ -261,27 +261,27 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
 	}
 
 	@Override
-	public void onSlotClick(int slotIndex, int button, SlotActionType actionType, PlayerEntity player) {
+	public void clicked(int slotIndex, int button, ClickType actionType, Player player) {
 		if (slotIndex < this.inventory.size() && !this.snail().canUseSnail(player))
 			return;
 
-		super.onSlotClick(slotIndex, button, actionType, player);
+		super.clicked(slotIndex, button, actionType, player);
 	}
 
 	@Override
-	public ItemStack quickTransfer(PlayerEntity player, int fromIndex) {
+	public ItemStack quickMoveStack(Player player, int fromIndex) {
 		var stack = ItemStack.EMPTY;
 		var slot = this.slots.get(fromIndex);
 
-		if (slot.hasStack()) {
-			var currentStack = slot.getStack();
+		if (slot.hasItem()) {
+			var currentStack = slot.getItem();
 			stack = currentStack.copy();
 			int inventorySize = this.inventory.size();
 
 			ItemStack insertionIntoSnail;
 
 			if (fromIndex < inventorySize) {
-				if (this.snail().canUseSnail(player) && !this.insertItem(currentStack, inventorySize, this.slots.size(), true)) {
+				if (this.snail().canUseSnail(player) && !this.moveItemStackTo(currentStack, inventorySize, this.slots.size(), true)) {
 					return ItemStack.EMPTY;
 				}
 			} else if ((insertionIntoSnail = this.attemptToTransferToSnail(player, currentStack)) != null) {
@@ -290,14 +290,14 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
 				int playerInventoryEnd = inventorySize + 27;
 				int hotbarEnd = playerInventoryEnd + 9;
 				if (fromIndex >= playerInventoryEnd && fromIndex < hotbarEnd) {
-					if (!this.insertItem(currentStack, inventorySize, playerInventoryEnd, false)) {
+					if (!this.moveItemStackTo(currentStack, inventorySize, playerInventoryEnd, false)) {
 						return ItemStack.EMPTY;
 					}
 				} else if (fromIndex < playerInventoryEnd) {
-					if (!this.insertItem(currentStack, playerInventoryEnd, hotbarEnd, false)) {
+					if (!this.moveItemStackTo(currentStack, playerInventoryEnd, hotbarEnd, false)) {
 						return ItemStack.EMPTY;
 					}
-				} else if (!this.insertItem(currentStack, playerInventoryEnd, playerInventoryEnd, false)) {
+				} else if (!this.moveItemStackTo(currentStack, playerInventoryEnd, playerInventoryEnd, false)) {
 					return ItemStack.EMPTY;
 				}
 
@@ -305,23 +305,23 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
 			}
 
 			if (currentStack.isEmpty()) {
-				slot.setStack(ItemStack.EMPTY);
+				slot.set(ItemStack.EMPTY);
 			} else {
-				slot.markDirty();
+				slot.setChanged();
 			}
 
 			if (currentStack.getCount() == stack.getCount()) {
 				return ItemStack.EMPTY;
 			}
 
-			slot.onTakeItem(player, currentStack);
+			slot.onTake(player, currentStack);
 		}
 
 		return stack;
 	}
 
 	@Override
-	public boolean onButtonClick(PlayerEntity player, int id) {
+	public boolean onButtonClick(Player player, int id) {
 		if (id == 0 && this.hasEnderChest()) {
 			this.snail().openEnderChestInventory(player);
 			return true;
@@ -330,14 +330,14 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
 	}
 
 	@Override
-	public void close(PlayerEntity playerEntity) {
-		super.close(playerEntity);
-		this.inventory.onClose(playerEntity);
+	public void removed(Player player) {
+		super.removed(player);
+		this.inventory.onClose(player);
 		this.inventory.removeListener(this);
 	}
 
 	@Override
-	public void onInventoryChanged(Inventory sender) {
+	public void onContainerChanged(Container sender) {
 		if (this.hasChests() && !this.hasChest(this.currentStoragePage)) {
 			this.currentStoragePage = switch (this.currentStoragePage) {
 				case 2 -> {
@@ -360,12 +360,12 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
 	}
 
 	private class SnailSlot extends Slot {
-		public SnailSlot(Inventory inventory, int index, int x, int y) {
+		public SnailSlot(Container inventory, int index, int x, int y) {
 			super(inventory, index, x, y);
 		}
 
 		@Override
-		public boolean canTakeItems(PlayerEntity playerEntity) {
+		public boolean mayPickup(Player playerEntity) {
 			return this.snail().canUseSnail(playerEntity);
 		}
 
@@ -379,23 +379,23 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
 	}
 
 	private class SaddleSlot extends SnailSlot {
-		public SaddleSlot(Inventory inventory, int index, int x, int y) {
+		public SaddleSlot(Container inventory, int index, int x, int y) {
 			super(inventory, index, x, y);
 		}
 
 		@Override
-		public boolean canInsert(ItemStack stack) {
-			return stack.isOf(Items.SADDLE) && !this.hasStack() && this.isEnabled();
+		public boolean mayPlace(ItemStack stack) {
+			return stack.is(Items.SADDLE) && !this.hasItem() && this.isEnabled();
 		}
 
 		@Override
 		public boolean isEnabled() {
-			return this.snail().canBeSaddled();
+			return this.snail().isSaddleable();
 		}
 	}
 
 	private class DecorSlot extends SnailSlot {
-		public DecorSlot(Inventory inventory, int index, int x, int y) {
+		public DecorSlot(Container inventory, int index, int x, int y) {
 			super(inventory, index, x, y);
 		}
 
@@ -405,12 +405,12 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
 		}
 
 		@Override
-		public boolean canInsert(ItemStack stack) {
+		public boolean mayPlace(ItemStack stack) {
 			return SnailEntity.getColorFromCarpet(stack) != null;
 		}
 
 		@Override
-		public int getMaxItemCount() {
+		public int getMaxStackSize() {
 			return 1;
 		}
 	}
@@ -418,7 +418,7 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
 	private class ChestSlot extends SnailSlot {
 		private final int storagePage;
 
-		public ChestSlot(Inventory inventory, int index, int x, int y, int storagePage) {
+		public ChestSlot(Container inventory, int index, int x, int y, int storagePage) {
 			super(inventory, index, x, y);
 			this.storagePage = storagePage;
 		}
@@ -429,17 +429,17 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
 		}
 
 		@Override
-		public boolean canInsert(ItemStack stack) {
-			return (stack.isOf(Items.CHEST) || stack.isOf(Items.ENDER_CHEST)) && this.isEnabled();
+		public boolean mayPlace(ItemStack stack) {
+			return (stack.is(Items.CHEST) || stack.is(Items.ENDER_CHEST)) && this.isEnabled();
 		}
 
 		@Override
-		public boolean canTakeItems(PlayerEntity playerEntity) {
-			return super.canTakeItems(playerEntity) && !this.screenHandler().hasItemsInStoragePage(this.storagePage);
+		public boolean mayPickup(Player player) {
+			return super.mayPickup(player) && !this.screenHandler().hasItemsInStoragePage(this.storagePage);
 		}
 
 		@Override
-		public int getMaxItemCount() {
+		public int getMaxStackSize() {
 			return 1;
 		}
 	}
@@ -447,7 +447,7 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
 	private class StorageSlot extends SnailSlot {
 		private final int storagePage;
 
-		public StorageSlot(Inventory inventory, int index, int x, int y, int storagePage) {
+		public StorageSlot(Container inventory, int index, int x, int y, int storagePage) {
 			super(inventory, index, x, y);
 			this.storagePage = storagePage;
 		}
@@ -458,7 +458,7 @@ public class SnailScreenHandler extends ScreenHandler implements InventoryChange
 		}
 
 		@Override
-		public boolean canInsert(ItemStack stack) {
+		public boolean mayPlace(ItemStack stack) {
 			return this.isEnabled();
 		}
 	}

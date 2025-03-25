@@ -10,9 +10,9 @@
 package dev.lambdaurora.lovely_snails.entity.goal;
 
 import dev.lambdaurora.lovely_snails.entity.SnailEntity;
-import net.minecraft.entity.ai.goal.Goal;
-import net.minecraft.entity.mob.HostileEntity;
-import net.minecraft.predicate.entity.EntityPredicates;
+import net.minecraft.world.entity.EntitySelector;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.monster.Monster;
 
 import java.util.EnumSet;
 
@@ -31,26 +31,26 @@ public class SnailHideGoal extends Goal {
 		this.snail = snail;
 		this.vitalSpaceDistance = distance;
 
-		this.setControls(EnumSet.of(Control.JUMP, Control.MOVE, Control.LOOK));
+		this.setFlags(EnumSet.of(Flag.JUMP, Flag.MOVE, Flag.LOOK));
 	}
 
 	private boolean isThereScaryEntitiesAround() {
-		var scaryEntities = this.snail.getWorld().getOtherEntities(
+		var scaryEntities = this.snail.level().getEntities(
 				this.snail,
-				this.snail.getBoundingBox().expand(this.vitalSpaceDistance, 3, this.vitalSpaceDistance),
-				EntityPredicates.EXCEPT_CREATIVE_OR_SPECTATOR.and(entity -> entity instanceof HostileEntity)
+				this.snail.getBoundingBox().inflate(this.vitalSpaceDistance, 3, this.vitalSpaceDistance),
+				EntitySelector.NO_CREATIVE_OR_SPECTATOR.and(entity -> entity instanceof Monster)
 		);
 		return !scaryEntities.isEmpty();
 	}
 
 	@Override
-	public boolean canStart() {
-		return this.snail.getAttacker() != null || this.isThereScaryEntitiesAround();
+	public boolean canUse() {
+		return this.snail.getLastHurtByMob() != null || this.isThereScaryEntitiesAround();
 	}
 
 	@Override
-	public boolean shouldContinue() {
-		return this.snail.getAttacker() != null || this.isThereScaryEntitiesAround();
+	public boolean canContinueToUse() {
+		return this.snail.getLastHurtByMob() != null || this.isThereScaryEntitiesAround();
 	}
 
 	@Override

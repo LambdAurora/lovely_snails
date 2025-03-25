@@ -1,18 +1,17 @@
 {
-  "required": true,
-  "package": "dev.lambdaurora.lovely_snails.mixin",
-  "compatibilityLevel": "JAVA_17",
-  "client": [
-    "client.ClientPlayerInteractionManagerMixin"
-  ],
-  "mixins": [
-    "PassiveEntityAccessor",
-    "PassiveEntityMixin",
-    "PotionEntityMixin",
-    "ServerPlayNetworkHandlerMixin",
-    "ShulkerEntityAccessor"
-  ],
-  "injectors": {
-    "defaultRequire": 1
-  }
+	"required": true,
+	"package": "dev.lambdaurora.lovely_snails.mixin",
+	"compatibilityLevel": "JAVA_17",
+	"client": [
+		"client.ClientPlayerInteractionManagerMixin"
+	],
+	"mixins": [
+		"AgeableMobAccessor",
+		"ServerGamePacketListenerImplMixin",
+		"ShulkerAccessor",
+		"ThrownPotionMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
 }

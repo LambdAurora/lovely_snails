@@ -21,9 +21,9 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
-import net.minecraft.client.gui.screen.ingame.HandledScreens;
-import net.minecraft.client.model.Dilation;
-import net.minecraft.client.render.entity.model.EntityModelLayer;
+import net.minecraft.client.gui.screens.MenuScreens;
+import net.minecraft.client.model.geom.ModelLayerLocation;
+import net.minecraft.client.model.geom.builders.CubeDeformation;
 
 /**
  * Represents the Lovely Snails client mod.
@@ -34,25 +34,25 @@ import net.minecraft.client.render.entity.model.EntityModelLayer;
  */
 @Environment(EnvType.CLIENT)
 public class LovelySnailsClient implements ClientModInitializer {
-	public static final EntityModelLayer SNAIL_MODEL_LAYER = new EntityModelLayer(LovelySnails.id("snail"), "main");
-	public static final EntityModelLayer SNAIL_SADDLE_MODEL_LAYER = new EntityModelLayer(LovelySnails.id("snail"), "saddle");
-	public static final EntityModelLayer SNAIL_DECOR_MODEL_LAYER = new EntityModelLayer(LovelySnails.id("snail"), "decor");
+	public static final ModelLayerLocation SNAIL_MODEL_LAYER = new ModelLayerLocation(LovelySnails.id("snail"), "main");
+	public static final ModelLayerLocation SNAIL_SADDLE_MODEL_LAYER = new ModelLayerLocation(LovelySnails.id("snail"), "saddle");
+	public static final ModelLayerLocation SNAIL_DECOR_MODEL_LAYER = new ModelLayerLocation(LovelySnails.id("snail"), "decor");
 
 	@Override
 	public void onInitializeClient() {
 		EntityRendererRegistry.register(LovelySnailsRegistry.SNAIL_ENTITY_TYPE, SnailEntityRenderer::new);
-		EntityModelLayerRegistry.registerModelLayer(SNAIL_MODEL_LAYER, () -> SnailModel.model(Dilation.NONE));
-		EntityModelLayerRegistry.registerModelLayer(SNAIL_SADDLE_MODEL_LAYER, () -> SnailModel.model(new Dilation(0.5f)));
-		EntityModelLayerRegistry.registerModelLayer(SNAIL_DECOR_MODEL_LAYER, () -> SnailModel.model(new Dilation(0.25f)));
+		EntityModelLayerRegistry.registerModelLayer(SNAIL_MODEL_LAYER, () -> SnailModel.model(CubeDeformation.NONE));
+		EntityModelLayerRegistry.registerModelLayer(SNAIL_SADDLE_MODEL_LAYER, () -> SnailModel.model(new CubeDeformation(0.5f)));
+		EntityModelLayerRegistry.registerModelLayer(SNAIL_DECOR_MODEL_LAYER, () -> SnailModel.model(new CubeDeformation(0.25f)));
 
-		HandledScreens.register(LovelySnailsRegistry.SNAIL_SCREEN_HANDLER_TYPE, SnailInventoryScreen::new);
+		MenuScreens.register(LovelySnailsRegistry.SNAIL_SCREEN_HANDLER_TYPE, SnailInventoryScreen::new);
 
 		ClientPlayNetworking.registerGlobalReceiver(LovelySnailsRegistry.SNAIL_SET_STORAGE_PAGE,
 				(client, handler, buf, responseSender) -> {
 					int syncId = buf.readVarInt();
 					byte storagePage = buf.readByte();
 					client.execute(() -> {
-						if (client.player.currentScreenHandler instanceof SnailScreenHandler snailScreenHandler
+						if (client.player.containerMenu instanceof SnailScreenHandler snailScreenHandler
 								&& snailScreenHandler.syncId == syncId) {
 							snailScreenHandler.setCurrentStoragePage(storagePage);
 						}

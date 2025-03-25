@@ -15,22 +15,22 @@ import dev.lambdaurora.lovely_snails.screen.SnailScreenHandler;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
-import net.minecraft.block.Block;
-import net.minecraft.entity.EntityDimensions;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.SpawnGroup;
-import net.minecraft.entity.SpawnRestriction;
-import net.minecraft.item.Item;
-import net.minecraft.item.SpawnEggItem;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.tag.TagKey;
-import net.minecraft.screen.ScreenHandlerType;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.Heightmap;
-import net.minecraft.world.biome.Biome;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.entity.EntityDimensions;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.entity.SpawnPlacements;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.SpawnEggItem;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.levelgen.Heightmap;
 
 import static dev.lambdaurora.lovely_snails.LovelySnails.id;
 
@@ -52,18 +52,18 @@ public final class LovelySnailsRegistry {
 
 	/* Screen handlers */
 
-	public static final ScreenHandlerType<SnailScreenHandler> SNAIL_SCREEN_HANDLER_TYPE =
-			Registry.register(Registries.SCREEN_HANDLER_TYPE, id("snail"), new ExtendedScreenHandlerType<>(SnailScreenHandler::new));
+	public static final MenuType<SnailScreenHandler> SNAIL_SCREEN_HANDLER_TYPE =
+			Registry.register(BuiltInRegistries.MENU, id("snail"), new ExtendedScreenHandlerType<>(SnailScreenHandler::new));
 
 	/* Entities */
 
-	public static final EntityType<SnailEntity> SNAIL_ENTITY_TYPE = Registry.register(Registries.ENTITY_TYPE, id("snail"),
+	public static final EntityType<SnailEntity> SNAIL_ENTITY_TYPE = Registry.register(BuiltInRegistries.ENTITY_TYPE, id("snail"),
 			FabricEntityTypeBuilder.<SnailEntity>createMob()
-					.spawnGroup(SpawnGroup.CREATURE)
+					.spawnGroup(MobCategory.CREATURE)
 					.entityFactory(SnailEntity::new)
 					.defaultAttributes(SnailEntity::createSnailAttributes)
-					.dimensions(EntityDimensions.changing(1.5f, 2.f))
-					.spawnRestriction(SpawnRestriction.Location.NO_RESTRICTIONS, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
+					.dimensions(EntityDimensions.scalable(1.5f, 2.f))
+					.spawnRestriction(SpawnPlacements.Type.NO_RESTRICTIONS, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
 							SnailEntity::canSpawn)
 					.build()
 	);
@@ -79,19 +79,19 @@ public final class LovelySnailsRegistry {
 
 	/* Tags */
 
-	public static final TagKey<Block> SNAIL_SPAWN_BLOCKS = TagKey.of(RegistryKeys.BLOCK, id("snail_spawn_blocks"));
-	public static final TagKey<Item> SNAIL_BREEDING_ITEMS = TagKey.of(RegistryKeys.ITEM, id("snail_breeding_items"));
-	public static final TagKey<Item> SNAIL_FOOD_ITEMS = TagKey.of(RegistryKeys.ITEM, id("snail_food_items"));
-	public static final TagKey<Biome> SNAIL_REGULAR_SPAWN_BIOMES = TagKey.of(RegistryKeys.BIOME, id("snail_spawn"));
-	public static final TagKey<Biome> SNAIL_SWAMP_LIKE_SPAWN_BIOMES = TagKey.of(RegistryKeys.BIOME, id("swamp_like_spawn"));
+	public static final TagKey<Block> SNAIL_SPAWN_BLOCKS = TagKey.of(Registries.BLOCK, id("snail_spawn_blocks"));
+	public static final TagKey<Item> SNAIL_BREEDING_ITEMS = TagKey.of(Registries.ITEM, id("snail_breeding_items"));
+	public static final TagKey<Item> SNAIL_FOOD_ITEMS = TagKey.of(Registries.ITEM, id("snail_food_items"));
+	public static final TagKey<Biome> SNAIL_REGULAR_SPAWN_BIOMES = TagKey.of(Registries.BIOME, id("snail_spawn"));
+	public static final TagKey<Biome> SNAIL_SWAMP_LIKE_SPAWN_BIOMES = TagKey.of(Registries.BIOME, id("swamp_like_spawn"));
 
 	private static <T extends Item> T register(String name, T item) {
-		return Registry.register(Registries.ITEM, id(name), item);
+		return Registry.register(BuiltInRegistries.ITEM, id(name), item);
 	}
 
 	private static SoundEvent registerSound(String path) {
 		var id = id(path);
-		return Registry.register(Registries.SOUND_EVENT, id, SoundEvent.createVariableRangeEvent(id));
+		return Registry.register(BuiltInRegistries.SOUND_EVENT, id, SoundEvent.createVariableRangeEvent(id));
 	}
 
 	public static void init() {}

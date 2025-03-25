@@ -10,11 +10,12 @@
 package dev.lambdaurora.lovely_snails.entity.goal;
 
 import dev.lambdaurora.lovely_snails.entity.SnailEntity;
-import net.minecraft.entity.ai.goal.Goal;
+import net.minecraft.world.entity.AgeableMob;
+import net.minecraft.world.entity.ai.goal.Goal;
 
 /**
- * Modified {@link net.minecraft.entity.ai.goal.FollowParentGoal},
- * which uses a {@link SnailEntity#isBaby()} instead of {@link net.minecraft.entity.passive.AnimalEntity#getBreedingAge()}.
+ * Modified {@link net.minecraft.world.entity.ai.goal.FollowParentGoal},
+ * which uses a {@link SnailEntity#isBaby()} instead of {@link AgeableMob#getAge()}.
  *
  * @author LambdAurora
  * @version 1.0.0
@@ -32,19 +33,19 @@ public class SnailFollowParentGoal extends Goal {
 	}
 
 	@Override
-	public boolean canStart() {
-		if (this.self.getBreedingAge() >= 0) {
+	public boolean canUse() {
+		if (this.self.getAge() >= 0) {
 			return false;
 		} else {
-			var closeSnails = this.self.getWorld().getNonSpectatingEntities(SnailEntity.class,
-					this.self.getBoundingBox().expand(8.0, 4.0, 8.0)
+			var closeSnails = this.self.level().getEntitiesOfClass(SnailEntity.class,
+					this.self.getBoundingBox().inflate(8.0, 4.0, 8.0)
 			);
 			SnailEntity closestParent = null;
 			double closestParentDistance = Double.MAX_VALUE;
 
 			for (var snail : closeSnails) {
 				if (!snail.isBaby()) {
-					double snailDistance = this.self.squaredDistanceTo(snail);
+					double snailDistance = this.self.distanceToSqr(snail);
 					if (!(snailDistance > closestParentDistance)) {
 						closestParentDistance = snailDistance;
 						closestParent = snail;
@@ -64,13 +65,13 @@ public class SnailFollowParentGoal extends Goal {
 	}
 
 	@Override
-	public boolean shouldContinue() {
+	public boolean canContinueToUse() {
 		if (!this.self.isBaby()) {
 			return false;
 		} else if (!this.parent.isAlive()) {
 			return false;
 		} else {
-			double parentDistance = this.self.squaredDistanceTo(this.parent);
+			double parentDistance = this.self.distanceToSqr(this.parent);
 			return !(parentDistance < 9.0) && !(parentDistance > 256.0);
 		}
 	}
@@ -89,7 +90,7 @@ public class SnailFollowParentGoal extends Goal {
 	public void tick() {
 		if (--this.delay <= 0) {
 			this.delay = 10;
-			this.self.getNavigation().startMovingTo(this.parent, this.speed);
+			this.self.getNavigation().moveTo(this.parent, this.speed);
 		}
 	}
 }

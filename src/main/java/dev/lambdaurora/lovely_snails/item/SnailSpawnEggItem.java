@@ -10,10 +10,11 @@
 package dev.lambdaurora.lovely_snails.item;
 
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.mob.MobEntity;
-import net.minecraft.item.ItemGroups;
-import net.minecraft.item.SpawnEggItem;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.item.CreativeModeTabs;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.SpawnEggItem;
 
 /**
  * Represents a spawn egg that will try to sneak in where the spawn eggs are.
@@ -23,11 +24,11 @@ import net.minecraft.item.SpawnEggItem;
  * @since 1.1.0
  */
 public class SnailSpawnEggItem extends SpawnEggItem {
-	public SnailSpawnEggItem(EntityType<? extends MobEntity> entityType, int primaryColor, int secondaryColor, Settings settings) {
-		super(entityType, primaryColor, secondaryColor, settings);
+	public SnailSpawnEggItem(EntityType<? extends Mob> entityType, int primaryColor, int secondaryColor, Item.Properties properties) {
+		super(entityType, primaryColor, secondaryColor, properties);
 
-		ItemGroupEvents.modifyEntriesEvent(ItemGroups.SPAWN_EGGS).register(entries -> {
-			entries.addItem(this);
+		ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.SPAWN_EGGS).register(entries -> {
+			entries.accept(this);
 		});
 	}
 }
