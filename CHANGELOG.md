@@ -67,4 +67,4 @@
 ### 1.1.5
 
 - Fixed small snails having an over-sized hitbox ([#17](https://github.com/LambdAurora/lovely_snails/issues/17)).
-- Improved the prevention of the despawn of tamed snails.
+- Improved the despawn prevention of unloaded tamed snails.
