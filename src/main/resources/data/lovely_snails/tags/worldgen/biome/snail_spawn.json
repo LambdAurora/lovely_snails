@@ -10,7 +10,7 @@
 			"required": false
 		},
 		{
-			"id": "#c:mushroom",
+			"id": "#c:is_mushroom",
 			"required": false
 		}
 	]

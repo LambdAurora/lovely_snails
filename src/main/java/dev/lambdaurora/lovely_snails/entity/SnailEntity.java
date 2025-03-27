@@ -14,6 +14,7 @@ import dev.lambdaurora.lovely_snails.entity.goal.SnailFollowParentGoal;
 import dev.lambdaurora.lovely_snails.entity.goal.SnailHideGoal;
 import dev.lambdaurora.lovely_snails.mixin.AgeableMobAccessor;
 import dev.lambdaurora.lovely_snails.mixin.ShulkerAccessor;
+import dev.lambdaurora.lovely_snails.network.SnailScreenHandlerPayload;
 import dev.lambdaurora.lovely_snails.registry.LovelySnailsRegistry;
 import dev.lambdaurora.lovely_snails.screen.SnailScreenHandler;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
@@ -22,7 +23,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Text;
 import net.minecraft.network.syncher.EntityDataTracker;
 import net.minecraft.network.syncher.TrackedEntityData;
@@ -50,6 +50,7 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
@@ -71,7 +72,7 @@ import java.util.function.Predicate;
  * Represents the snail entity.
  *
  * @author LambdAurora
- * @version 1.1.5
+ * @version 1.2.0
  * @since 1.0.0
  */
 public class SnailEntity extends TamableAnimal implements ContainerListener, Saddleable {
@@ -102,7 +103,7 @@ public class SnailEntity extends TamableAnimal implements ContainerListener, Sad
 	public SnailEntity(EntityType<? extends SnailEntity> entityType, Level level) {
 		super(entityType, level);
 		this.updateInventory();
-		this.setMaxUpStep(1.f);
+		//this.setMaxUpStep(1.f);
 	}
 
 	public static AttributeSupplier.Builder createSnailAttributes() {
@@ -121,11 +122,11 @@ public class SnailEntity extends TamableAnimal implements ContainerListener, Sad
 	@Override
 	public @NotNull SpawnGroupData finalizeSpawn(
 			ServerLevelAccessor world, DifficultyInstance difficulty, MobSpawnType spawnReason,
-			@Nullable SpawnGroupData entityData, @Nullable NbtCompound entityNbt
+			@Nullable SpawnGroupData entityData
 	) {
 		this.satisfaction = SATISFACTION_START + this.random.nextInt(10);
 		this.setBaby(true);
-		return super.finalizeSpawn(world, difficulty, spawnReason, entityData, entityNbt);
+		return super.finalizeSpawn(world, difficulty, spawnReason, entityData);
 	}
 
 	protected boolean getSnailFlag(int bitmask) {
@@ -194,8 +195,8 @@ public class SnailEntity extends TamableAnimal implements ContainerListener, Sad
 
 			if (newSatisfaction >= 0) {
 				var adultDimensions = this.getType().getDimensions();
-				float width = adultDimensions.width * .8f;
-				float eyeHeight = this.getEyeHeight(Pose.STANDING, adultDimensions);
+				float width = adultDimensions.width() * .8f;
+				float eyeHeight = adultDimensions.eyeHeight();
 				var pos = BlockPos.ofFloored(this.getX(), this.getY() + eyeHeight, this.getZ());
 				var box = AABB.ofSize(new Vec3(this.getX(), this.getY() + eyeHeight, this.getZ()), width, 1.0E-6, width);
 
@@ -282,14 +283,6 @@ public class SnailEntity extends TamableAnimal implements ContainerListener, Sad
 	}
 
 	@Override
-	public double getPassengersRidingOffset() {
-		if (!this.isBaby())
-			return this.getDimensions(Pose.STANDING).height * 0.95f;
-		else
-			return super.getPassengersRidingOffset();
-	}
-
-	@Override
 	public void handleEntityEvent(byte event) {
 		if (event == 8) {
 			for (int i = 0; i < 7; ++i) {
@@ -330,12 +323,11 @@ public class SnailEntity extends TamableAnimal implements ContainerListener, Sad
 	/* Data Tracker Stuff */
 
 	@Override
-	protected void initDataTracker() {
-		super.initDataTracker();
-
-		this.dataTracker.startTracking(SNAIL_FLAGS, (byte) 0);
-		this.dataTracker.startTracking(CHEST_FLAGS, (byte) 0);
-		this.dataTracker.startTracking(CARPET_COLOR, -1);
+	protected void initDataTracker(EntityDataTracker.Builder builder) {
+		super.initDataTracker(builder);
+		builder.define(SNAIL_FLAGS, (byte) 0);
+		builder.define(CHEST_FLAGS, (byte) 0);
+		builder.define(CARPET_COLOR, -1);
 	}
 
 	/* Serialization */
@@ -355,8 +347,8 @@ public class SnailEntity extends TamableAnimal implements ContainerListener, Sad
 				stack -> stack.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof CarpetBlock
 		);
 
-		LovelySnails.readInventoryNbt(nbt, "chests", this.inventory, 2);
-		LovelySnails.readInventoryNbt(nbt, "inventory", this.inventory, 5);
+		LovelySnails.readInventoryNbt(this.registryAccess(), nbt, "chests", this.inventory, 2);
+		LovelySnails.readInventoryNbt(this.registryAccess(), nbt, "inventory", this.inventory, 5);
 
 		this.syncInventoryToFlags();
 		this.reading = false;
@@ -364,7 +356,7 @@ public class SnailEntity extends TamableAnimal implements ContainerListener, Sad
 
 	private void readSpecialSlot(NbtCompound nbt, String name, int slot, Predicate<ItemStack> predicate) {
 		if (nbt.contains(name, NbtElement.COMPOUND_TYPE)) {
-			var stack = ItemStack.of(nbt.getCompound(name));
+			var stack = ItemStack.parseOptional(this.registryAccess(), nbt.getCompound(name));
 			if (predicate.test(stack)) {
 				this.inventory.setItem(slot, stack);
 				return;
@@ -386,13 +378,13 @@ public class SnailEntity extends TamableAnimal implements ContainerListener, Sad
 		this.writeSpecialSlot(nbt, "saddle", SADDLE_SLOT);
 		this.writeSpecialSlot(nbt, "decor", CARPET_SLOT);
 
-		LovelySnails.writeInventoryNbt(nbt, "chests", this.inventory, 2, 5);
-		LovelySnails.writeInventoryNbt(nbt, "inventory", this.inventory, 5, this.inventory.size());
+		LovelySnails.writeInventoryNbt(this.registryAccess(), nbt, "chests", this.inventory, 2, 5);
+		LovelySnails.writeInventoryNbt(this.registryAccess(), nbt, "inventory", this.inventory, 5, this.inventory.size());
 	}
 
 	public void writeSpecialSlot(NbtCompound nbt, String name, int slot) {
 		if (!this.inventory.getItem(slot).isEmpty()) {
-			nbt.put(name, this.inventory.getItem(slot).save(new NbtCompound()));
+			nbt.put(name, this.inventory.getItem(slot).save(this.registryAccess()));
 		}
 	}
 
@@ -487,7 +479,7 @@ public class SnailEntity extends TamableAnimal implements ContainerListener, Sad
 		if (this.inventory != null) {
 			for (int slot = 0; slot < this.inventory.size(); ++slot) {
 				var stack = this.inventory.getItem(slot);
-				if (!stack.isEmpty() && !EnchantmentHelper.hasVanishingCurse(stack))
+				if (!stack.isEmpty() && !EnchantmentHelper.has(stack, EnchantmentEffectComponents.PREVENT_EQUIPMENT_DROP))
 					this.spawnAtLocation(stack);
 			}
 		}
@@ -651,11 +643,11 @@ public class SnailEntity extends TamableAnimal implements ContainerListener, Sad
 	}
 
 	@Override
-	public void equipSaddle(@Nullable SoundSource sound) {
-		this.inventory.setItem(0, new ItemStack(Items.SADDLE));
+	public void equipSaddle(ItemStack stack, @Nullable SoundSource soundSource) {
+		this.inventory.setItem(0, stack);
 
-		if (sound != null) {
-			this.level().playSound(null, this, SoundEvents.HORSE_SADDLE, sound, 0.5F, 1.0F);
+		if (soundSource != null) {
+			this.level().playSound(null, this, SoundEvents.HORSE_SADDLE, soundSource, 0.5F, 1.0F);
 		}
 	}
 
@@ -853,7 +845,7 @@ public class SnailEntity extends TamableAnimal implements ContainerListener, Sad
 		if (otherParent instanceof SnailEntity) {
 			if (this.isTame()) {
 				child.setOwnerUUID(this.getOwnerUUID());
-				child.setTame(true);
+				child.setTame(true, false);
 			}
 		}
 
@@ -866,24 +858,26 @@ public class SnailEntity extends TamableAnimal implements ContainerListener, Sad
 	}
 
 	@Override
-	public float getScale() {
+	public float getAgeScale() {
 		return this.isBaby() ? 0.35f : 1.f;
 	}
 
-	private class SnailScreenHandlerFactory implements ExtendedScreenHandlerFactory {
+	private class SnailScreenHandlerFactory implements ExtendedScreenHandlerFactory<SnailScreenHandlerPayload> {
 		private SnailEntity snail() {
 			return SnailEntity.this;
 		}
 
 		@Override
-		public void writeScreenOpeningData(ServerPlayer player, FriendlyByteBuf buf) {
-			buf.writeVarInt(this.snail().getId());
-			buf.writeByte(SnailScreenHandler.getOpeningStoragePage(this.snail().inventory));
+		public @NotNull Text getDisplayName() {
+			return this.snail().getDisplayName();
 		}
 
 		@Override
-		public Text getDisplayName() {
-			return this.snail().getDisplayName();
+		public SnailScreenHandlerPayload getScreenOpeningData(ServerPlayer player) {
+			return new SnailScreenHandlerPayload(
+					this.snail().getId(),
+					(byte) SnailScreenHandler.getOpeningStoragePage(this.snail().inventory)
+			);
 		}
 
 		@Override

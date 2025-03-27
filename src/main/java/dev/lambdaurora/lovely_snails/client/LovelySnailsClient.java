@@ -13,6 +13,7 @@ import dev.lambdaurora.lovely_snails.LovelySnails;
 import dev.lambdaurora.lovely_snails.client.model.SnailModel;
 import dev.lambdaurora.lovely_snails.client.render.SnailEntityRenderer;
 import dev.lambdaurora.lovely_snails.client.screen.SnailInventoryScreen;
+import dev.lambdaurora.lovely_snails.network.SnailSetStoragePagePayload;
 import dev.lambdaurora.lovely_snails.registry.LovelySnailsRegistry;
 import dev.lambdaurora.lovely_snails.screen.SnailScreenHandler;
 import net.fabricmc.api.ClientModInitializer;
@@ -29,7 +30,7 @@ import net.minecraft.client.model.geom.builders.CubeDeformation;
  * Represents the Lovely Snails client mod.
  *
  * @author LambdAurora
- * @version 1.1.0
+ * @version 1.2.0
  * @since 1.0.0
  */
 @Environment(EnvType.CLIENT)
@@ -47,14 +48,12 @@ public class LovelySnailsClient implements ClientModInitializer {
 
 		MenuScreens.register(LovelySnailsRegistry.SNAIL_SCREEN_HANDLER_TYPE, SnailInventoryScreen::new);
 
-		ClientPlayNetworking.registerGlobalReceiver(LovelySnailsRegistry.SNAIL_SET_STORAGE_PAGE,
-				(client, handler, buf, responseSender) -> {
-					int syncId = buf.readVarInt();
-					byte storagePage = buf.readByte();
-					client.execute(() -> {
-						if (client.player.containerMenu instanceof SnailScreenHandler snailScreenHandler
-								&& snailScreenHandler.syncId == syncId) {
-							snailScreenHandler.setCurrentStoragePage(storagePage);
+		ClientPlayNetworking.registerGlobalReceiver(SnailSetStoragePagePayload.TYPE,
+				(payload, context) -> {
+					context.client().execute(() -> {
+						if (context.player().containerMenu instanceof SnailScreenHandler snailScreenHandler
+								&& snailScreenHandler.syncId == payload.syncId()) {
+							snailScreenHandler.setCurrentStoragePage(payload.storagePage());
 						}
 					});
 				});

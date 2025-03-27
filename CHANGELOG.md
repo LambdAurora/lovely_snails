@@ -68,3 +68,9 @@
 
 - Fixed small snails having an over-sized hitbox ([#17](https://github.com/LambdAurora/lovely_snails/issues/17)).
 - Improved the despawn prevention of unloaded tamed snails.
+
+## 1.2.0
+
+- Updated to Minecraft 1.21.
+- Made snails scared of entities that wear the heads or skulls of monsters.
+- Fixed minor texturing mistakes.

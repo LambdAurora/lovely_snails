@@ -12,12 +12,15 @@ package dev.lambdaurora.lovely_snails.client.screen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.lambdaurora.lovely_snails.LovelySnails;
 import dev.lambdaurora.lovely_snails.entity.SnailEntity;
+import dev.lambdaurora.lovely_snails.network.SnailSetStoragePagePayload;
 import dev.lambdaurora.lovely_snails.screen.SnailScreenHandler;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.ImageButton;
+import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.GameRenderer;
@@ -35,12 +38,30 @@ import net.minecraft.world.entity.player.Inventory;
  * Represents the snail inventory screen.
  *
  * @author LambdAurora
- * @version 1.1.1
+ * @version 1.2.0
  * @since 1.0.0
  */
 @Environment(EnvType.CLIENT)
 public class SnailInventoryScreen extends AbstractContainerScreen<SnailScreenHandler> {
 	private static final Identifier TEXTURE = LovelySnails.id("textures/gui/container/snail.png");
+	private static final WidgetSprites ENDER_CHEST_SPRITES = new WidgetSprites(
+			LovelySnails.id("container/snail/ender_chest"),
+			LovelySnails.id("container/snail/ender_chest_highlighted")
+	);
+	private static final WidgetSprites[] PAGE_TAB_SPRITES = new WidgetSprites[]{
+			new WidgetSprites(
+					LovelySnails.id("container/snail/tab/1"),
+					LovelySnails.id("container/snail/tab/1_highlighted")
+			),
+			new WidgetSprites(
+					LovelySnails.id("container/snail/tab/2"),
+					LovelySnails.id("container/snail/tab/2_highlighted")
+			),
+			new WidgetSprites(
+					LovelySnails.id("container/snail/tab/3"),
+					LovelySnails.id("container/snail/tab/3_highlighted")
+			),
+	};
 	private final SnailEntity entity;
 	private float mouseX;
 	private float mouseY;
@@ -81,7 +102,7 @@ public class SnailInventoryScreen extends AbstractContainerScreen<SnailScreenHan
 
 		int buttonX = x + this.imageWidth - 3;
 		int buttonY = y + 17;
-		for (int page = 0; page < 3; page++) {
+		for (int page = 0; page < PAGE_TAB_SPRITES.length; page++) {
 			this.addRenderableWidget(this.pageButtons[page] = new PageButton(buttonX, buttonY, page));
 			this.getMenu().getInventory().addListener(this.pageButtons[page]);
 			this.getMenu().addPageChangeListener(this.pageButtons[page]);
@@ -100,30 +121,39 @@ public class SnailInventoryScreen extends AbstractContainerScreen<SnailScreenHan
 		this.clearListeners();
 	}
 
+	/**
+	 * Requests the server to switch to the given storage page.
+	 *
+	 * @param page the storage page to switch to
+	 */
+	public void requestStoragePage(int page) {
+		ClientPlayNetworking.send(new SnailSetStoragePagePayload(this.menu.syncId, (byte) page));
+	}
+
 	/* Input */
 
 	@Override
-	public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
+	public boolean mouseScrolled(double mouseX, double mouseY, double amountX, double amountY) {
 		int x = (this.width - this.imageWidth) / 2;
 		int y = (this.height - this.imageHeight) / 2;
 		if (mouseX > x + 98 && mouseY > y + 17 && mouseX <= x + 98 + 5 * 18 && mouseY <= y + 17 + 54) {
 			int oldPage = this.getMenu().getCurrentStoragePage();
-			int newPage = MathHelper.clamp(oldPage + (amount > 0 ? -1 : 1), 0, 2);
+			int newPage = MathHelper.clamp(oldPage + (amountY > 0 ? -1 : 1), 0, 2);
 			if (oldPage == newPage)
 				return true;
 
 			if (!this.getMenu().hasChest(newPage)) {
-				int otherNewPage = MathHelper.clamp(newPage + (amount > 0 ? -1 : 1), 0, 2);
+				int otherNewPage = MathHelper.clamp(newPage + (amountY > 0 ? -1 : 1), 0, 2);
 				if (newPage == otherNewPage || !this.getMenu().hasChest(otherNewPage))
 					return true;
 
 				newPage = otherNewPage;
 			}
 
-			this.getMenu().requestStoragePage(newPage);
+			this.requestStoragePage(newPage);
 			return true;
 		}
-		return super.mouseScrolled(mouseX, mouseY, amount);
+		return super.mouseScrolled(mouseX, mouseY, amountX, amountY);
 	}
 
 	/* Rendering */
@@ -153,15 +183,18 @@ public class SnailInventoryScreen extends AbstractContainerScreen<SnailScreenHan
 		}
 
 		InventoryScreen.renderEntityInInventoryFollowsMouse(
-				graphics, x + 70, y + 60, 17,
-				(x + 51) - this.mouseX, (y + 75 - 50) - this.mouseY,
+				graphics,
+				x + 40, y + 8,
+				x + 100, y + 70,
+				17, 0.35f,
+				this.mouseX, this.mouseY,
 				this.entity
 		);
 	}
 
 	@Override
 	public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
-		this.renderBackground(graphics);
+		this.renderBackground(graphics, mouseX, mouseY, delta);
 		this.mouseX = mouseX;
 		this.mouseY = mouseY;
 		super.render(graphics, mouseX, mouseY, delta);
@@ -170,13 +203,13 @@ public class SnailInventoryScreen extends AbstractContainerScreen<SnailScreenHan
 
 	private class EnderChestButton extends ImageButton implements ContainerListener {
 		public EnderChestButton(int x, int y) {
-			super(x, y, 18, 18, 0, 0, 18, LovelySnails.id("textures/gui/snail_ender_chest_button.png"),
-					18, 36,
+			super(x, y, 18, 18, ENDER_CHEST_SPRITES,
 					btn -> {
 						var client = Minecraft.getInstance();
 						var screenHandler = SnailInventoryScreen.this.getMenu();
 						client.gameMode.handleInventoryButtonClick(screenHandler.syncId, 0);
-					});
+					}
+			);
 		}
 
 		@Override
@@ -195,11 +228,11 @@ public class SnailInventoryScreen extends AbstractContainerScreen<SnailScreenHan
 		private final int page;
 
 		public PageButton(int x, int y, int page) {
-			super(x, y + page * 18 + 1, 15, 16, 211 + page * 15, 0, 16, TEXTURE,
-					256, 256,
+			super(x, y + page * 18 + 1, 15, 16, PAGE_TAB_SPRITES[page],
 					btn -> {
-						SnailInventoryScreen.this.getMenu().requestStoragePage(page);
-					});
+						SnailInventoryScreen.this.requestStoragePage(page);
+					}
+			);
 			this.page = page;
 
 			this.visible = SnailInventoryScreen.this.getMenu().hasChest(this.page);

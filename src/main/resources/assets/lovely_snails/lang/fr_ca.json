@@ -2,5 +2,8 @@
 	"item.lovely_snails.snail_spawn_egg": "Oeuf d'apparition d'escargot",
 	"entity.lovely_snails.snail": "Escargot",
 	"subtitles.lovely_snails.entity.snail.death": "Escargot qui meurt",
-	"subtitles.lovely_snails.entity.snail.hurt": "Escargot blessé"
+	"subtitles.lovely_snails.entity.snail.hurt": "Escargot blessé",
+	"tag.item.lovely_snails.snail_breeding_items": "Nourriture permettant la reproduction des escargots",
+	"tag.item.lovely_snails.snail_food_items": "Nourriture pour escargots",
+	"tag.item.lovely_snails.snail_scary_items": "Objets qui font peur aux escargots"
 }

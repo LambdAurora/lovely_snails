@@ -10,13 +10,10 @@
 package dev.lambdaurora.lovely_snails.screen;
 
 import dev.lambdaurora.lovely_snails.entity.SnailEntity;
+import dev.lambdaurora.lovely_snails.network.SnailScreenHandlerPayload;
+import dev.lambdaurora.lovely_snails.network.SnailSetStoragePagePayload;
 import dev.lambdaurora.lovely_snails.registry.LovelySnailsRegistry;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerListener;
@@ -41,10 +38,10 @@ public class SnailScreenHandler extends AbstractContainerMenu implements Contain
 	private final List<InventoryPageChangeListener> pageChangeListeners = new ArrayList<>();
 	private int currentStoragePage;
 
-	public SnailScreenHandler(int syncId, Inventory playerInventory, FriendlyByteBuf buf) {
+	public SnailScreenHandler(int syncId, Inventory playerInventory, SnailScreenHandlerPayload payload) {
 		this(syncId, playerInventory,
-				playerInventory.player.level().getEntity(buf.readVarInt()) instanceof SnailEntity snail ? snail : null,
-				buf.readByte()
+				playerInventory.player.level().getEntity(payload.snailId()) instanceof SnailEntity snail ? snail : null,
+				payload.storagePage()
 		);
 	}
 
@@ -165,28 +162,12 @@ public class SnailScreenHandler extends AbstractContainerMenu implements Contain
 	public void setCurrentStoragePage(int page) {
 		this.currentStoragePage = page;
 		if (this.player instanceof ServerPlayer serverPlayerEntity) {
-			var buffer = PacketByteBufs.create();
-			buffer.writeVarInt(this.syncId);
-			buffer.writeByte(page);
-			ServerPlayNetworking.send(serverPlayerEntity, LovelySnailsRegistry.SNAIL_SET_STORAGE_PAGE, buffer);
+			ServerPlayNetworking.send(serverPlayerEntity, new SnailSetStoragePagePayload(this.syncId, (byte) page));
 		}
 
 		for (var listener : this.pageChangeListeners) {
 			listener.onCurrentPageSet(page);
 		}
-	}
-
-	/**
-	 * Requests the server to switch to the given storage page.
-	 *
-	 * @param page the storage page to switch to
-	 */
-	@Environment(EnvType.CLIENT)
-	public void requestStoragePage(int page) {
-		var buffer = PacketByteBufs.create();
-		buffer.writeVarInt(this.syncId);
-		buffer.writeByte(page);
-		ClientPlayNetworking.send(LovelySnailsRegistry.SNAIL_SET_STORAGE_PAGE, buffer);
 	}
 
 	/**

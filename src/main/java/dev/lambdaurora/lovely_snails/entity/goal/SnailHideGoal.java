@@ -10,7 +10,10 @@
 package dev.lambdaurora.lovely_snails.entity.goal;
 
 import dev.lambdaurora.lovely_snails.entity.SnailEntity;
+import dev.lambdaurora.lovely_snails.registry.LovelySnailsRegistry;
 import net.minecraft.world.entity.EntitySelector;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.monster.Monster;
 
@@ -20,7 +23,7 @@ import java.util.EnumSet;
  * Makes the snail hides if it senses danger nearby.
  *
  * @author LambdAurora
- * @version 1.0.0
+ * @version 1.2.0
  * @since 1.0.0
  */
 public class SnailHideGoal extends Goal {
@@ -39,6 +42,9 @@ public class SnailHideGoal extends Goal {
 				this.snail,
 				this.snail.getBoundingBox().inflate(this.vitalSpaceDistance, 3, this.vitalSpaceDistance),
 				EntitySelector.NO_CREATIVE_OR_SPECTATOR.and(entity -> entity instanceof Monster)
+						.or(entity -> entity instanceof LivingEntity living
+								&& living.getItemBySlot(EquipmentSlot.HEAD).isIn(LovelySnailsRegistry.SNAIL_SCARY_ITEMS)
+						)
 		);
 		return !scaryEntities.isEmpty();
 	}

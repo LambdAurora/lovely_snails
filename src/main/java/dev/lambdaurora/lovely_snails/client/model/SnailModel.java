@@ -23,7 +23,7 @@ import static net.minecraft.client.model.geom.PartNames.*;
  * Represents the snail entity model.
  *
  * @author LambdAurora
- * @version 1.1.0
+ * @version 1.2.0
  * @since 1.0.0
  */
 public class SnailModel extends EntityModel<SnailEntity> {
@@ -136,9 +136,9 @@ public class SnailModel extends EntityModel<SnailEntity> {
 	}
 
 	@Override
-	public void renderToBuffer(MatrixStack matrices, VertexConsumer vertices, int light, int overlay, float red, float green, float blue, float alpha) {
+	public void renderToBuffer(MatrixStack matrices, VertexConsumer vertexConsumer, int light, int overlay, int color) {
 		matrices.push();
-		this.getCurrentModel().render(matrices, vertices, light, overlay, red, green, blue, alpha);
+		this.getCurrentModel().render(matrices, vertexConsumer, light, overlay, color);
 		matrices.pop();
 	}
 
@@ -180,9 +180,9 @@ public class SnailModel extends EntityModel<SnailEntity> {
 			this.getShell().setRotation(this.idleShellYaw, 0.f, 0.f);
 		}
 
-		public void render(MatrixStack matrices, VertexConsumer vertices, int light, int overlay, float red, float green, float blue, float alpha) {
+		public void render(MatrixStack matrices, VertexConsumer vertices, int light, int overlay, int color) {
 			if (!this.body.visible) matrices.translate(0, 2.f / 16.f, 0);
-			this.root.render(matrices, vertices, light, overlay, red, green, blue, alpha);
+			this.root.render(matrices, vertices, light, overlay, color);
 		}
 	}
 }

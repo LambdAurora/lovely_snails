@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
  * Represents the snail entity renderer.
  *
  * @author LambdAurora
- * @version 1.0.0
+ * @version 1.2.0
  * @since 1.0.0
  */
 public class SnailEntityRenderer extends MobRenderer<SnailEntity, SnailModel> {
@@ -34,7 +34,8 @@ public class SnailEntityRenderer extends MobRenderer<SnailEntity, SnailModel> {
 
 		this.addLayer(new SaddleLayer<>(this,
 				new SnailModel(context.bakeLayer(LovelySnailsClient.SNAIL_SADDLE_MODEL_LAYER)),
-				LovelySnails.id("textures/entity/snail/saddle.png")));
+				LovelySnails.id("textures/entity/snail/saddle.png")
+		));
 		this.addLayer(new SnailDecorFeatureRenderer(this, context));
 		this.addLayer(new SnailChestFeatureRenderer(this, context));
 	}
