@@ -87,7 +87,7 @@ modrinth {
 	)
 	syncBodyFrom.set(
 		ModUtils.parseReadme(
-			project, "https://raw.githubusercontent.com/LambdAurora/lovely_snails/1.20/\$2"
+			project, "https://raw.githubusercontent.com/LambdAurora/lovely_snails/1.21/\$2"
 		)
 	)
 
@@ -131,7 +131,7 @@ tasks.register<TaskPublishCurseForge>("curseforge") {
 	mainFile.releaseType = ModUtils.fetchVersionType(VERSION, mcVersion)
 	mainFile.addGameVersion(McVersionLookup.getCurseForgeEquivalent(mcVersion))
 	mainFile.addModLoader("Fabric", "Quilt")
-	mainFile.addJavaVersion("Java 17", "Java 18", "Java 19", "Java 20", "Java 21", "Java 22")
+	mainFile.addJavaVersion("Java 21", "Java 22")
 
 	mainFile.displayName = "Lovely Snails $VERSION (${McVersionLookup.getVersionTag(mcVersion)})"
 	mainFile.addRequirement("fabric-api")

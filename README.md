@@ -1,6 +1,6 @@
 # Lovely Snails
 <!-- modrinth_exclude.start -->
-![Java 17](https://img.shields.io/badge/language-Java%2017-9115ff.svg?style=flat-square) <!-- modrinth_exclude.end -->
+![Java 21](https://img.shields.io/badge/language-Java%2021-9115ff.svg?style=flat-square) <!-- modrinth_exclude.end -->
 [![GitHub license](https://img.shields.io/badge/license-Lambda%20License-c7136d?style=flat-square)](https://raw.githubusercontent.com/LambdAurora/lovely_snails/1.20/LICENSE)
 ![Environment: Both](https://img.shields.io/badge/environment-both-4caf50?style=flat-square)
 [![Mod loader: Fabric]][fabric] <!-- modrinth_exclude.start -->
