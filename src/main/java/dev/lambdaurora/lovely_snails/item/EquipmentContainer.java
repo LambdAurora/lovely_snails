@@ -17,7 +17,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.ticks.ContainerSingleItem;
 
 /**
- * Represents a spawn egg that will try to sneak in where the spawn eggs are.
+ * Wraps equipment as a container
  *
  * @author Patbox
  * @version 1.2.1
