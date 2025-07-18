@@ -46,7 +46,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.DismountHelper;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ChestMenu;
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -57,10 +56,11 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.CarpetBlock;
 import net.minecraft.world.level.block.WoolCarpetBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
@@ -75,24 +75,19 @@ import java.util.function.Predicate;
  * @version 1.2.0
  * @since 1.0.0
  */
-public class SnailEntity extends TamableAnimal implements ContainerListener, Saddleable {
+public class SnailEntity extends TamableAnimal implements ContainerListener {
 	private static final AttributeModifier SCARED_ARMOR_BONUS = ShulkerAccessor.lovely_snails$getCoveredArmorModifier();
 
 	private static final TrackedEntityData<Boolean> CHILD = AgeableMobAccessor.lovely_snails$getChild();
 	private static final TrackedEntityData<Byte> SNAIL_FLAGS = EntityDataTracker.registerData(SnailEntity.class, TrackedEntityDataSerializers.BYTE);
 	private static final TrackedEntityData<Byte> CHEST_FLAGS = EntityDataTracker.registerData(SnailEntity.class, TrackedEntityDataSerializers.BYTE);
-	private static final TrackedEntityData<Integer> CARPET_COLOR = EntityDataTracker.registerData(SnailEntity.class, TrackedEntityDataSerializers.INT);
-	private static final int SADDLED_FLAG = 0b0000_0001;
-	private static final int SCARED_FLAG = 0b0000_0010;
-	private static final int INTERACTION_COOLDOWN_FLAG = 0b0000_0100;
-	private static final int LOCKED_FLAG = 0b0000_1000;
+	private static final int SCARED_FLAG = 0b0000_0001;
+	private static final int INTERACTION_COOLDOWN_FLAG = 0b0000_0010;
+	private static final int LOCKED_FLAG = 0b0000_0100;
 
-	public static final int SADDLE_SLOT = 0;
-	public static final int CARPET_SLOT = 1;
-	public static final int FIRST_CHEST_SLOT = 2;
-	public static final int SECOND_CHEST_SLOT = 3;
-	public static final int THIRD_CHEST_SLOT = 4;
-
+	public static final int FIRST_CHEST_SLOT = 0;
+	public static final int SECOND_CHEST_SLOT = 1;
+	public static final int THIRD_CHEST_SLOT = 2;
 	private static final int SATISFACTION_START = -256;
 
 	private SimpleContainer inventory;
@@ -114,14 +109,14 @@ public class SnailEntity extends TamableAnimal implements ContainerListener, Sad
 				.add(Attributes.FOLLOW_RANGE, 48.0);
 	}
 
-	public static boolean canSpawn(EntityType<? extends Animal> type, ServerLevelAccessor level, MobSpawnType spawnReason, BlockPos pos, RandomSource random) {
+	public static boolean canSpawn(EntityType<? extends Animal> type, ServerLevelAccessor level, EntitySpawnReason spawnReason, BlockPos pos, RandomSource random) {
 		var spawnBlock = level.getBlockState(pos.below());
 		return level.getBrightness(LightLayer.SKY, pos) > 8 && spawnBlock.is(LovelySnailsRegistry.SNAIL_SPAWN_BLOCKS);
 	}
 
 	@Override
 	public @NotNull SpawnGroupData finalizeSpawn(
-			ServerLevelAccessor world, DifficultyInstance difficulty, MobSpawnType spawnReason,
+			ServerLevelAccessor world, DifficultyInstance difficulty, EntitySpawnReason spawnReason,
 			@Nullable SpawnGroupData entityData
 	) {
 		this.satisfaction = SATISFACTION_START + this.random.nextInt(10);
@@ -273,13 +268,10 @@ public class SnailEntity extends TamableAnimal implements ContainerListener, Sad
 		return block instanceof WoolCarpetBlock dyedCarpetBlock ? dyedCarpetBlock.getColor() : null;
 	}
 
-	public void setCarpetColor(@Nullable DyeColor color) {
-		this.dataTracker.set(CARPET_COLOR, color == null ? -1 : color.getId());
-	}
+
 
 	public @Nullable DyeColor getCarpetColor() {
-		int i = this.dataTracker.get(CARPET_COLOR);
-		return i == -1 ? null : DyeColor.byId(i);
+		return getColorFromCarpet(this.equipment.get(EquipmentSlot.BODY));
 	}
 
 	@Override
@@ -327,65 +319,40 @@ public class SnailEntity extends TamableAnimal implements ContainerListener, Sad
 		super.initDataTracker(builder);
 		builder.define(SNAIL_FLAGS, (byte) 0);
 		builder.define(CHEST_FLAGS, (byte) 0);
-		builder.define(CARPET_COLOR, -1);
 	}
 
 	/* Serialization */
 
 	@Override
-	public void readCustomDataFromNbt(NbtCompound nbt) {
+	public void readCustomSaveData(ValueInput input) {
 		this.reading = true;
-		super.readCustomDataFromNbt(nbt);
+		super.readCustomSaveData(input);
 
-		this.setSatisfaction(nbt.contains("satisfaction", NbtElement.INT_TYPE) ?
-				nbt.getInt("satisfaction") : SATISFACTION_START);
-		this.setInteractionCooldown(nbt.getShort("interaction_cooldown"));
-		this.setLocked(nbt.getBoolean("locked"));
+		this.setSatisfaction(input.getIntOr("satisfaction", SATISFACTION_START));
+		this.setInteractionCooldown(input.getShortOr("interaction_cooldown", (short) 0));
+		this.setLocked(input.getBooleanOr("locked", false));
 
-		this.readSpecialSlot(nbt, "saddle", SADDLE_SLOT, stack -> stack.is(Items.SADDLE));
-		this.readSpecialSlot(nbt, "decor", CARPET_SLOT,
-				stack -> stack.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof CarpetBlock
-		);
+		input.read("saddle", ItemStack.CODEC).ifPresent(stack -> this.equipment.set(EquipmentSlot.SADDLE, stack));
+		input.read("decor", ItemStack.CODEC).ifPresent(stack -> this.equipment.set(EquipmentSlot.BODY, stack));
 
-		LovelySnails.readInventoryNbt(this.registryAccess(), nbt, "chests", this.inventory, 2);
-		LovelySnails.readInventoryNbt(this.registryAccess(), nbt, "inventory", this.inventory, 5);
+		LovelySnails.readInventory(input, "chests", this.inventory, 0);
+		LovelySnails.readInventory(input, "inventory", this.inventory, 3);
 
 		this.syncInventoryToFlags();
 		this.reading = false;
 	}
 
-	private void readSpecialSlot(NbtCompound nbt, String name, int slot, Predicate<ItemStack> predicate) {
-		if (nbt.contains(name, NbtElement.COMPOUND_TYPE)) {
-			var stack = ItemStack.parseOptional(this.registryAccess(), nbt.getCompound(name));
-			if (predicate.test(stack)) {
-				this.inventory.setItem(slot, stack);
-				return;
-			}
-		}
-
-		this.inventory.setItem(slot, ItemStack.EMPTY);
-	}
-
 	@Override
-	public void writeCustomDataToNbt(NbtCompound nbt) {
-		super.writeCustomDataToNbt(nbt);
-		nbt.remove("Sitting"); // We don't actually need that as you can't make a snail sit.
+	public void writeCustomSaveData(ValueOutput output) {
+		super.writeCustomSaveData(output);
+		output.remove("Sitting"); // We don't actually need that as you can't make a snail sit.
 
-		nbt.putInt("satisfaction", this.getSatisfaction());
-		nbt.putShort("interaction_cooldown", this.getInteractionCooldown());
-		nbt.putBoolean("locked", this.isLocked());
+		output.putInt("satisfaction", this.getSatisfaction());
+		output.putShort("interaction_cooldown", this.getInteractionCooldown());
+		output.putBoolean("locked", this.isLocked());
 
-		this.writeSpecialSlot(nbt, "saddle", SADDLE_SLOT);
-		this.writeSpecialSlot(nbt, "decor", CARPET_SLOT);
-
-		LovelySnails.writeInventoryNbt(this.registryAccess(), nbt, "chests", this.inventory, 2, 5);
-		LovelySnails.writeInventoryNbt(this.registryAccess(), nbt, "inventory", this.inventory, 5, this.inventory.size());
-	}
-
-	public void writeSpecialSlot(NbtCompound nbt, String name, int slot) {
-		if (!this.inventory.getItem(slot).isEmpty()) {
-			nbt.put(name, this.inventory.getItem(slot).save(this.registryAccess()));
-		}
+		LovelySnails.writeInventory(output, "chests", this.inventory, 0, 3);
+		LovelySnails.writeInventory(output, "inventory", this.inventory, 3, this.inventory.size());
 	}
 
 	/* AI */
@@ -423,11 +390,11 @@ public class SnailEntity extends TamableAnimal implements ContainerListener, Sad
 	}
 
 	public int getInventorySize() {
-		return 50;
+		return 48;
 	}
 
 	public ItemStack getSaddle() {
-		return this.inventory.getItem(SADDLE_SLOT);
+		return this.equipment.get(EquipmentSlot.SADDLE);
 	}
 
 	/**
@@ -435,12 +402,9 @@ public class SnailEntity extends TamableAnimal implements ContainerListener, Sad
 	 */
 	public void syncInventoryToFlags() {
 		if (!this.level().isClientSide()) {
-			this.setSnailFlag(SADDLED_FLAG, !this.getSaddle().isEmpty());
-			this.setCarpetColor(getColorFromCarpet(this.inventory.getItem(CARPET_SLOT)));
-
 			int chestFlags = 0;
 			for (int chest = 0; chest < 3; chest++) {
-				var chestStack = this.inventory.getItem(2 + chest);
+				var chestStack = this.inventory.getItem(chest);
 				int flag = 0;
 
 				if (chestStack.is(Items.CHEST))
@@ -473,14 +437,14 @@ public class SnailEntity extends TamableAnimal implements ContainerListener, Sad
 	}
 
 	@Override
-	protected void dropEquipment() {
-		super.dropEquipment();
+	protected void dropEquipment(ServerLevel level) {
+		super.dropEquipment(level);
 
 		if (this.inventory != null) {
 			for (int slot = 0; slot < this.inventory.size(); ++slot) {
 				var stack = this.inventory.getItem(slot);
 				if (!stack.isEmpty() && !EnchantmentHelper.has(stack, EnchantmentEffectComponents.PREVENT_EQUIPMENT_DROP))
-					this.spawnAtLocation(stack);
+					this.spawnAtLocation(level, stack);
 			}
 		}
 	}
@@ -510,14 +474,14 @@ public class SnailEntity extends TamableAnimal implements ContainerListener, Sad
 		boolean hadDecor = this.getCarpetColor() != null;
 		this.syncInventoryToFlags();
 		if (this.age > 20 && !previouslySaddled && this.isSaddled()) {
-			this.playSound(SoundEvents.HORSE_SADDLE, .5f, 1.f);
+			//this.playSound(SoundEvents.HORSE_SADDLE.value(), .5f, 1.f);
 		}
 
 		if (!this.reading && !this.level().isClientSide() && !hadDecor && this.getCarpetColor() != null && this.canSatisfy()) {
 			var biome = this.level().getBiome(this.getBlockPos());
 
 			int baseSatisfaction;
-			if (biome.value().warmEnoughToRain(this.getBlockPos())) baseSatisfaction = 15;
+			if (biome.value().warmEnoughToRain(this.getBlockPos(), this.level().getSeaLevel())) baseSatisfaction = 15;
 			else baseSatisfaction = 5;
 			this.satisfies(baseSatisfaction);
 		}
@@ -532,7 +496,7 @@ public class SnailEntity extends TamableAnimal implements ContainerListener, Sad
 
 		if (this.isTame() && player.isSecondaryUseActive()) {
 			this.openInventory(player);
-			return InteractionResult.sidedSuccess(level.isClientSide());
+			return InteractionResult.SUCCESS;
 		}
 
 		if (this.isVehicle()) {
@@ -567,7 +531,7 @@ public class SnailEntity extends TamableAnimal implements ContainerListener, Sad
 						level.broadcastEntityEvent(this, (byte) 6);
 					}
 
-					return InteractionResult.sidedSuccess(level.isClientSide());
+					return InteractionResult.SUCCESS;
 				}
 			}
 
@@ -578,7 +542,7 @@ public class SnailEntity extends TamableAnimal implements ContainerListener, Sad
 			boolean saddle = !this.isBaby() && !this.isSaddled() && handStack.is(Items.SADDLE);
 			if (getColorFromCarpet(handStack) != null || saddle) {
 				this.openInventory(player);
-				return InteractionResult.sidedSuccess(level.isClientSide());
+				return InteractionResult.SUCCESS;
 			}
 		}
 
@@ -590,7 +554,7 @@ public class SnailEntity extends TamableAnimal implements ContainerListener, Sad
 					player.startRiding(this);
 				}
 
-				return InteractionResult.sidedSuccess(level.isClientSide());
+				return InteractionResult.SUCCESS;
 			} else if (this.canSatisfy() && this.getOwner() == player) {
 				boolean likeItem = handStack.isIn(LovelySnailsRegistry.SNAIL_FOOD_ITEMS);
 				if (handStack.isEmpty() || likeItem) {
@@ -599,7 +563,7 @@ public class SnailEntity extends TamableAnimal implements ContainerListener, Sad
 					if (!level.isClientSide())
 						this.satisfies(likeItem ? 20 : 10);
 
-					return InteractionResult.sidedSuccess(level.isClientSide());
+					return InteractionResult.SUCCESS;
 				} else if (handStack.is(Items.POISONOUS_POTATO)) {
 					// Watch me break one of Jeb's rule.
 					// Also why the fuck would you give a poisonous potato to a snail?
@@ -611,7 +575,7 @@ public class SnailEntity extends TamableAnimal implements ContainerListener, Sad
 						level.broadcastEntityEvent(this, (byte) 9);
 					}
 
-					return InteractionResult.sidedSuccess(level.isClientSide());
+					return InteractionResult.SUCCESS;
 				}
 			}
 		}
@@ -628,7 +592,7 @@ public class SnailEntity extends TamableAnimal implements ContainerListener, Sad
 
 			int baseSatisfaction;
 			if (!biome.value().hasPrecipitation()) baseSatisfaction = 20;
-			else if (biome.value().warmEnoughToRain(this.getBlockPos())) baseSatisfaction = 10;
+			else if (biome.value().warmEnoughToRain(this.getBlockPos(), this.level().getSeaLevel())) baseSatisfaction = 10;
 			else baseSatisfaction = 15;
 			this.satisfies(baseSatisfaction);
 		}
@@ -638,22 +602,19 @@ public class SnailEntity extends TamableAnimal implements ContainerListener, Sad
 	/* Saddle Stuff */
 
 	@Override
-	public boolean isSaddleable() {
-		return this.isAlive() && !this.isBaby() && this.isTame();
-	}
-
-	@Override
-	public void equipSaddle(ItemStack stack, @Nullable SoundSource soundSource) {
-		this.inventory.setItem(0, stack);
-
-		if (soundSource != null) {
-			this.level().playSound(null, this, SoundEvents.HORSE_SADDLE, soundSource, 0.5F, 1.0F);
+	public boolean canUseSlot(EquipmentSlot equipmentSlot) {
+		if (equipmentSlot == EquipmentSlot.SADDLE) {
+			return this.isAlive() && !this.isBaby() && this.isTame();
+		} else if (equipmentSlot == EquipmentSlot.BODY) {
+			return this.isAlive() && this.isTame();
 		}
+
+		return false;
 	}
 
 	@Override
 	public boolean isSaddled() {
-		return this.getSnailFlag(SADDLED_FLAG);
+		return !this.getItemBySlot(EquipmentSlot.SADDLE).isEmpty();
 	}
 
 	/* Riding */
@@ -748,7 +709,6 @@ public class SnailEntity extends TamableAnimal implements ContainerListener, Sad
 
 			if (primaryPassenger != null && this.isSaddled() && this.canUseSnail(primaryPassenger)) {
 				if (this.isScared()) { // When the snail is scared, the snail is paralyzed.
-					this.checkInsideBlocks();
 					return;
 				}
 
@@ -766,7 +726,7 @@ public class SnailEntity extends TamableAnimal implements ContainerListener, Sad
 					forwardSpeed *= .25f;
 				}
 
-				if (this.isControlledByLocalInstance()) {
+				if (this.isLocalClientAuthoritative()) {
 					this.setSpeed((float) this.getAttributeValue(Attributes.MOVEMENT_SPEED));
 					super.travel(new Vec3(sidewaysSpeed, movementInput.y, forwardSpeed));
 				} else if (rider instanceof Player) {
@@ -774,7 +734,6 @@ public class SnailEntity extends TamableAnimal implements ContainerListener, Sad
 				}
 
 				this.calculateEntityAnimation(false);
-				this.tryCheckInsideBlocks();
 			} else {
 				super.travel(movementInput);
 			}
@@ -812,8 +771,8 @@ public class SnailEntity extends TamableAnimal implements ContainerListener, Sad
 
 	@Override
 	protected void onGrowUp() {
-		if (!this.level().isClientSide() && !this.isBaby() && this.level().getGameRules().getBoolean(GameRules.RULE_DOMOBLOOT)) {
-			this.spawnAtLocation(new ItemStack(Items.SLIME_BALL, 1 + this.random.nextInt(2)));
+		if (this.level() instanceof ServerLevel level && !this.isBaby() && level.getGameRules().getBoolean(GameRules.RULE_DOMOBLOOT)) {
+			this.spawnAtLocation(level, new ItemStack(Items.SLIME_BALL, 1 + this.random.nextInt(2)));
 		}
 	}
 
@@ -840,11 +799,11 @@ public class SnailEntity extends TamableAnimal implements ContainerListener, Sad
 
 	@Override
 	public SnailEntity getBreedOffspring(ServerLevel level, AgeableMob otherParent) {
-		var child = LovelySnailsRegistry.SNAIL_ENTITY_TYPE.create(level);
+		var child = LovelySnailsRegistry.SNAIL_ENTITY_TYPE.create(level, EntitySpawnReason.BREEDING);
 
 		if (otherParent instanceof SnailEntity) {
 			if (this.isTame()) {
-				child.setOwnerUUID(this.getOwnerUUID());
+				child.setOwnerReference(this.getOwnerReference());
 				child.setTame(true, false);
 			}
 		}

@@ -29,26 +29,23 @@ import net.minecraft.world.item.ItemDisplayContext;
  * @version 1.1.1
  * @since 1.0.0
  */
-public class SnailChestFeatureRenderer extends RenderLayer<SnailEntity, SnailModel> {
+public class SnailChestFeatureRenderer extends RenderLayer<SnailEntityRenderState, SnailModel> {
 	private final SnailModel model;
 
-	public SnailChestFeatureRenderer(RenderLayerParent<SnailEntity, SnailModel> featureRendererContext, EntityRendererProvider.Context context) {
+	public SnailChestFeatureRenderer(RenderLayerParent<SnailEntityRenderState, SnailModel> featureRendererContext, EntityRendererProvider.Context context) {
 		super(featureRendererContext);
 
 		this.model = new SnailModel(context.bakeLayer(LovelySnailsClient.SNAIL_MODEL_LAYER));
 	}
 
 	@Override
-	public void render(MatrixStack matrices, MultiBufferSource bufferSource, int light, SnailEntity entity,
-			float limbAngle, float limbDistance, float tickDelta, float animationProgress, float headYaw, float headPitch) {
-		if (entity.isBaby()) return;
+	public void render(MatrixStack matrices, MultiBufferSource bufferSource, int light, SnailEntityRenderState state, float tickDelta, float animationProgress) {
+		if (state.isBaby) return;
 
 		var itemRenderer = Minecraft.getInstance().getItemRenderer();
-		this.getParentModel().copyPropertiesTo(this.model);
+		float shellRotation = this.model.getCurrentModel(state).getShell().pitch;
 
-		float shellRotation = this.model.getCurrentModel().getShell().pitch;
-
-		var rightChest = entity.getChest(0);
+		var rightChest = state.chests[0];
 		if (!rightChest.isEmpty()) {
 			matrices.push();
 			matrices.rotate(Axis.XP.rotationDegrees(180));
@@ -58,12 +55,12 @@ public class SnailChestFeatureRenderer extends RenderLayer<SnailEntity, SnailMod
 			matrices.scale(1.25f, 1.25f, 1.25f);
 			itemRenderer.renderStatic(
 					rightChest, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY,
-					matrices, bufferSource, entity.level(), 0
+					matrices, bufferSource, null, 0
 			);
 			matrices.pop();
 		}
 
-		var backChest = entity.getChest(1);
+		var backChest = state.chests[1];
 		if (!backChest.isEmpty()) {
 			matrices.push();
 			matrices.rotate(Axis.XP.rotationDegrees(180));
@@ -72,12 +69,12 @@ public class SnailChestFeatureRenderer extends RenderLayer<SnailEntity, SnailMod
 			matrices.scale(1.25f, 1.25f, 1.25f);
 			itemRenderer.renderStatic(
 					backChest, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY,
-					matrices, bufferSource, entity.level(), 0
+					matrices, bufferSource, null, 0
 			);
 			matrices.pop();
 		}
 
-		var leftChest = entity.getChest(2);
+		var leftChest = state.chests[2];
 		if (!leftChest.isEmpty()) {
 			matrices.push();
 			matrices.rotate(Axis.XP.rotationDegrees(180));
@@ -87,7 +84,7 @@ public class SnailChestFeatureRenderer extends RenderLayer<SnailEntity, SnailMod
 			matrices.scale(1.25f, 1.25f, 1.25f);
 			itemRenderer.renderStatic(
 					leftChest, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY,
-					matrices, bufferSource, entity.level(), 0
+					matrices, bufferSource, null, 0
 			);
 			matrices.pop();
 		}

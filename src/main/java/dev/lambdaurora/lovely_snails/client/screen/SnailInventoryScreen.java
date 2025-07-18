@@ -24,6 +24,7 @@ import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Text;
@@ -32,6 +33,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerListener;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Inventory;
 
 /**
@@ -160,26 +162,26 @@ public class SnailInventoryScreen extends AbstractContainerScreen<SnailScreenHan
 
 	@Override
 	protected void renderBackground(GuiGraphics graphics, float delta, int mouseX, int mouseY) {
-		RenderSystem.setShader(GameRenderer::getPositionTexShader);
-		RenderSystem.setShaderColor(1.f, 1.f, 1.f, 1.f);
+		//RenderSystem.setShader(GameRenderer::getPositionTexShader);
+		//RenderSystem.setShaderColor(1.f, 1.f, 1.f, 1.f);
 		int x = (this.width - this.imageWidth) / 2;
 		int y = (this.height - this.imageHeight) / 2;
-		graphics.drawTexture(TEXTURE, x, y, 0, 0, this.imageWidth, this.imageHeight);
+		graphics.drawTexture(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
 
-		if (this.entity.isSaddleable()) {
-			graphics.drawTexture(TEXTURE, x + 7 + 18, y + 35 - 18, 18, this.imageHeight + 54, 18, 18);
+		if (this.entity.canUseSlot(EquipmentSlot.SADDLE)) {
+			graphics.drawTexture(RenderPipelines.GUI_TEXTURED, TEXTURE, x + 7 + 18, y + 35 - 18, 18, this.imageHeight + 54, 18, 18, 256, 256);
 		}
 
-		graphics.drawTexture(TEXTURE, x + 7 + 18, y + 35, 36, this.imageHeight + 54, 18, 18);
+		graphics.drawTexture(RenderPipelines.GUI_TEXTURED, TEXTURE, x + 7 + 18, y + 35, 36, this.imageHeight + 54, 18, 18, 256, 256);
 
 		if (!this.entity.isBaby()) {
 			for (int row = y + 17; row <= y + 35 + 18; row += 18) {
-				graphics.drawTexture(TEXTURE, x + 7, row, 54, this.imageHeight + 54, 18, 18);
+				graphics.drawTexture(RenderPipelines.GUI_TEXTURED, TEXTURE, x + 7, row, 54, this.imageHeight + 54, 18, 18, 256, 256);
 			}
 		}
 
 		if (this.getMenu().hasChests()) {
-			graphics.drawTexture(TEXTURE, x + 98, y + 17, 0, this.imageHeight, 5 * 18, 54);
+			graphics.drawTexture(RenderPipelines.GUI_TEXTURED, TEXTURE, x + 98, y + 17, 0, this.imageHeight, 5 * 18, 54, 256, 256);
 		}
 
 		InventoryScreen.renderEntityInInventoryFollowsMouse(
@@ -194,7 +196,6 @@ public class SnailInventoryScreen extends AbstractContainerScreen<SnailScreenHan
 
 	@Override
 	public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
-		this.renderBackground(graphics, mouseX, mouseY, delta);
 		this.mouseX = mouseX;
 		this.mouseY = mouseY;
 		super.render(graphics, mouseX, mouseY, delta);

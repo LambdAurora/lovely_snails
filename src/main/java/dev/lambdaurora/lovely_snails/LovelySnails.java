@@ -16,14 +16,12 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
 import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.Container;
+import net.minecraft.world.ItemStackWithSlot;
 import net.minecraft.world.entity.MobCategory;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 /**
  * Represents the Lovely Snails mod.
@@ -61,42 +59,34 @@ public class LovelySnails implements ModInitializer {
 		return Identifier.of(NAMESPACE, path);
 	}
 
-	public static void readInventoryNbt(
-			HolderLookup.Provider registryLookup, NbtCompound nbt, String key, Container stacks, int start
-	) {
-		var inventoryNbt = nbt.getList(key, NbtElement.COMPOUND_TYPE);
+	public static void readInventory(ValueInput input, String key, Container stacks, int start) {
+		var slots = input.list(key, ItemStackWithSlot.CODEC);
+		if (slots.isEmpty()) return;
 
-		for (int i = 0; i < inventoryNbt.size(); ++i) {
-			var slotNbt = inventoryNbt.getCompound(i);
-			int slotId = slotNbt.getByte("slot") & 255;
-			if (slotId < stacks.size()) {
-				stacks.setItem(start + slotId, ItemStack.parseOptional(registryLookup, slotNbt));
+
+		for (var slot : slots.get()) {
+			if (slot.isValidInContainer(stacks.size() - start)) {
+				stacks.setItem(start + slot.slot(), slot.stack());
 			}
 		}
 	}
 
-	public static void writeInventoryNbt(
-			HolderLookup.Provider registryLookup, NbtCompound nbt, String key, Container stacks, int start, int end
-	) {
-		writeInventoryNbt(registryLookup, nbt, key, stacks, start, end, true);
+	public static void writeInventory(ValueOutput output, String key, Container stacks, int start, int end) {
+		writeInventory(output, key, stacks, start, end, true);
 	}
 
-	public static void writeInventoryNbt(
-			HolderLookup.Provider registryLookup, NbtCompound nbt, String key, Container stacks, int start, int end, boolean setIfEmpty
-	) {
-		var inventoryNbt = new NbtList();
+	public static void writeInventory(ValueOutput output, String key, Container stacks, int start, int end, boolean setIfEmpty) {
+		var list = output.list(key, ItemStackWithSlot.CODEC);
 
 		for (int i = start; i < end; ++i) {
 			var slotStack = stacks.getItem(i);
 			if (!slotStack.isEmpty()) {
-				var slotNbt = new NbtCompound();
-				slotNbt.putByte("slot", (byte) (i - start));
-				inventoryNbt.add(slotStack.save(registryLookup, slotNbt));
+				list.add(new ItemStackWithSlot(i - start, slotStack));
 			}
 		}
 
-		if (!inventoryNbt.isEmpty() || setIfEmpty) {
-			nbt.put(key, inventoryNbt);
+		if (list.isEmpty() && !setIfEmpty) {
+			output.remove(key);
 		}
 	}
 }

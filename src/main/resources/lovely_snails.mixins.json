@@ -9,7 +9,7 @@
 		"AgeableMobAccessor",
 		"ServerGamePacketListenerImplMixin",
 		"ShulkerAccessor",
-		"ThrownPotionMixin"
+      "AbstractThrownPotionMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

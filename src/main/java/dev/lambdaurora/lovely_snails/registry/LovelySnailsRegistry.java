@@ -18,6 +18,7 @@ import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
@@ -29,6 +30,8 @@ import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.levelgen.Heightmap;
+
+import java.util.function.Function;
 
 import static dev.lambdaurora.lovely_snails.LovelySnails.id;
 
@@ -70,7 +73,7 @@ public final class LovelySnailsRegistry {
 					.sized(1.5f, 2.f)
 					.eyeHeight(1.f)
 					.passengerAttachments(2.15f)
-					.build()
+					.build(ResourceKey.of(Registries.ENTITY_TYPE, id("snail")))
 	);
 
 	/* Sounds */
@@ -87,8 +90,8 @@ public final class LovelySnailsRegistry {
 	public static final TagKey<Biome> SNAIL_REGULAR_SPAWN_BIOMES = TagKey.of(Registries.BIOME, id("snail_spawn"));
 	public static final TagKey<Biome> SNAIL_SWAMP_LIKE_SPAWN_BIOMES = TagKey.of(Registries.BIOME, id("swamp_like_spawn"));
 
-	private static <T extends Item> T register(String name, T item) {
-		return Registry.register(BuiltInRegistries.ITEM, id(name), item);
+	private static <T extends Item> T register(String name, Function<Item.Properties, T> item) {
+		return Registry.register(BuiltInRegistries.ITEM, id(name), item.apply(new Item.Properties().setId(ResourceKey.of(Registries.ITEM, id(name)))));
 	}
 
 	private static SoundEvent registerSound(String path) {
@@ -100,7 +103,7 @@ public final class LovelySnailsRegistry {
 
 	static {
 		SNAIL_SPAWN_EGG_ITEM = register("snail_spawn_egg",
-				new SnailSpawnEggItem(SNAIL_ENTITY_TYPE, 0xff36201c, 0xffd58d51, new Item.Properties())
+				(properties) -> new SnailSpawnEggItem(SNAIL_ENTITY_TYPE, properties)
 		);
 	}
 }

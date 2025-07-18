@@ -10,6 +10,7 @@
 package dev.lambdaurora.lovely_snails.screen;
 
 import dev.lambdaurora.lovely_snails.entity.SnailEntity;
+import dev.lambdaurora.lovely_snails.item.EquipmentContainer;
 import dev.lambdaurora.lovely_snails.network.SnailScreenHandlerPayload;
 import dev.lambdaurora.lovely_snails.network.SnailSetStoragePagePayload;
 import dev.lambdaurora.lovely_snails.registry.LovelySnailsRegistry;
@@ -18,6 +19,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerListener;
 import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -60,8 +62,8 @@ public class SnailScreenHandler extends AbstractContainerMenu implements Contain
 		inventory.onOpen(playerInventory.player);
 		this.inventory.addListener(this);
 
-		this.addSlot(new SaddleSlot(inventory, SnailEntity.SADDLE_SLOT, 26, 18));
-		this.addSlot(new DecorSlot(inventory, SnailEntity.CARPET_SLOT, 26, 36));
+		this.addSlot(new SaddleSlot(new EquipmentContainer(entity, EquipmentSlot.SADDLE), 0, 26, 18));
+		this.addSlot(new DecorSlot(new EquipmentContainer(entity, EquipmentSlot.BODY), 0, 26, 36));
 		this.addSlot(this.chestSlots[0] = new ChestSlot(inventory, SnailEntity.FIRST_CHEST_SLOT, 8, 18, 0));
 		this.addSlot(this.chestSlots[1] = new ChestSlot(inventory, SnailEntity.SECOND_CHEST_SLOT, 8, 36, 1));
 		this.addSlot(this.chestSlots[2] = new ChestSlot(inventory, SnailEntity.THIRD_CHEST_SLOT, 8, 54, 2));
@@ -69,7 +71,7 @@ public class SnailScreenHandler extends AbstractContainerMenu implements Contain
 		for (int page = 0; page < 3; page++) {
 			for (int row = 0; row < 3; row++) {
 				for (int column = 0; column < 5; column++) {
-					this.addSlot(new StorageSlot(inventory, 5 + page * 15 + column + row * 5,
+					this.addSlot(new StorageSlot(inventory, 3 + page * 15 + column + row * 5,
 							80 + 19 + column * 18, 18 + row * 18, page));
 				}
 			}
@@ -106,7 +108,7 @@ public class SnailScreenHandler extends AbstractContainerMenu implements Contain
 	 * @return {@code true} if this snails holds an ender chest, else {@code false}
 	 */
 	public boolean hasEnderChest() {
-		for (int i = 2; i < 5; i++) {
+		for (int i = 0; i < 3; i++) {
 			if (this.inventory.getItem(i).is(Items.ENDER_CHEST))
 				return true;
 		}
@@ -133,7 +135,7 @@ public class SnailScreenHandler extends AbstractContainerMenu implements Contain
 	 * @return {@code true} if there is a chest for the given storage page, else {@code false}
 	 */
 	public boolean hasChest(int page) {
-		return this.inventory.getItem(2 + page).is(Items.CHEST);
+		return this.inventory.getItem(page).is(Items.CHEST);
 	}
 
 	/**
@@ -143,7 +145,7 @@ public class SnailScreenHandler extends AbstractContainerMenu implements Contain
 	 * @return {@code true} if there is items, else {@code false}
 	 */
 	public boolean hasItemsInStoragePage(int page) {
-		for (int slot = 5 + page * 15; slot < 5 + page * 15 + 15; slot++) {
+		for (int slot = 3 + page * 15; slot < 3 + page * 15 + 15; slot++) {
 			if (!this.inventory.getItem(slot).isEmpty())
 				return true;
 		}
@@ -178,7 +180,7 @@ public class SnailScreenHandler extends AbstractContainerMenu implements Contain
 	 */
 	public static int getOpeningStoragePage(Container inventory) {
 		for (int page = 0; page < 3; page++) {
-			if (inventory.getItem(2 + page).is(Items.CHEST)) {
+			if (inventory.getItem(page).is(Items.CHEST)) {
 				return page;
 			}
 		}
@@ -203,7 +205,7 @@ public class SnailScreenHandler extends AbstractContainerMenu implements Contain
 
 	private boolean attemptToTransferSlotToCurrentPage(ItemStack currentStack) {
 		int page = this.getCurrentStoragePage();
-		return this.moveItemStackTo(currentStack, 5 + page * 15, 5 + page * 15 + 15, false);
+		return this.moveItemStackTo(currentStack, 3 + page * 15, 3 + page * 15 + 15, false);
 	}
 
 	private @Nullable ItemStack attemptToTransferSlotToChestSlots(ItemStack currentStack) {
@@ -226,11 +228,11 @@ public class SnailScreenHandler extends AbstractContainerMenu implements Contain
 
 		if ((chestResult = this.attemptToTransferSlotToChestSlots(currentStack)) != null) {
 			return chestResult;
-		} else if (this.getSlot(SnailEntity.CARPET_SLOT).mayPlace(currentStack) && !this.getSlot(SnailEntity.CARPET_SLOT).hasItem()) {
+		} else if (this.getSlot(1).mayPlace(currentStack) && !this.getSlot(1).hasItem()) {
 			if (!this.moveItemStackTo(currentStack, 1, 2, false)) {
 				return ItemStack.EMPTY;
 			}
-		} else if (this.getSlot(SnailEntity.SADDLE_SLOT).mayPlace(currentStack)) {
+		} else if (this.getSlot(0).mayPlace(currentStack)) {
 			if (!this.moveItemStackTo(currentStack, 0, 1, false)) {
 				return ItemStack.EMPTY;
 			}
@@ -371,7 +373,7 @@ public class SnailScreenHandler extends AbstractContainerMenu implements Contain
 
 		@Override
 		public boolean isEnabled() {
-			return this.snail().isSaddleable();
+			return this.snail().canUseSlot(EquipmentSlot.SADDLE);
 		}
 	}
 
