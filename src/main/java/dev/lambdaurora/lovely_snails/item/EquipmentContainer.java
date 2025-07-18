@@ -1,5 +1,5 @@
 /*
- * Copyright © 2022 LambdAurora <email@lambdaurora.dev>
+ * Copyright © 2025 LambdAurora <email@lambdaurora.dev>
  *
  * This file is part of Lovely Snails.
  *
