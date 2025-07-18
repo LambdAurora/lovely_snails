@@ -34,7 +34,7 @@ dependencies {
 	@Suppress("UnstableApiUsage")
 	mappings(lambdamcdev.layered {
 		officialMojangMappings()
-		mappings("dev.lambdaurora:yalmm:${mcVersion}+build.${libs.versions.mappings.yalmm.get()}")
+		mappings("dev.lambdaurora:yalmm:${libs.versions.mappings.yalmm.get()}")
 	})
 	modImplementation(libs.fabric.loader)
 

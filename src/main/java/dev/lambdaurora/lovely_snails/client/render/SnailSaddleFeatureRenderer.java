@@ -13,7 +13,6 @@ import com.mojang.blaze3d.vertex.MatrixStack;
 import dev.lambdaurora.lovely_snails.LovelySnails;
 import dev.lambdaurora.lovely_snails.client.LovelySnailsClient;
 import dev.lambdaurora.lovely_snails.client.model.SnailModel;
-import dev.lambdaurora.lovely_snails.entity.SnailEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
@@ -21,40 +20,28 @@ import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.DyeColor;
 
 /**
  * Renders decoration on a snail.
  *
  * @author LambdAurora
  * @version 1.2.0
- * @since 1.0.0
+ * @since 1.3.0
  */
-public class SnailDecorFeatureRenderer extends RenderLayer<SnailEntityRenderState, SnailModel> {
-	private static final Identifier[] TEXTURES;
+public class SnailSaddleFeatureRenderer extends RenderLayer<SnailEntityRenderState, SnailModel> {
+	private static final Identifier TEXTURE = LovelySnails.id("textures/entity/snail/saddle.png");
 	private final SnailModel model;
 
-	public SnailDecorFeatureRenderer(RenderLayerParent<SnailEntityRenderState, SnailModel> featureRendererContext, EntityRendererProvider.Context context) {
+	public SnailSaddleFeatureRenderer(RenderLayerParent<SnailEntityRenderState, SnailModel> featureRendererContext, EntityRendererProvider.Context context) {
 		super(featureRendererContext);
-		this.model = new SnailModel(context.bakeLayer(LovelySnailsClient.SNAIL_DECOR_MODEL_LAYER));
+		this.model = new SnailModel(context.bakeLayer(LovelySnailsClient.SNAIL_SADDLE_MODEL_LAYER));
 	}
 
 	@Override
 	public void render(MatrixStack matrices, MultiBufferSource bufferSource, int light, SnailEntityRenderState state, float tickDelta, float animationProgress) {
-		var dyeColor = state.carpetColor;
-		if (dyeColor == null) return;
-		var texture = TEXTURES[dyeColor.getId()];
-
+		if (!state.hasSaddle) return;
 		this.model.setupAnim(state);
-		var vertexConsumer = bufferSource.getBuffer(RenderType.entityCutoutNoCull(texture));
+		var vertexConsumer = bufferSource.getBuffer(RenderType.entityCutoutNoCull(TEXTURE));
 		this.model.renderToBuffer(matrices, vertexConsumer, light, OverlayTexture.NO_OVERLAY, 0xffffffff);
-	}
-
-	static {
-		var colors = DyeColor.values();
-		TEXTURES = new Identifier[colors.length];
-		for (var color : colors) {
-			TEXTURES[color.getId()] = LovelySnails.id("textures/entity/snail/decor/" + color.getName() + ".png");
-		}
 	}
 }

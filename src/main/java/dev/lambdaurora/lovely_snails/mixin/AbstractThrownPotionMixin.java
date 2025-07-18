@@ -9,10 +9,12 @@
 
 package dev.lambdaurora.lovely_snails.mixin;
 
+import com.llamalad7.mixinextras.sugar.Local;
 import dev.lambdaurora.lovely_snails.entity.SnailEntity;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.projectile.AbstractThrownPotion;
 import net.minecraft.world.entity.projectile.ThrowableItemProjectile;
-import net.minecraft.world.entity.projectile.ThrownPotion;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import org.spongepowered.asm.mixin.Mixin;
@@ -21,22 +23,21 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
-@Mixin(ThrownPotion.class)
-public abstract class ThrownPotionMixin extends ThrowableItemProjectile {
-	public ThrownPotionMixin(EntityType<? extends ThrowableItemProjectile> entityType, Level level) {
+@Mixin(AbstractThrownPotion.class)
+public abstract class AbstractThrownPotionMixin extends ThrowableItemProjectile {
+	public AbstractThrownPotionMixin(EntityType<? extends ThrowableItemProjectile> entityType, Level level) {
 		super(entityType, level);
 	}
 
 	@Inject(
-			method = "applyWater",
+			method = "onHitAsWater",
 			at = @At(
 					value = "INVOKE",
 					target = "Lnet/minecraft/world/level/Level;getEntitiesOfClass(Ljava/lang/Class;Lnet/minecraft/world/phys/AABB;Ljava/util/function/Predicate;)Ljava/util/List;"
-			),
-			locals = LocalCapture.CAPTURE_FAILHARD
+			)
 	)
-	private void onWaterSplash(CallbackInfo ci, AABB box) {
-		var snails = this.level().getEntitiesOfClass(SnailEntity.class, box);
+	private void onWaterSplash(ServerLevel level, CallbackInfo ci, @Local AABB box) {
+		var snails = level.getEntitiesOfClass(SnailEntity.class, box);
 		for (var snail : snails) {
 			snail.onWaterSplashed(this.getOwner());
 		}

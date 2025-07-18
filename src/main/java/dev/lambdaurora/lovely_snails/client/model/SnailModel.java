@@ -10,8 +10,7 @@
 package dev.lambdaurora.lovely_snails.client.model;
 
 import com.mojang.blaze3d.vertex.MatrixStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import dev.lambdaurora.lovely_snails.entity.SnailEntity;
+import dev.lambdaurora.lovely_snails.client.render.SnailEntityRenderState;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
@@ -26,7 +25,7 @@ import static net.minecraft.client.model.geom.PartNames.*;
  * @version 1.2.0
  * @since 1.0.0
  */
-public class SnailModel extends EntityModel<SnailEntity> {
+public class SnailModel extends EntityModel<SnailEntityRenderState> {
 	public static final String SHELL = "shell";
 
 	public static final float ADULT_SHELL_ROTATION = -0.0436f;
@@ -47,7 +46,8 @@ public class SnailModel extends EntityModel<SnailEntity> {
 	private final Model babyModel;
 
 	public SnailModel(ModelPart root) {
-		this.adultModel = new Model(root.getChild("adult"), ADULT_SHELL_ROTATION);
+        super(root);
+        this.adultModel = new Model(root.getChild("adult"), ADULT_SHELL_ROTATION);
 		this.babyModel = new Model(root.getChild("baby"), BABY_SHELL_ROTATION);
 	}
 
@@ -123,23 +123,18 @@ public class SnailModel extends EntityModel<SnailEntity> {
 				PartPose.offsetAndRotation(1.5f, -4.f, -14.2f, 0.4363f, -BABY_EYE_YAW, 0.f));
 	}
 
-	public Model getCurrentModel() {
-		return this.young ? this.babyModel : this.adultModel;
+	public Model getCurrentModel(SnailEntityRenderState state) {
+		return state.isBaby ? this.babyModel : this.adultModel;
 	}
 
 	@Override
-	public void setupAnim(SnailEntity entity, float limbAngle, float limbDistance, float animationProgress, float headYaw, float headPitch) {
-		var model = this.getCurrentModel();
-
-		if (entity.isScared()) model.hideSnail();
+	public void setupAnim(SnailEntityRenderState entity) {
+		super.setupAnim(entity);
+		var model = this.getCurrentModel(entity);
+		model.root.visible = true;
+		(entity.isBaby ? this.adultModel : this.babyModel).root.visible = false;
+		if (entity.isScared) model.hideSnail();
 		else model.uncover();
-	}
-
-	@Override
-	public void renderToBuffer(MatrixStack matrices, VertexConsumer vertexConsumer, int light, int overlay, int color) {
-		matrices.push();
-		this.getCurrentModel().render(matrices, vertexConsumer, light, overlay, color);
-		matrices.pop();
 	}
 
 	public static class Model {
@@ -180,9 +175,8 @@ public class SnailModel extends EntityModel<SnailEntity> {
 			this.getShell().setRotation(this.idleShellYaw, 0.f, 0.f);
 		}
 
-		public void render(MatrixStack matrices, VertexConsumer vertices, int light, int overlay, int color) {
+		public void updateMatrix(MatrixStack matrices) {
 			if (!this.body.visible) matrices.translate(0, 2.f / 16.f, 0);
-			this.root.render(matrices, vertices, light, overlay, color);
 		}
 	}
 }
