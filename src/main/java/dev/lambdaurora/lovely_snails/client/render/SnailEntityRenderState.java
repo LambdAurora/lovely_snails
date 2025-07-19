@@ -14,15 +14,15 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * Rendering data needed for snails
+ * Represents the required rendering data for snails.
  *
  * @author Patbox
  * @version 1.2.1
  * @since 1.2.1
  */
 public class SnailEntityRenderState extends LivingEntityRenderState {
-    public boolean isScared = false;
-    public DyeColor carpetColor = null;
-    public ItemStack[] chests = new ItemStack[3];
-    public boolean hasSaddle = false;
+	public boolean isScared = false;
+	public DyeColor carpetColor = null;
+	public ItemStack[] chests = new ItemStack[3];
+	public boolean hasSaddle = false;
 }

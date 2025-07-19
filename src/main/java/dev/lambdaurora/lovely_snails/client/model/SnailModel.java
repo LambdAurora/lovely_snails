@@ -46,8 +46,8 @@ public class SnailModel extends EntityModel<SnailEntityRenderState> {
 	private final Model babyModel;
 
 	public SnailModel(ModelPart root) {
-        super(root);
-        this.adultModel = new Model(root.getChild("adult"), ADULT_SHELL_ROTATION);
+		super(root);
+		this.adultModel = new Model(root.getChild("adult"), ADULT_SHELL_ROTATION);
 		this.babyModel = new Model(root.getChild("baby"), BABY_SHELL_ROTATION);
 	}
 

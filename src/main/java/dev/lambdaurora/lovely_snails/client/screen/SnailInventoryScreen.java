@@ -9,7 +9,6 @@
 
 package dev.lambdaurora.lovely_snails.client.screen;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import dev.lambdaurora.lovely_snails.LovelySnails;
 import dev.lambdaurora.lovely_snails.entity.SnailEntity;
 import dev.lambdaurora.lovely_snails.network.SnailSetStoragePagePayload;
@@ -23,7 +22,6 @@ import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
@@ -162,8 +160,6 @@ public class SnailInventoryScreen extends AbstractContainerScreen<SnailScreenHan
 
 	@Override
 	protected void renderBackground(GuiGraphics graphics, float delta, int mouseX, int mouseY) {
-		//RenderSystem.setShader(GameRenderer::getPositionTexShader);
-		//RenderSystem.setShaderColor(1.f, 1.f, 1.f, 1.f);
 		int x = (this.width - this.imageWidth) / 2;
 		int y = (this.height - this.imageHeight) / 2;
 		graphics.drawTexture(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, 0, 0, this.imageWidth, this.imageHeight, 256, 256);

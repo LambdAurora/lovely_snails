@@ -1,6 +1,6 @@
 {
-  "model": {
-    "type": "model",
-    "model": "lovely_snails:item/snail_spawn_egg"
-  }
+	"model": {
+		"type": "model",
+		"model": "lovely_snails:item/snail_spawn_egg"
+	}
 }

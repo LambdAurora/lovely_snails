@@ -74,3 +74,12 @@
 - Updated to Minecraft 1.21.
 - Made snails scared of entities that wear the heads or skulls of monsters.
 - Fixed minor texturing mistakes.
+
+### 1.2.1
+
+- Updated to Minecraft 1.21.8 ([#19](https://github.com/LambdAurora/lovely_snails/pull/19)).
+  - Large Snails can be quad-leashed to Happy Ghasts.
+  - Bush, Leaf Litter, Short Dry Grass, Tall Dry Grass and Tall Grass can now be fed to snails.
+  - Updated spawn egg texture.
+- Changed minimum sky light level required to allow snail spawning to 6.
+  - This should improve spawn rates in Dark Forests.

@@ -6,10 +6,10 @@
 		"client.ClientPlayerInteractionManagerMixin"
 	],
 	"mixins": [
+		"AbstractThrownPotionMixin",
 		"AgeableMobAccessor",
 		"ServerGamePacketListenerImplMixin",
-		"ShulkerAccessor",
-      "AbstractThrownPotionMixin"
+		"ShulkerAccessor"
 	],
 	"injectors": {
 		"defaultRequire": 1

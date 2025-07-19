@@ -21,8 +21,6 @@ import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.network.chat.Text;
 import net.minecraft.network.syncher.EntityDataTracker;
 import net.minecraft.network.syncher.TrackedEntityData;
@@ -31,7 +29,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.*;
 import net.minecraft.world.damagesource.DamageSource;
@@ -72,15 +69,17 @@ import java.util.function.Predicate;
  * Represents the snail entity.
  *
  * @author LambdAurora
- * @version 1.2.0
+ * @version 1.2.1
  * @since 1.0.0
  */
 public class SnailEntity extends TamableAnimal implements ContainerListener {
 	private static final AttributeModifier SCARED_ARMOR_BONUS = ShulkerAccessor.lovely_snails$getCoveredArmorModifier();
 
 	private static final TrackedEntityData<Boolean> CHILD = AgeableMobAccessor.lovely_snails$getChild();
-	private static final TrackedEntityData<Byte> SNAIL_FLAGS = EntityDataTracker.registerData(SnailEntity.class, TrackedEntityDataSerializers.BYTE);
-	private static final TrackedEntityData<Byte> CHEST_FLAGS = EntityDataTracker.registerData(SnailEntity.class, TrackedEntityDataSerializers.BYTE);
+	private static final TrackedEntityData<Byte> SNAIL_FLAGS
+			= EntityDataTracker.registerData(SnailEntity.class, TrackedEntityDataSerializers.BYTE);
+	private static final TrackedEntityData<Byte> CHEST_FLAGS
+			= EntityDataTracker.registerData(SnailEntity.class, TrackedEntityDataSerializers.BYTE);
 	private static final int SCARED_FLAG = 0b0000_0001;
 	private static final int INTERACTION_COOLDOWN_FLAG = 0b0000_0010;
 	private static final int LOCKED_FLAG = 0b0000_0100;
@@ -109,9 +108,15 @@ public class SnailEntity extends TamableAnimal implements ContainerListener {
 				.add(Attributes.FOLLOW_RANGE, 48.0);
 	}
 
-	public static boolean canSpawn(EntityType<? extends Animal> type, ServerLevelAccessor level, EntitySpawnReason spawnReason, BlockPos pos, RandomSource random) {
+	public static boolean canSpawn(
+			EntityType<? extends Animal> type,
+			ServerLevelAccessor level,
+			EntitySpawnReason spawnReason,
+			BlockPos pos,
+			RandomSource random
+	) {
 		var spawnBlock = level.getBlockState(pos.below());
-		return level.getBrightness(LightLayer.SKY, pos) > 8 && spawnBlock.is(LovelySnailsRegistry.SNAIL_SPAWN_BLOCKS);
+		return level.getBrightness(LightLayer.SKY, pos) > 6 && spawnBlock.is(LovelySnailsRegistry.SNAIL_SPAWN_BLOCKS);
 	}
 
 	@Override
@@ -267,8 +272,6 @@ public class SnailEntity extends TamableAnimal implements ContainerListener {
 		var block = Block.byItem(color.getItem());
 		return block instanceof WoolCarpetBlock dyedCarpetBlock ? dyedCarpetBlock.getColor() : null;
 	}
-
-
 
 	public @Nullable DyeColor getCarpetColor() {
 		return getColorFromCarpet(this.equipment.get(EquipmentSlot.BODY));
@@ -474,7 +477,7 @@ public class SnailEntity extends TamableAnimal implements ContainerListener {
 		boolean hadDecor = this.getCarpetColor() != null;
 		this.syncInventoryToFlags();
 		if (this.age > 20 && !previouslySaddled && this.isSaddled()) {
-			//this.playSound(SoundEvents.HORSE_SADDLE.value(), .5f, 1.f);
+			this.playSound(SoundEvents.HORSE_SADDLE.value(), .5f, 1.f);
 		}
 
 		if (!this.reading && !this.level().isClientSide() && !hadDecor && this.getCarpetColor() != null && this.canSatisfy()) {
@@ -598,23 +601,32 @@ public class SnailEntity extends TamableAnimal implements ContainerListener {
 		}
 	}
 
-
 	/* Saddle Stuff */
 
 	@Override
 	public boolean canUseSlot(EquipmentSlot equipmentSlot) {
-		if (equipmentSlot == EquipmentSlot.SADDLE) {
-			return this.isAlive() && !this.isBaby() && this.isTame();
-		} else if (equipmentSlot == EquipmentSlot.BODY) {
-			return this.isAlive() && this.isTame();
-		}
-
-		return false;
+		return switch (equipmentSlot) {
+			case SADDLE -> this.isAlive() && !this.isBaby() && this.isTame();
+			case BODY -> this.isAlive() && this.isTame();
+			default -> false;
+		};
 	}
 
 	@Override
 	public boolean isSaddled() {
 		return !this.getItemBySlot(EquipmentSlot.SADDLE).isEmpty();
+	}
+
+	/* Leashing */
+
+	@Override
+	public boolean supportQuadLeash() {
+		return !this.isBaby();
+	}
+
+	@Override
+	public Vec3 @NotNull [] getQuadLeashOffsets() {
+		return Leashable.createQuadLeashOffsets(this, -0.06, 0.64, 0.38, 1);
 	}
 
 	/* Riding */

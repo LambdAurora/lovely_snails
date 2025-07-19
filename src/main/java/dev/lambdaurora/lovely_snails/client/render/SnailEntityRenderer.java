@@ -14,10 +14,10 @@ import dev.lambdaurora.lovely_snails.LovelySnails;
 import dev.lambdaurora.lovely_snails.client.LovelySnailsClient;
 import dev.lambdaurora.lovely_snails.client.model.SnailModel;
 import dev.lambdaurora.lovely_snails.entity.SnailEntity;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.resources.Identifier;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents the snail entity renderer.
@@ -44,23 +44,23 @@ public class SnailEntityRenderer extends MobRenderer<SnailEntity, SnailEntityRen
 	}
 
 	@Override
-	public SnailEntityRenderState createRenderState() {
+	public @NotNull SnailEntityRenderState createRenderState() {
 		return new SnailEntityRenderState();
 	}
 
 	@Override
-	public void extractRenderState(SnailEntity snail, SnailEntityRenderState state, float f) {
-		super.extractRenderState(snail, state, f);
+	public void extractRenderState(SnailEntity snail, SnailEntityRenderState state, float tickDelta) {
+		super.extractRenderState(snail, state, tickDelta);
 		state.isScared = snail.isScared();
 		state.hasSaddle = !snail.getSaddle().isEmpty();
 		state.carpetColor = snail.getCarpetColor();
-		state.chests[0] = snail.getChest(0).copy();
-		state.chests[1] = snail.getChest(1).copy();
-		state.chests[2] = snail.getChest(2).copy();
+		for (int i = 0; i < 3; i++) {
+			state.chests[i] = snail.getChest(i).copy();
+		}
 	}
 
 	@Override
-	public Identifier getTextureLocation(SnailEntityRenderState livingEntityRenderState) {
+	public @NotNull Identifier getTextureLocation(SnailEntityRenderState livingEntityRenderState) {
 		return TEXTURE;
 	}
 }

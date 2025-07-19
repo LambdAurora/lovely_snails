@@ -2,12 +2,18 @@
 	"replace": false,
 	"values": [
 		"#lovely_snails:snail_breeding_items",
+		"minecraft:bush",
 		"minecraft:fern",
-		"minecraft:short_grass",
 		"minecraft:hanging_roots",
 		"minecraft:kelp",
+		"minecraft:large_fern",
+		"minecraft:leaf_litter",
 		"minecraft:melon_seeds",
 		"minecraft:pumpkin_seeds",
+		"minecraft:short_dry_grass",
+		"minecraft:short_grass",
+		"minecraft:tall_dry_grass",
+		"minecraft:tall_grass",
 		"minecraft:torchflower_seeds",
 		"minecraft:wheat_seeds"
 	]

@@ -19,7 +19,9 @@ val VERSION = project.property("mod_version") as String
 version = "$VERSION+$mcVersion"
 
 // This field defines the Java version your mod target.
-val targetJavaVersion = 17
+val targetJavaVersion = 21
+
+val compatibleMinecraftVersions = listOf("1.21.7", "1.21.6")
 
 repositories {
 	maven {
@@ -34,7 +36,7 @@ dependencies {
 	@Suppress("UnstableApiUsage")
 	mappings(lambdamcdev.layered {
 		officialMojangMappings()
-		mappings("dev.lambdaurora:yalmm:${libs.versions.mappings.yalmm.get()}")
+		mappings("dev.lambdaurora:yalmm:${mcVersion}+build.${libs.versions.mappings.yalmm.get()}")
 	})
 	modImplementation(libs.fabric.loader)
 
@@ -79,7 +81,7 @@ modrinth {
 	versionType.set(ModUtils.fetchVersionType(VERSION, mcVersion))
 	uploadFile.set(tasks.remapJar.get())
 	loaders.set(listOf("fabric", "quilt"))
-	gameVersions.set(listOf(mcVersion))
+	gameVersions.set(listOf(mcVersion) + compatibleMinecraftVersions)
 	dependencies.set(
 		listOf(
 			ModDependency("P7dR8mSH", "required") // Fabric API
@@ -130,6 +132,9 @@ tasks.register<TaskPublishCurseForge>("curseforge") {
 	val mainFile = upload(project.property("curseforge_id"), tasks.remapJar.get())
 	mainFile.releaseType = ModUtils.fetchVersionType(VERSION, mcVersion)
 	mainFile.addGameVersion(McVersionLookup.getCurseForgeEquivalent(mcVersion))
+	compatibleMinecraftVersions.stream()
+		.map { McVersionLookup.getCurseForgeEquivalent(it) }
+		.forEach { mainFile.addGameVersion(it) }
 	mainFile.addModLoader("Fabric", "Quilt")
 	mainFile.addJavaVersion("Java 21", "Java 22")
 

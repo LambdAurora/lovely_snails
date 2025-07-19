@@ -13,7 +13,6 @@ import com.mojang.blaze3d.vertex.MatrixStack;
 import com.mojang.math.Axis;
 import dev.lambdaurora.lovely_snails.client.LovelySnailsClient;
 import dev.lambdaurora.lovely_snails.client.model.SnailModel;
-import dev.lambdaurora.lovely_snails.entity.SnailEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
