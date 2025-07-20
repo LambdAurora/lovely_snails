@@ -4,8 +4,8 @@ import dev.lambdaurora.mcdev.api.ModUtils
 import net.darkhax.curseforgegradle.TaskPublishCurseForge
 
 plugins {
-	id("fabric-loom").version("1.10.+")
-	id("dev.lambdaurora.mcdev").version("1.0.+")
+	id("fabric-loom").version("1.11.+")
+	id("dev.lambdaurora.mcdev").version("1.1.+")
 	id("dev.yumi.gradle.licenser").version("2.+")
 	id("com.modrinth.minotaur").version("2.+")
 	id("net.darkhax.curseforgegradle").version("1.1.+")
