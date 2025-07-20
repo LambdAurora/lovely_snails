@@ -5,7 +5,7 @@ import net.darkhax.curseforgegradle.TaskPublishCurseForge
 
 plugins {
 	id("fabric-loom").version("1.11.+")
-	id("dev.lambdaurora.mcdev").version("1.1.+")
+	id("dev.lambdaurora.mcdev").version("1.2.+")
 	id("dev.yumi.gradle.licenser").version("2.+")
 	id("com.modrinth.minotaur").version("2.+")
 	id("net.darkhax.curseforgegradle").version("1.1.+")
@@ -34,7 +34,7 @@ dependencies {
 	//to change the versions see the gradle.properties file
 	minecraft(libs.minecraft)
 	@Suppress("UnstableApiUsage")
-	mappings(lambdamcdev.layered {
+	mappings(loom.layered {
 		officialMojangMappings()
 		mappings("dev.lambdaurora:yalmm:${mcVersion}+build.${libs.versions.mappings.yalmm.get()}")
 	})
