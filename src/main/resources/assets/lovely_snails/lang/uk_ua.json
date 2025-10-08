@@ -1,0 +1,10 @@
+{
+	"item.lovely_snails.snail_spawn_egg": "Яйце виклику равлика",
+	"entity.lovely_snails.snail": "Равлик",
+	"subtitles.lovely_snails.entity.snail.death": "Равлик гине",
+	"subtitles.lovely_snails.entity.snail.hurt": "Равлика поранено",
+	"tag.item.lovely_snails.snail_breeding_items": "Їжа розмноження равликів",
+	"tag.item.lovely_snails.snail_food_items": "Їжа равликів",
+	"tag.item.lovely_snails.snail_scary_items": "Лякають равликів",
+  "modmenu.descriptionTranslation.lovely_snails": "Додає дещо великих равликів. Зроблено для Модфесту 1.17"
+}
