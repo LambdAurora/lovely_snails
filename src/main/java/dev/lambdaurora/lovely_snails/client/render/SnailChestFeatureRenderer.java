@@ -85,7 +85,7 @@ public class SnailChestFeatureRenderer extends RenderLayer<SnailEntityRenderStat
 		var itemModelResolver = Minecraft.getInstance().getItemModelResolver();
 
 		ItemStackRenderState itemStackRenderState = new ItemStackRenderState();
-		itemModelResolver.updateForTopItem(itemStackRenderState, chest, ItemDisplayContext.FIXED, Minecraft.getInstance().level, null, 0);
+		itemModelResolver.updateForTopItem(itemStackRenderState, chest, ItemDisplayContext.FIXED, null, null, 0);
 		itemStackRenderState.submit(matrices, submitNodeCollector, state.lightCoords, OverlayTexture.NO_OVERLAY, state.outlineColor);
 	}
 }
