@@ -25,7 +25,11 @@ import net.minecraft.world.item.SpawnEggItem;
  */
 public class SnailSpawnEggItem extends SpawnEggItem {
 	public SnailSpawnEggItem(EntityType<? extends Mob> entityType, Item.Properties properties) {
-		super(entityType, properties);
+		this(properties.spawnEgg(entityType));
+	}
+
+	public SnailSpawnEggItem(Item.Properties properties) {
+		super(properties);
 
 		ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.SPAWN_EGGS).register(entries -> {
 			entries.accept(this);

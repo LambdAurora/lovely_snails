@@ -692,7 +692,7 @@ public class SnailEntity extends TamableAnimal implements ContainerListener {
 			var leftDismountOffset = getCollisionHorizontalEscapeVector(this.getBoundingWidth(), passenger.getBoundingWidth(),
 					this.getYaw() + (passenger.getMainArm() == HumanoidArm.LEFT ? 90.f : -90.f));
 			dismountPos = this.tryDismountTowards(leftDismountOffset, passenger);
-			return dismountPos != null ? dismountPos : this.getPos();
+			return dismountPos != null ? dismountPos : this.position();
 		}
 	}
 
