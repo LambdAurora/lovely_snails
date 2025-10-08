@@ -14,12 +14,14 @@ import com.mojang.math.Axis;
 import dev.lambdaurora.lovely_snails.client.LovelySnailsClient;
 import dev.lambdaurora.lovely_snails.client.model.SnailModel;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
 
 /**
  * Renders the chests on a snail.
@@ -38,10 +40,9 @@ public class SnailChestFeatureRenderer extends RenderLayer<SnailEntityRenderStat
 	}
 
 	@Override
-	public void render(MatrixStack matrices, MultiBufferSource bufferSource, int light, SnailEntityRenderState state, float tickDelta, float animationProgress) {
+	public void submit(MatrixStack matrices, SubmitNodeCollector submitNodeCollector, int light, SnailEntityRenderState state, float tickDelta, float animationProgress) {
 		if (state.isBaby) return;
 
-		var itemRenderer = Minecraft.getInstance().getItemRenderer();
 		float shellRotation = this.model.getCurrentModel(state).getShell().pitch;
 
 		var rightChest = state.chests[0];
@@ -52,10 +53,7 @@ public class SnailChestFeatureRenderer extends RenderLayer<SnailEntityRenderStat
 			matrices.rotate(Axis.YP.rotationDegrees(90));
 			matrices.translate(.65, 0.2, -.505);
 			matrices.scale(1.25f, 1.25f, 1.25f);
-			itemRenderer.renderStatic(
-					rightChest, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY,
-					matrices, bufferSource, null, 0
-			);
+			renderChest(matrices, submitNodeCollector, state, rightChest);
 			matrices.pop();
 		}
 
@@ -66,10 +64,7 @@ public class SnailChestFeatureRenderer extends RenderLayer<SnailEntityRenderStat
 			matrices.rotate(Axis.XP.rotation(shellRotation));
 			matrices.translate(0, 0.2, -.94);
 			matrices.scale(1.25f, 1.25f, 1.25f);
-			itemRenderer.renderStatic(
-					backChest, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY,
-					matrices, bufferSource, null, 0
-			);
+			renderChest(matrices, submitNodeCollector, state, backChest);
 			matrices.pop();
 		}
 
@@ -81,11 +76,16 @@ public class SnailChestFeatureRenderer extends RenderLayer<SnailEntityRenderStat
 			matrices.rotate(Axis.YN.rotationDegrees(90));
 			matrices.translate(-.65, 0.2, -.505);
 			matrices.scale(1.25f, 1.25f, 1.25f);
-			itemRenderer.renderStatic(
-					leftChest, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY,
-					matrices, bufferSource, null, 0
-			);
+			renderChest(matrices, submitNodeCollector, state, leftChest);
 			matrices.pop();
 		}
+	}
+
+	private void renderChest(MatrixStack matrices, SubmitNodeCollector submitNodeCollector, SnailEntityRenderState state, ItemStack chest) {
+		var itemModelResolver = Minecraft.getInstance().getItemModelResolver();
+
+		ItemStackRenderState itemStackRenderState = new ItemStackRenderState();
+		itemModelResolver.updateForTopItem(itemStackRenderState, chest, ItemDisplayContext.FIXED, Minecraft.getInstance().level, null, 0);
+		itemStackRenderState.submit(matrices, submitNodeCollector, state.lightCoords, OverlayTexture.NO_OVERLAY, state.outlineColor);
 	}
 }

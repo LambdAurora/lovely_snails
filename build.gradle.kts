@@ -21,7 +21,7 @@ version = "$VERSION+$mcVersion"
 // This field defines the Java version your mod target.
 val targetJavaVersion = 21
 
-val compatibleMinecraftVersions = listOf("1.21.7", "1.21.6")
+val compatibleMinecraftVersions = listOf("1.21.9")
 
 repositories {
 	maven {
