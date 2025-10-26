@@ -1,9 +1,9 @@
 {
-    "item.lovely_snails.snail_spawn_egg": "Schnecken-Spawn-Ei",
-    "entity.lovely_snails.snail": "Schnecke",
-    "subtitles.lovely_snails.entity.snail.death": "Schnecke stirbt",
-    "subtitles.lovely_snails.entity.snail.hurt": "Schnecke ist verletzt",
-    "tag.item.lovely_snails.snail_breeding_items": "Schneckenzuchtfutter",
-    "tag.item.lovely_snails.snail_food_items": "Schnecken Futter",
-    "tag.item.lovely_snails.snail_scary_items": "Beängstigende Dinge für Schnecken"
+	"item.lovely_snails.snail_spawn_egg": "Schnecken-Spawn-Ei",
+	"entity.lovely_snails.snail": "Schnecke",
+	"subtitles.lovely_snails.entity.snail.death": "Schnecke stirbt",
+	"subtitles.lovely_snails.entity.snail.hurt": "Schnecke ist verletzt",
+	"tag.item.lovely_snails.snail_breeding_items": "Schneckenzuchtfutter",
+	"tag.item.lovely_snails.snail_food_items": "Schnecken Futter",
+	"tag.item.lovely_snails.snail_scary_items": "Beängstigende Dinge für Schnecken"
 }

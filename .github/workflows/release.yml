@@ -1,9 +1,9 @@
 name: "Release"
 
 on:
-  release:
-    types:
-      - published
+  push:
+    tags:
+      - "v*"
 
 jobs:
   build:
@@ -11,22 +11,132 @@ jobs:
     steps:
       - name: "Checkout"
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - name: "Set up Java"
         uses: actions/setup-java@v4
         with:
           distribution: "temurin"
           java-version: 21
       - name: "Set up Gradle"
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
+      - name: "Handle Loom Cache"
+        uses: actions/cache@v4
+        with:
+          path: "**/.gradle/loom-cache"
+          key: "${{ runner.os }}-gradle-${{ hashFiles('**/libs.versions.*', '**/*.gradle*', '**/gradle-wrapper.properties') }}"
+          restore-keys: "${{ runner.os }}-gradle-"
       - name: "Build with Gradle"
-        run: ./gradlew build modrinth modrinthSyncBody curseforge --parallel --stacktrace
+        run: ./gradlew build packageModrinth --parallel --stacktrace
         env:
-          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
-          CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
+          MODRINTH_TOKEN: "dummy"
       - name: "Upload artifacts"
         uses: actions/upload-artifact@v4
         with:
           name: Artifacts
           path: ./build/libs/
+      - name: "Upload Modrinth artifacts"
+        uses: actions/upload-artifact@v4
+        with:
+          name: Modrinth
+          path: ./build/modrinth.zip
+          retention-days: 1
+
+  github:
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      contents: write
+    steps:
+      - name: "Download artifacts"
+        uses: actions/download-artifact@v4
+        with:
+          name: Modrinth
+          path: dist
+      - name: "Extract files"
+        run: unzip dist/modrinth.zip
+      - id: files
+        name: "Read which files to upload"
+        uses: actions/github-script@v8
+        with:
+          result-encoding: string
+          script: |
+            const { default: fs } = await import("node:fs/promises");
+            const json = JSON.parse(await fs.readFile("manifest.json", { encoding: "utf8" }));
+            const response = await octokit.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: "${{ github.ref_name }}",
+              name: json.name,
+              body: json.changelog,
+              prerelease: json.type !== "release",
+            });
+            const { data: { id: releaseId, html_url: htmlUrl, upload_url: uploadUrl } } = response;
+            return json.files.map(it => `"${it}"`).join(" ");
+      - name: "Upload artifacts to GitHub release"
+        run: |
+          gh release upload "${{ github.ref_name }}" ${{ steps.files.outputs.result }} --repo "${{ github.repository }}"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+  modrinth:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: "Download artifacts"
+        uses: actions/download-artifact@v4
+        with:
+          name: Modrinth
+          path: dist
+      - name: "Extract files"
+        run: unzip dist/modrinth.zip
+      - name: "Release on Modrinth"
+        uses: LambdAurora/modrinth_publish@v0.1.5
+        with:
+          token: ${{ secrets.MODRINTH_TOKEN }}
+          project: "hBVVhStr"
+          manifest: "manifest.json"
+          readme_file: "README.md"
+
+  curseforge:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: "Download artifacts"
+        uses: actions/download-artifact@v4
+        with:
+          name: Modrinth
+          path: dist
+      - name: "Extract files"
+        run: unzip dist/modrinth.zip
+      - id: manifest
+        name: "Extract manifest data"
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const { default: fs } = await import("node:fs/promises");
+            const json = JSON.parse(await fs.readFile("manifest.json", { encoding: "utf8" }));
+            core.setOutput("version", json.version);
+            core.setOutput("type", json.type);
+            core.setOutput("name", json.name);
+            core.setOutput("game_versions", json.game_versions.join("\n"));
+            core.setOutput("loaders", json.loaders.join("\n"));
+            await fs.writeFile("CHANGELOG.md", json.changelog);
+      - uses: Kir-Antipov/mc-publish@v3.3
+        with:
+          curseforge-id: 499425
+          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
+
+          files: ./*.jar
+
+          name: ${{ steps.manifest.outputs.name }}
+          version: ${{ steps.manifest.outputs.version }}
+          version-type: ${{ steps.manifest.outputs.type }}
+          changelog-file: CHANGELOG.*
+
+          loaders: ${{ steps.manifest.outputs.loaders }}
+          game-versions: ${{ steps.manifest.outputs.game_versions }}
+          game-version-filter: none
+          dependencies: |
+            fabric-api(required)
+          java: |
+            21
+            22

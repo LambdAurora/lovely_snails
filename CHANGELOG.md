@@ -83,3 +83,8 @@
   - Updated spawn egg texture.
 - Changed minimum sky light level required to allow snail spawning to 6.
   - This should improve spawn rates in Dark Forests.
+
+### 1.2.2
+
+- Updated to Minecraft 1.21.10 ([#22](https://github.com/LambdAurora/lovely_snails/pull/22)).
+- Added German translations ([#23](https://github.com/LambdAurora/lovely_snails/pull/23)).

@@ -1,25 +1,25 @@
 import com.modrinth.minotaur.dependencies.ModDependency
 import dev.lambdaurora.mcdev.api.McVersionLookup
 import dev.lambdaurora.mcdev.api.ModUtils
+import dev.lambdaurora.mcdev.api.ModVersionDependency
+import dev.lambdaurora.mcdev.task.packaging.PackageModrinthTask
 import net.darkhax.curseforgegradle.TaskPublishCurseForge
 
 plugins {
 	id("fabric-loom").version("1.11.+")
-	id("dev.lambdaurora.mcdev").version("1.2.+")
+	id("dev.lambdaurora.mcdev").version("1.8.+")
 	id("dev.yumi.gradle.licenser").version("2.+")
 	id("com.modrinth.minotaur").version("2.+")
 	id("net.darkhax.curseforgegradle").version("1.1.+")
 }
 
-group = project.property("maven_group") as String
-base.archivesName.set(project.property("archives_base_name") as String)
-
+val baseVersion = project.property("mod_version").toString()
+val modNamespace = project.property("mod_namespace").toString()
 val mcVersion = libs.versions.minecraft.get()
-val VERSION = project.property("mod_version") as String
-version = "$VERSION+$mcVersion"
+version = "$baseVersion+$mcVersion"
+base.archivesName.set(modNamespace)
 
-// This field defines the Java version your mod target.
-val targetJavaVersion = 21
+val javaVersion = Integer.parseInt(project.property("java_version").toString())
 
 val compatibleMinecraftVersions = listOf("1.21.9")
 
@@ -44,8 +44,8 @@ dependencies {
 }
 
 java {
-	sourceCompatibility = JavaVersion.toVersion(targetJavaVersion)
-	targetCompatibility = JavaVersion.toVersion(targetJavaVersion)
+	sourceCompatibility = JavaVersion.toVersion(javaVersion)
+	targetCompatibility = JavaVersion.toVersion(javaVersion)
 
 	withSourcesJar()
 }
@@ -54,20 +54,22 @@ tasks.withType<JavaCompile>().configureEach {
 	options.encoding = "UTF-8"
 	options.isDeprecation = true
 	options.isIncremental = true
-	options.release.set(targetJavaVersion)
+	options.release.set(javaVersion)
 }
 
 tasks.processResources {
 	inputs.property("version", project.version)
 
 	filesMatching("fabric.mod.json") {
-		expand("version" to inputs.properties["version"])
+		expand("version" to (inputs.properties["version"] as String))
 	}
 }
 
 tasks.jar {
+	inputs.property("namespace", modNamespace)
+
 	from("LICENSE") {
-		rename { "${it}_${base.archivesName.get()}" }
+		rename { "${it}_${inputs.properties["namespace"]}" }
 	}
 }
 
@@ -75,10 +77,28 @@ license {
 	rule(rootProject.file("codeformat/HEADER"))
 }
 
+val packageModrinth by tasks.registering(PackageModrinthTask::class) {
+	this.group = "publishing"
+	this.versionType.set(ModUtils.getVersionType(baseVersion, mcVersion))
+	this.versionName.set("${project.property("mod_name")} $baseVersion (${McVersionLookup.getVersionTag(mcVersion)})")
+	this.gameVersions.set(listOf(mcVersion) + compatibleMinecraftVersions)
+	this.loaders.set(listOf("fabric", "quilt"))
+	this.dependencies.set(
+		listOf(
+			ModVersionDependency("P7dR8mSH", ModVersionDependency.Type.REQUIRED),
+		)
+	)
+	this.changelog.set(ModUtils.fetchChangelog(project, baseVersion))
+	this.readme.set(ModUtils.parseReadme(
+		project, "https://raw.githubusercontent.com/LambdAurora/lovely_snails/1.21.10/\$2"
+	))
+	this.files.setFrom(tasks.remapJar)
+}
+
 modrinth {
 	projectId = project.property("modrinth_id") as String
-	versionName = "Lovely Snails $VERSION (${McVersionLookup.getVersionTag(mcVersion)})"
-	versionType.set(ModUtils.fetchVersionType(VERSION, mcVersion))
+	versionName = "${project.property("mod_name")} $baseVersion (${McVersionLookup.getVersionTag(mcVersion)})"
+	versionType.set(ModUtils.fetchVersionType(baseVersion, mcVersion))
 	uploadFile.set(tasks.remapJar.get())
 	loaders.set(listOf("fabric", "quilt"))
 	gameVersions.set(listOf(mcVersion) + compatibleMinecraftVersions)
@@ -89,12 +109,12 @@ modrinth {
 	)
 	syncBodyFrom.set(
 		ModUtils.parseReadme(
-			project, "https://raw.githubusercontent.com/LambdAurora/lovely_snails/1.21/\$2"
+			project, "https://raw.githubusercontent.com/LambdAurora/lovely_snails/1.21.10/\$2"
 		)
 	)
 
 	// Changelog fetching
-	val changelogContent = ModUtils.fetchChangelog(project, VERSION)
+	val changelogContent = ModUtils.fetchChangelog(project, baseVersion)
 
 	if (changelogContent != null) {
 		changelog = changelogContent
@@ -120,7 +140,7 @@ tasks.register<TaskPublishCurseForge>("curseforge") {
 	}
 
 	// Changelog fetching
-	var changelogContent = ModUtils.fetchChangelog(project, VERSION)
+	var changelogContent = ModUtils.fetchChangelog(project, baseVersion)
 
 	if (changelogContent != null) {
 		changelogContent = "Changelog:\n\n${changelogContent}"
@@ -130,7 +150,7 @@ tasks.register<TaskPublishCurseForge>("curseforge") {
 	}
 
 	val mainFile = upload(project.property("curseforge_id"), tasks.remapJar.get())
-	mainFile.releaseType = ModUtils.fetchVersionType(VERSION, mcVersion)
+	mainFile.releaseType = ModUtils.fetchVersionType(baseVersion, mcVersion)
 	mainFile.addGameVersion(McVersionLookup.getCurseForgeEquivalent(mcVersion))
 	compatibleMinecraftVersions.stream()
 		.map { McVersionLookup.getCurseForgeEquivalent(it) }
@@ -138,7 +158,7 @@ tasks.register<TaskPublishCurseForge>("curseforge") {
 	mainFile.addModLoader("Fabric", "Quilt")
 	mainFile.addJavaVersion("Java 21", "Java 22")
 
-	mainFile.displayName = "Lovely Snails $VERSION (${McVersionLookup.getVersionTag(mcVersion)})"
+	mainFile.displayName = "${project.property("mod_name")} $baseVersion (${McVersionLookup.getVersionTag(mcVersion)})"
 	mainFile.addRequirement("fabric-api")
 
 	mainFile.changelogType = "markdown"
