@@ -9,7 +9,7 @@
 
 package dev.lambdaurora.lovely_snails.client.render;
 
-import com.mojang.blaze3d.vertex.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import dev.lambdaurora.lovely_snails.client.LovelySnailsClient;
 import dev.lambdaurora.lovely_snails.client.model.SnailModel;
@@ -40,48 +40,48 @@ public class SnailChestFeatureRenderer extends RenderLayer<SnailEntityRenderStat
 	}
 
 	@Override
-	public void submit(MatrixStack matrices, SubmitNodeCollector submitNodeCollector, int light, SnailEntityRenderState state, float tickDelta, float animationProgress) {
+	public void submit(PoseStack matrices, SubmitNodeCollector submitNodeCollector, int light, SnailEntityRenderState state, float tickDelta, float animationProgress) {
 		if (state.isBaby) return;
 
-		float shellRotation = this.model.getCurrentModel(state).getShell().pitch;
+		float shellRotation = this.model.getCurrentModel(state).getShell().xRot;
 
 		var rightChest = state.chests[0];
 		if (!rightChest.isEmpty()) {
-			matrices.push();
-			matrices.rotate(Axis.XP.rotationDegrees(180));
-			matrices.rotate(Axis.XP.rotation(shellRotation));
-			matrices.rotate(Axis.YP.rotationDegrees(90));
+			matrices.pushPose();
+			matrices.mulPose(Axis.XP.rotationDegrees(180));
+			matrices.mulPose(Axis.XP.rotation(shellRotation));
+			matrices.mulPose(Axis.YP.rotationDegrees(90));
 			matrices.translate(.65, 0.2, -.505);
 			matrices.scale(1.25f, 1.25f, 1.25f);
 			renderChest(matrices, submitNodeCollector, state, rightChest);
-			matrices.pop();
+			matrices.popPose();
 		}
 
 		var backChest = state.chests[1];
 		if (!backChest.isEmpty()) {
-			matrices.push();
-			matrices.rotate(Axis.XP.rotationDegrees(180));
-			matrices.rotate(Axis.XP.rotation(shellRotation));
+			matrices.pushPose();
+			matrices.mulPose(Axis.XP.rotationDegrees(180));
+			matrices.mulPose(Axis.XP.rotation(shellRotation));
 			matrices.translate(0, 0.2, -.94);
 			matrices.scale(1.25f, 1.25f, 1.25f);
 			renderChest(matrices, submitNodeCollector, state, backChest);
-			matrices.pop();
+			matrices.popPose();
 		}
 
 		var leftChest = state.chests[2];
 		if (!leftChest.isEmpty()) {
-			matrices.push();
-			matrices.rotate(Axis.XP.rotationDegrees(180));
-			matrices.rotate(Axis.XP.rotation(shellRotation));
-			matrices.rotate(Axis.YN.rotationDegrees(90));
+			matrices.pushPose();
+			matrices.mulPose(Axis.XP.rotationDegrees(180));
+			matrices.mulPose(Axis.XP.rotation(shellRotation));
+			matrices.mulPose(Axis.YN.rotationDegrees(90));
 			matrices.translate(-.65, 0.2, -.505);
 			matrices.scale(1.25f, 1.25f, 1.25f);
 			renderChest(matrices, submitNodeCollector, state, leftChest);
-			matrices.pop();
+			matrices.popPose();
 		}
 	}
 
-	private void renderChest(MatrixStack matrices, SubmitNodeCollector submitNodeCollector, SnailEntityRenderState state, ItemStack chest) {
+	private void renderChest(PoseStack matrices, SubmitNodeCollector submitNodeCollector, SnailEntityRenderState state, ItemStack chest) {
 		var itemModelResolver = Minecraft.getInstance().getItemModelResolver();
 
 		ItemStackRenderState itemStackRenderState = new ItemStackRenderState();

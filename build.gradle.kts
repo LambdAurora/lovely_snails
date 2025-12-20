@@ -6,7 +6,7 @@ import dev.lambdaurora.mcdev.task.packaging.PackageModrinthTask
 import net.darkhax.curseforgegradle.TaskPublishCurseForge
 
 plugins {
-	id("fabric-loom").version("1.11.+")
+	id("fabric-loom").version("1.13.+")
 	id("dev.lambdaurora.mcdev").version("1.8.+")
 	id("dev.yumi.gradle.licenser").version("2.+")
 	id("com.modrinth.minotaur").version("2.+")
@@ -21,7 +21,7 @@ base.archivesName.set(modNamespace)
 
 val javaVersion = Integer.parseInt(project.property("java_version").toString())
 
-val compatibleMinecraftVersions = listOf("1.21.9")
+val compatibleMinecraftVersions = listOf("1.21.11")
 
 repositories {
 	maven {
@@ -34,10 +34,7 @@ dependencies {
 	//to change the versions see the gradle.properties file
 	minecraft(libs.minecraft)
 	@Suppress("UnstableApiUsage")
-	mappings(loom.layered {
-		officialMojangMappings()
-		mappings("dev.lambdaurora:yalmm:${mcVersion}+build.${libs.versions.mappings.yalmm.get()}")
-	})
+	mappings(loom.officialMojangMappings())
 	modImplementation(libs.fabric.loader)
 
 	modImplementation(libs.fabric.api)

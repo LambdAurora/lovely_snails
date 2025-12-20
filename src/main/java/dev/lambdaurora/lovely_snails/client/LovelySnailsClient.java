@@ -52,7 +52,7 @@ public class LovelySnailsClient implements ClientModInitializer {
 				(payload, context) -> {
 					context.client().execute(() -> {
 						if (context.player().containerMenu instanceof SnailScreenHandler snailScreenHandler
-								&& snailScreenHandler.syncId == payload.syncId()) {
+								&& snailScreenHandler.containerId == payload.syncId()) {
 							snailScreenHandler.setCurrentStoragePage(payload.storagePage());
 						}
 					});

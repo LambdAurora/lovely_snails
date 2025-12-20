@@ -8,7 +8,6 @@
 	"mixins": [
 		"AbstractThrownPotionMixin",
 		"AgeableMobAccessor",
-		"ServerGamePacketListenerImplMixin",
 		"ShulkerAccessor"
 	],
 	"injectors": {

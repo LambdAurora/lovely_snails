@@ -25,10 +25,10 @@ import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
-import net.minecraft.network.chat.Text;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerListener;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -68,7 +68,7 @@ public class SnailInventoryScreen extends AbstractContainerScreen<SnailScreenHan
 	private EnderChestButton enderChestButton;
 	private final PageButton[] pageButtons = new PageButton[3];
 
-	public SnailInventoryScreen(SnailScreenHandler handler, Inventory inventory, Text title) {
+	public SnailInventoryScreen(SnailScreenHandler handler, Inventory inventory, Component title) {
 		super(handler, inventory, handler.snail().getDisplayName());
 		this.imageWidth += 19;
 		this.entity = handler.snail();
@@ -127,7 +127,7 @@ public class SnailInventoryScreen extends AbstractContainerScreen<SnailScreenHan
 	 * @param page the storage page to switch to
 	 */
 	public void requestStoragePage(int page) {
-		ClientPlayNetworking.send(new SnailSetStoragePagePayload(this.menu.syncId, (byte) page));
+		ClientPlayNetworking.send(new SnailSetStoragePagePayload(this.menu.containerId, (byte) page));
 	}
 
 	/* Input */
@@ -138,12 +138,12 @@ public class SnailInventoryScreen extends AbstractContainerScreen<SnailScreenHan
 		int y = (this.height - this.imageHeight) / 2;
 		if (mouseX > x + 98 && mouseY > y + 17 && mouseX <= x + 98 + 5 * 18 && mouseY <= y + 17 + 54) {
 			int oldPage = this.getMenu().getCurrentStoragePage();
-			int newPage = MathHelper.clamp(oldPage + (amountY > 0 ? -1 : 1), 0, 2);
+			int newPage = Mth.clamp(oldPage + (amountY > 0 ? -1 : 1), 0, 2);
 			if (oldPage == newPage)
 				return true;
 
 			if (!this.getMenu().hasChest(newPage)) {
-				int otherNewPage = MathHelper.clamp(newPage + (amountY > 0 ? -1 : 1), 0, 2);
+				int otherNewPage = Mth.clamp(newPage + (amountY > 0 ? -1 : 1), 0, 2);
 				if (newPage == otherNewPage || !this.getMenu().hasChest(otherNewPage))
 					return true;
 
@@ -159,25 +159,25 @@ public class SnailInventoryScreen extends AbstractContainerScreen<SnailScreenHan
 	/* Rendering */
 
 	@Override
-	protected void renderBackground(GuiGraphics graphics, float delta, int mouseX, int mouseY) {
+	protected void renderBg(GuiGraphics graphics, float delta, int mouseX, int mouseY) {
 		int x = (this.width - this.imageWidth) / 2;
 		int y = (this.height - this.imageHeight) / 2;
-		graphics.drawTexture(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
+		graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
 
 		if (this.entity.canUseSlot(EquipmentSlot.SADDLE)) {
-			graphics.drawTexture(RenderPipelines.GUI_TEXTURED, TEXTURE, x + 7 + 18, y + 35 - 18, 18, this.imageHeight + 54, 18, 18, 256, 256);
+			graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x + 7 + 18, y + 35 - 18, 18, this.imageHeight + 54, 18, 18, 256, 256);
 		}
 
-		graphics.drawTexture(RenderPipelines.GUI_TEXTURED, TEXTURE, x + 7 + 18, y + 35, 36, this.imageHeight + 54, 18, 18, 256, 256);
+		graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x + 7 + 18, y + 35, 36, this.imageHeight + 54, 18, 18, 256, 256);
 
 		if (!this.entity.isBaby()) {
 			for (int row = y + 17; row <= y + 35 + 18; row += 18) {
-				graphics.drawTexture(RenderPipelines.GUI_TEXTURED, TEXTURE, x + 7, row, 54, this.imageHeight + 54, 18, 18, 256, 256);
+				graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x + 7, row, 54, this.imageHeight + 54, 18, 18, 256, 256);
 			}
 		}
 
 		if (this.getMenu().hasChests()) {
-			graphics.drawTexture(RenderPipelines.GUI_TEXTURED, TEXTURE, x + 98, y + 17, 0, this.imageHeight, 5 * 18, 54, 256, 256);
+			graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x + 98, y + 17, 0, this.imageHeight, 5 * 18, 54, 256, 256);
 		}
 
 		InventoryScreen.renderEntityInInventoryFollowsMouse(
@@ -204,7 +204,7 @@ public class SnailInventoryScreen extends AbstractContainerScreen<SnailScreenHan
 					btn -> {
 						var client = Minecraft.getInstance();
 						var screenHandler = SnailInventoryScreen.this.getMenu();
-						client.gameMode.handleInventoryButtonClick(screenHandler.syncId, 0);
+						client.gameMode.handleInventoryButtonClick(screenHandler.containerId, 0);
 					}
 			);
 		}
@@ -216,7 +216,7 @@ public class SnailInventoryScreen extends AbstractContainerScreen<SnailScreenHan
 		}
 
 		@Override
-		public void onContainerChanged(Container sender) {
+		public void containerChanged(Container sender) {
 			this.visible = this.active = SnailInventoryScreen.this.getMenu().hasEnderChest();
 		}
 	}
@@ -237,7 +237,7 @@ public class SnailInventoryScreen extends AbstractContainerScreen<SnailScreenHan
 		}
 
 		@Override
-		public void onContainerChanged(Container sender) {
+		public void containerChanged(Container sender) {
 			this.visible = SnailInventoryScreen.this.getMenu().hasChest(page);
 		}
 

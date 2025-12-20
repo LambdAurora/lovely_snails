@@ -73,7 +73,7 @@ public final class LovelySnailsRegistry {
 					.sized(1.5f, 2.f)
 					.eyeHeight(1.f)
 					.passengerAttachments(2.15f)
-					.build(ResourceKey.of(Registries.ENTITY_TYPE, id("snail")))
+					.build(ResourceKey.create(Registries.ENTITY_TYPE, id("snail")))
 	);
 
 	/* Sounds */
@@ -83,15 +83,15 @@ public final class LovelySnailsRegistry {
 
 	/* Tags */
 
-	public static final TagKey<Block> SNAIL_SPAWN_BLOCKS = TagKey.of(Registries.BLOCK, id("snail_spawn_blocks"));
-	public static final TagKey<Item> SNAIL_BREEDING_ITEMS = TagKey.of(Registries.ITEM, id("snail_breeding_items"));
-	public static final TagKey<Item> SNAIL_FOOD_ITEMS = TagKey.of(Registries.ITEM, id("snail_food_items"));
-	public static final TagKey<Item> SNAIL_SCARY_ITEMS = TagKey.of(Registries.ITEM, id("snail_scary_items"));
-	public static final TagKey<Biome> SNAIL_REGULAR_SPAWN_BIOMES = TagKey.of(Registries.BIOME, id("snail_spawn"));
-	public static final TagKey<Biome> SNAIL_SWAMP_LIKE_SPAWN_BIOMES = TagKey.of(Registries.BIOME, id("swamp_like_spawn"));
+	public static final TagKey<Block> SNAIL_SPAWN_BLOCKS = TagKey.create(Registries.BLOCK, id("snail_spawn_blocks"));
+	public static final TagKey<Item> SNAIL_BREEDING_ITEMS = TagKey.create(Registries.ITEM, id("snail_breeding_items"));
+	public static final TagKey<Item> SNAIL_FOOD_ITEMS = TagKey.create(Registries.ITEM, id("snail_food_items"));
+	public static final TagKey<Item> SNAIL_SCARY_ITEMS = TagKey.create(Registries.ITEM, id("snail_scary_items"));
+	public static final TagKey<Biome> SNAIL_REGULAR_SPAWN_BIOMES = TagKey.create(Registries.BIOME, id("snail_spawn"));
+	public static final TagKey<Biome> SNAIL_SWAMP_LIKE_SPAWN_BIOMES = TagKey.create(Registries.BIOME, id("swamp_like_spawn"));
 
 	private static <T extends Item> T register(String name, Function<Item.Properties, T> item) {
-		return Registry.register(BuiltInRegistries.ITEM, id(name), item.apply(new Item.Properties().setId(ResourceKey.of(Registries.ITEM, id(name)))));
+		return Registry.register(BuiltInRegistries.ITEM, id(name), item.apply(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, id(name)))));
 	}
 
 	private static SoundEvent registerSound(String path) {

@@ -9,7 +9,7 @@
 
 package dev.lambdaurora.lovely_snails.client.render;
 
-import com.mojang.blaze3d.vertex.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import dev.lambdaurora.lovely_snails.LovelySnails;
 import dev.lambdaurora.lovely_snails.client.LovelySnailsClient;
 import dev.lambdaurora.lovely_snails.client.model.SnailModel;
@@ -38,7 +38,7 @@ public class SnailEntityRenderer extends MobRenderer<SnailEntity, SnailEntityRen
 	}
 
 	@Override
-	protected void scale(SnailEntityRenderState state, MatrixStack matrices) {
+	protected void scale(SnailEntityRenderState state, PoseStack matrices) {
 		super.scale(state, matrices);
 		this.getModel().getCurrentModel(state).updateMatrix(matrices);
 	}
