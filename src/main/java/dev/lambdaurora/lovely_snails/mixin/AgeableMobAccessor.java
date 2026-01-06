@@ -9,7 +9,7 @@
 
 package dev.lambdaurora.lovely_snails.mixin;
 
-import net.minecraft.network.syncher.TrackedEntityData;
+import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.world.entity.AgeableMob;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 @Mixin(AgeableMob.class)
 public interface AgeableMobAccessor {
 	@Accessor("DATA_BABY_ID")
-	static TrackedEntityData<Boolean> lovely_snails$getChild() {
+	static EntityDataAccessor<Boolean> lovely_snails$getChild() {
 		throw new UnsupportedOperationException("Mixin injection failed.");
 	}
 }

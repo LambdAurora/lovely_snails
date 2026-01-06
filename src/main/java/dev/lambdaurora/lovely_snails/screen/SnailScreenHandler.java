@@ -59,7 +59,7 @@ public class SnailScreenHandler extends AbstractContainerMenu implements Contain
 		this.entity = entity;
 		this.currentStoragePage = currentStoragePage;
 
-		inventory.onOpen(playerInventory.player);
+		inventory.startOpen(playerInventory.player);
 		this.inventory.addListener(this);
 
 		this.addSlot(new SaddleSlot(new EquipmentContainer(entity, EquipmentSlot.SADDLE), 0, 26, 18));
@@ -164,7 +164,7 @@ public class SnailScreenHandler extends AbstractContainerMenu implements Contain
 	public void setCurrentStoragePage(int page) {
 		this.currentStoragePage = page;
 		if (this.player instanceof ServerPlayer serverPlayerEntity) {
-			ServerPlayNetworking.send(serverPlayerEntity, new SnailSetStoragePagePayload(this.syncId, (byte) page));
+			ServerPlayNetworking.send(serverPlayerEntity, new SnailSetStoragePagePayload(this.containerId, (byte) page));
 		}
 
 		for (var listener : this.pageChangeListeners) {
@@ -245,7 +245,7 @@ public class SnailScreenHandler extends AbstractContainerMenu implements Contain
 
 	@Override
 	public void clicked(int slotIndex, int button, ClickType actionType, Player player) {
-		if (slotIndex < this.inventory.size() && !this.snail().canUseSnail(player))
+		if (slotIndex < this.inventory.getContainerSize() && !this.snail().canUseSnail(player))
 			return;
 
 		super.clicked(slotIndex, button, actionType, player);
@@ -259,7 +259,7 @@ public class SnailScreenHandler extends AbstractContainerMenu implements Contain
 		if (slot.hasItem()) {
 			var currentStack = slot.getItem();
 			stack = currentStack.copy();
-			int inventorySize = this.inventory.size();
+			int inventorySize = this.inventory.getContainerSize();
 
 			ItemStack insertionIntoSnail;
 
@@ -304,23 +304,23 @@ public class SnailScreenHandler extends AbstractContainerMenu implements Contain
 	}
 
 	@Override
-	public boolean onButtonClick(Player player, int id) {
+	public boolean clickMenuButton(Player player, int id) {
 		if (id == 0 && this.hasEnderChest()) {
 			this.snail().openEnderChestInventory(player);
 			return true;
 		}
-		return super.onButtonClick(player, id);
+		return super.clickMenuButton(player, id);
 	}
 
 	@Override
 	public void removed(Player player) {
 		super.removed(player);
-		this.inventory.onClose(player);
+		this.inventory.stopOpen(player);
 		this.inventory.removeListener(this);
 	}
 
 	@Override
-	public void onContainerChanged(Container sender) {
+	public void containerChanged(Container sender) {
 		if (this.hasChests() && !this.hasChest(this.currentStoragePage)) {
 			this.currentStoragePage = switch (this.currentStoragePage) {
 				case 2 -> {
@@ -368,11 +368,11 @@ public class SnailScreenHandler extends AbstractContainerMenu implements Contain
 
 		@Override
 		public boolean mayPlace(ItemStack stack) {
-			return stack.is(Items.SADDLE) && !this.hasItem() && this.isEnabled();
+			return stack.is(Items.SADDLE) && !this.hasItem() && this.isActive();
 		}
 
 		@Override
-		public boolean isEnabled() {
+		public boolean isActive() {
 			return this.snail().canUseSlot(EquipmentSlot.SADDLE);
 		}
 	}
@@ -383,7 +383,7 @@ public class SnailScreenHandler extends AbstractContainerMenu implements Contain
 		}
 
 		@Override
-		public boolean isEnabled() {
+		public boolean isActive() {
 			return true;
 		}
 
@@ -407,13 +407,13 @@ public class SnailScreenHandler extends AbstractContainerMenu implements Contain
 		}
 
 		@Override
-		public boolean isEnabled() {
+		public boolean isActive() {
 			return !this.snail().isBaby();
 		}
 
 		@Override
 		public boolean mayPlace(ItemStack stack) {
-			return (stack.is(Items.CHEST) || stack.is(Items.ENDER_CHEST)) && this.isEnabled();
+			return (stack.is(Items.CHEST) || stack.is(Items.ENDER_CHEST)) && this.isActive();
 		}
 
 		@Override
@@ -436,13 +436,13 @@ public class SnailScreenHandler extends AbstractContainerMenu implements Contain
 		}
 
 		@Override
-		public boolean isEnabled() {
+		public boolean isActive() {
 			return this.screenHandler().hasChest(this.storagePage) && this.screenHandler().currentStoragePage == this.storagePage;
 		}
 
 		@Override
 		public boolean mayPlace(ItemStack stack) {
-			return this.isEnabled();
+			return this.isActive();
 		}
 	}
 }

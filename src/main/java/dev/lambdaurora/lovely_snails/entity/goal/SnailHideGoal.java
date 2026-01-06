@@ -43,7 +43,7 @@ public class SnailHideGoal extends Goal {
 				this.snail.getBoundingBox().inflate(this.vitalSpaceDistance, 3, this.vitalSpaceDistance),
 				EntitySelector.NO_CREATIVE_OR_SPECTATOR.and(entity -> entity instanceof Monster)
 						.or(entity -> entity instanceof LivingEntity living
-								&& living.getItemBySlot(EquipmentSlot.HEAD).isIn(LovelySnailsRegistry.SNAIL_SCARY_ITEMS)
+								&& living.getItemBySlot(EquipmentSlot.HEAD).is(LovelySnailsRegistry.SNAIL_SCARY_ITEMS)
 						)
 		);
 		return !scaryEntities.isEmpty();

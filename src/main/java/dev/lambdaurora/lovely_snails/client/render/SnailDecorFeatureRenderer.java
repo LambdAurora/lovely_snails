@@ -9,15 +9,15 @@
 
 package dev.lambdaurora.lovely_snails.client.render;
 
-import com.mojang.blaze3d.vertex.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import dev.lambdaurora.lovely_snails.LovelySnails;
 import dev.lambdaurora.lovely_snails.client.LovelySnailsClient;
 import dev.lambdaurora.lovely_snails.client.model.SnailModel;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.DyeColor;
@@ -39,13 +39,13 @@ public class SnailDecorFeatureRenderer extends RenderLayer<SnailEntityRenderStat
 	}
 
 	@Override
-	public void submit(MatrixStack matrices, SubmitNodeCollector submitNodeCollector, int light, SnailEntityRenderState state, float tickDelta, float animationProgress) {
+	public void submit(PoseStack matrices, SubmitNodeCollector submitNodeCollector, int light, SnailEntityRenderState state, float tickDelta, float animationProgress) {
 		var dyeColor = state.carpetColor;
 		if (dyeColor == null) return;
 		var texture = TEXTURES[dyeColor.getId()];
 
 		this.model.setupAnim(state);
-		submitNodeCollector.submitModel(this.model, state, matrices, RenderType.entityCutoutNoCull(texture), light, OverlayTexture.NO_OVERLAY, 0xffffffff, null, state.outlineColor, null);
+		submitNodeCollector.submitModel(this.model, state, matrices, RenderTypes.entityCutoutNoCull(texture), light, OverlayTexture.NO_OVERLAY, 0xffffffff, null, state.outlineColor, null);
 	}
 
 	static {

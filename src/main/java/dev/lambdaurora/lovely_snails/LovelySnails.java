@@ -41,7 +41,7 @@ public class LovelySnails implements ModInitializer {
 				(payload, context) -> {
 					context.server().execute(() -> {
 						if (context.player().containerMenu instanceof SnailScreenHandler snailScreenHandler
-								&& snailScreenHandler.syncId == payload.syncId()) {
+								&& snailScreenHandler.containerId == payload.syncId()) {
 							snailScreenHandler.setCurrentStoragePage(payload.storagePage());
 						}
 					});
@@ -56,7 +56,7 @@ public class LovelySnails implements ModInitializer {
 	}
 
 	public static Identifier id(String path) {
-		return Identifier.of(NAMESPACE, path);
+		return Identifier.fromNamespaceAndPath(NAMESPACE, path);
 	}
 
 	public static void readInventory(ValueInput input, String key, Container stacks, int start) {
@@ -65,7 +65,7 @@ public class LovelySnails implements ModInitializer {
 
 
 		for (var slot : slots.get()) {
-			if (slot.isValidInContainer(stacks.size() - start)) {
+			if (slot.isValidInContainer(stacks.getContainerSize() - start)) {
 				stacks.setItem(start + slot.slot(), slot.stack());
 			}
 		}
@@ -86,7 +86,7 @@ public class LovelySnails implements ModInitializer {
 		}
 
 		if (list.isEmpty() && !setIfEmpty) {
-			output.remove(key);
+			output.discard(key);
 		}
 	}
 }
