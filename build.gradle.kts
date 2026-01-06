@@ -21,7 +21,7 @@ base.archivesName.set(modNamespace)
 
 val javaVersion = Integer.parseInt(project.property("java_version").toString())
 
-val compatibleMinecraftVersions = listOf("1.21.11")
+val compatibleMinecraftVersions = listOf<String>()
 
 repositories {
 	maven {
@@ -77,7 +77,7 @@ val packageModrinth by tasks.registering(PackageModrinthTask::class) {
 	this.group = "publishing"
 	this.versionType.set(ModUtils.getVersionType(baseVersion, mcVersion))
 	this.versionName.set("${project.property("mod_name")} $baseVersion (${McVersionLookup.getVersionTag(mcVersion)})")
-	this.gameVersions.set(listOf(mcVersion) + compatibleMinecraftVersions)
+	this.gameVersions.set(setOf(mcVersion) + compatibleMinecraftVersions)
 	this.loaders.set(listOf("fabric", "quilt"))
 	this.dependencies.set(
 		listOf(
@@ -97,7 +97,7 @@ modrinth {
 	versionType.set(ModUtils.fetchVersionType(baseVersion, mcVersion))
 	uploadFile.set(tasks.remapJar.get())
 	loaders.set(listOf("fabric", "quilt"))
-	gameVersions.set(listOf(mcVersion) + compatibleMinecraftVersions)
+	gameVersions.set(setOf(mcVersion) + compatibleMinecraftVersions)
 	dependencies.set(
 		listOf(
 			ModDependency("P7dR8mSH", "required") // Fabric API
