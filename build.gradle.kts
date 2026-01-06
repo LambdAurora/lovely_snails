@@ -6,7 +6,7 @@ import dev.lambdaurora.mcdev.task.packaging.PackageModrinthTask
 import net.darkhax.curseforgegradle.TaskPublishCurseForge
 
 plugins {
-	id("fabric-loom").version("1.13.+")
+	id("fabric-loom").version("1.14.+")
 	id("dev.lambdaurora.mcdev").version("1.8.+")
 	id("dev.yumi.gradle.licenser").version("2.+")
 	id("com.modrinth.minotaur").version("2.+")
@@ -33,7 +33,6 @@ repositories {
 dependencies {
 	//to change the versions see the gradle.properties file
 	minecraft(libs.minecraft)
-	@Suppress("UnstableApiUsage")
 	mappings(loom.officialMojangMappings())
 	modImplementation(libs.fabric.loader)
 
@@ -87,7 +86,7 @@ val packageModrinth by tasks.registering(PackageModrinthTask::class) {
 	)
 	this.changelog.set(ModUtils.fetchChangelog(project, baseVersion))
 	this.readme.set(ModUtils.parseReadme(
-		project, "https://raw.githubusercontent.com/LambdAurora/lovely_snails/1.21.10/\$2"
+		project, "https://raw.githubusercontent.com/LambdAurora/lovely_snails/1.21.11/\$2"
 	))
 	this.files.setFrom(tasks.remapJar)
 }
@@ -106,7 +105,7 @@ modrinth {
 	)
 	syncBodyFrom.set(
 		ModUtils.parseReadme(
-			project, "https://raw.githubusercontent.com/LambdAurora/lovely_snails/1.21.10/\$2"
+			project, "https://raw.githubusercontent.com/LambdAurora/lovely_snails/1.21.11/\$2"
 		)
 	)
 

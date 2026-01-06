@@ -88,3 +88,7 @@
 
 - Updated to Minecraft 1.21.10 ([#22](https://github.com/LambdAurora/lovely_snails/pull/22)).
 - Added German translations ([#23](https://github.com/LambdAurora/lovely_snails/pull/23)).
+
+### 1.2.3
+
+- Updated to Minecraft 1.21.11 ([#24](https://github.com/LambdAurora/lovely_snails/pull/24)).
