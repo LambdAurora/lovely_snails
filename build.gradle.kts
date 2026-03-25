@@ -6,8 +6,8 @@ import dev.lambdaurora.mcdev.task.packaging.PackageModrinthTask
 import net.darkhax.curseforgegradle.TaskPublishCurseForge
 
 plugins {
-	id("fabric-loom").version("1.14.+")
-	id("dev.lambdaurora.mcdev").version("1.8.+")
+	id("net.fabricmc.fabric-loom").version("1.15.+")
+	id("dev.lambdaurora.mcdev").version("2.0.+")
 	id("dev.yumi.gradle.licenser").version("2.+")
 	id("com.modrinth.minotaur").version("2.+")
 	id("net.darkhax.curseforgegradle").version("1.1.+")
@@ -33,10 +33,9 @@ repositories {
 dependencies {
 	//to change the versions see the gradle.properties file
 	minecraft(libs.minecraft)
-	mappings(loom.officialMojangMappings())
-	modImplementation(libs.fabric.loader)
+	implementation(libs.fabric.loader)
 
-	modImplementation(libs.fabric.api)
+	implementation(libs.fabric.api)
 }
 
 java {
@@ -86,16 +85,16 @@ val packageModrinth by tasks.registering(PackageModrinthTask::class) {
 	)
 	this.changelog.set(ModUtils.fetchChangelog(project, baseVersion))
 	this.readme.set(ModUtils.parseReadme(
-		project, "https://raw.githubusercontent.com/LambdAurora/lovely_snails/1.21.11/\$2"
+		project, "https://raw.githubusercontent.com/LambdAurora/lovely_snails/26.1/\$2"
 	))
-	this.files.setFrom(tasks.remapJar)
+	this.files.setFrom(tasks.jar)
 }
 
 modrinth {
 	projectId = project.property("modrinth_id") as String
 	versionName = "${project.property("mod_name")} $baseVersion (${McVersionLookup.getVersionTag(mcVersion)})"
 	versionType.set(ModUtils.fetchVersionType(baseVersion, mcVersion))
-	uploadFile.set(tasks.remapJar.get())
+	uploadFile.set(tasks.jar.get())
 	loaders.set(listOf("fabric", "quilt"))
 	gameVersions.set(setOf(mcVersion) + compatibleMinecraftVersions)
 	dependencies.set(
@@ -105,7 +104,7 @@ modrinth {
 	)
 	syncBodyFrom.set(
 		ModUtils.parseReadme(
-			project, "https://raw.githubusercontent.com/LambdAurora/lovely_snails/1.21.11/\$2"
+			project, "https://raw.githubusercontent.com/LambdAurora/lovely_snails/26.1/\$2"
 		)
 	)
 
@@ -145,14 +144,14 @@ tasks.register<TaskPublishCurseForge>("curseforge") {
 		return@register
 	}
 
-	val mainFile = upload(project.property("curseforge_id"), tasks.remapJar.get())
+	val mainFile = upload(project.property("curseforge_id"), tasks.jar.get())
 	mainFile.releaseType = ModUtils.fetchVersionType(baseVersion, mcVersion)
 	mainFile.addGameVersion(McVersionLookup.getCurseForgeEquivalent(mcVersion))
 	compatibleMinecraftVersions.stream()
 		.map { McVersionLookup.getCurseForgeEquivalent(it) }
 		.forEach { mainFile.addGameVersion(it) }
 	mainFile.addModLoader("Fabric", "Quilt")
-	mainFile.addJavaVersion("Java 21", "Java 22")
+	mainFile.addJavaVersion("Java 25")
 
 	mainFile.displayName = "${project.property("mod_name")} $baseVersion (${McVersionLookup.getVersionTag(mcVersion)})"
 	mainFile.addRequirement("fabric-api")

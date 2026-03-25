@@ -14,7 +14,6 @@ import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents the set storage page of a snail's container packet payload.
@@ -22,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
  * @param syncId the synchronization identifier of the container
  * @param storagePage the selected storage page
  * @author LambdAurora
- * @version 1.2.0
+ * @version 1.3.0
  * @since 1.2.0
  */
 public record SnailSetStoragePagePayload(int syncId, byte storagePage) implements CustomPacketPayload {
@@ -32,7 +31,7 @@ public record SnailSetStoragePagePayload(int syncId, byte storagePage) implement
 	);
 
 	@Override
-	public @NotNull Type<? extends CustomPacketPayload> type() {
+	public Type<? extends CustomPacketPayload> type() {
 		return TYPE;
 	}
 
@@ -46,7 +45,7 @@ public record SnailSetStoragePagePayload(int syncId, byte storagePage) implement
 	}
 
 	static {
-		PayloadTypeRegistry.playC2S().register(TYPE, STREAM_CODEC);
-		PayloadTypeRegistry.playS2C().register(TYPE, STREAM_CODEC);
+		PayloadTypeRegistry.serverboundPlay().register(TYPE, STREAM_CODEC);
+		PayloadTypeRegistry.serverboundPlay().register(TYPE, STREAM_CODEC);
 	}
 }

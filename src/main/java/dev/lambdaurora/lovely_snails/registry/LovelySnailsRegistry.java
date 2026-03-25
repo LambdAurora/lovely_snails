@@ -13,8 +13,8 @@ import dev.lambdaurora.lovely_snails.entity.SnailEntity;
 import dev.lambdaurora.lovely_snails.item.SnailSpawnEggItem;
 import dev.lambdaurora.lovely_snails.network.SnailScreenHandlerPayload;
 import dev.lambdaurora.lovely_snails.screen.SnailScreenHandler;
+import net.fabricmc.fabric.api.menu.v1.ExtendedMenuType;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityType;
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -39,7 +39,7 @@ import static dev.lambdaurora.lovely_snails.LovelySnails.id;
  * Represents the Lovely Snails' registry.
  *
  * @author LambdAurora
- * @version 1.2.0
+ * @version 1.3.0
  * @since 1.0.0
  */
 public final class LovelySnailsRegistry {
@@ -54,7 +54,7 @@ public final class LovelySnailsRegistry {
 	/* Screen handlers */
 
 	public static final MenuType<SnailScreenHandler> SNAIL_SCREEN_HANDLER_TYPE =
-			Registry.register(BuiltInRegistries.MENU, id("snail"), new ExtendedScreenHandlerType<>(
+			Registry.register(BuiltInRegistries.MENU, id("snail"), new ExtendedMenuType<>(
 					SnailScreenHandler::new, SnailScreenHandlerPayload.STREAM_CODEC
 			));
 
@@ -64,7 +64,7 @@ public final class LovelySnailsRegistry {
 			FabricEntityType.Builder.createMob(
 							SnailEntity::new, MobCategory.CREATURE, builder ->
 									builder.defaultAttributes(SnailEntity::createSnailAttributes)
-											.spawnRestriction(
+											.spawnPlacement(
 													SpawnPlacementTypes.NO_RESTRICTIONS,
 													Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
 													SnailEntity::canSpawn

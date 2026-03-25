@@ -17,7 +17,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -38,7 +38,7 @@ import net.minecraft.world.entity.player.Inventory;
  * Represents the snail inventory screen.
  *
  * @author LambdAurora
- * @version 1.2.0
+ * @version 1.3.0
  * @since 1.0.0
  */
 @Environment(EnvType.CLIENT)
@@ -69,8 +69,7 @@ public class SnailInventoryScreen extends AbstractContainerScreen<SnailScreenHan
 	private final PageButton[] pageButtons = new PageButton[3];
 
 	public SnailInventoryScreen(SnailScreenHandler handler, Inventory inventory, Component title) {
-		super(handler, inventory, handler.snail().getDisplayName());
-		this.imageWidth += 19;
+		super(handler, inventory, handler.snail().getDisplayName(), DEFAULT_IMAGE_WIDTH + 19, DEFAULT_IMAGE_HEIGHT);
 		this.entity = handler.snail();
 	}
 
@@ -159,7 +158,7 @@ public class SnailInventoryScreen extends AbstractContainerScreen<SnailScreenHan
 	/* Rendering */
 
 	@Override
-	protected void renderBg(GuiGraphics graphics, float delta, int mouseX, int mouseY) {
+	public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
 		int x = (this.width - this.imageWidth) / 2;
 		int y = (this.height - this.imageHeight) / 2;
 		graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
@@ -180,7 +179,7 @@ public class SnailInventoryScreen extends AbstractContainerScreen<SnailScreenHan
 			graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x + 98, y + 17, 0, this.imageHeight, 5 * 18, 54, 256, 256);
 		}
 
-		InventoryScreen.renderEntityInInventoryFollowsMouse(
+		InventoryScreen.extractEntityInInventoryFollowsMouse(
 				graphics,
 				x + 40, y + 8,
 				x + 100, y + 70,
@@ -191,11 +190,11 @@ public class SnailInventoryScreen extends AbstractContainerScreen<SnailScreenHan
 	}
 
 	@Override
-	public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
+	public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
 		this.mouseX = mouseX;
 		this.mouseY = mouseY;
-		super.render(graphics, mouseX, mouseY, delta);
-		this.renderTooltip(graphics, mouseX, mouseY);
+		super.extractRenderState(graphics, mouseX, mouseY, delta);
+		this.extractTooltip(graphics, mouseX, mouseY);
 	}
 
 	private class EnderChestButton extends ImageButton implements ContainerListener {

@@ -92,3 +92,7 @@
 ### 1.2.3
 
 - Updated to Minecraft 1.21.11 ([#24](https://github.com/LambdAurora/lovely_snails/pull/24)).
+
+### 1.3.0
+
+- Updated to Minecraft 26.1.

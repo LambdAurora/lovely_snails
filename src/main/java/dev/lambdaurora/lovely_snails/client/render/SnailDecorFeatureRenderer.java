@@ -26,7 +26,7 @@ import net.minecraft.world.item.DyeColor;
  * Renders decoration on a snail.
  *
  * @author LambdAurora
- * @version 1.2.0
+ * @version 1.3.0
  * @since 1.0.0
  */
 public class SnailDecorFeatureRenderer extends RenderLayer<SnailEntityRenderState, SnailModel> {
@@ -45,7 +45,7 @@ public class SnailDecorFeatureRenderer extends RenderLayer<SnailEntityRenderStat
 		var texture = TEXTURES[dyeColor.getId()];
 
 		this.model.setupAnim(state);
-		submitNodeCollector.submitModel(this.model, state, matrices, RenderTypes.entityCutoutNoCull(texture), light, OverlayTexture.NO_OVERLAY, 0xffffffff, null, state.outlineColor, null);
+		submitNodeCollector.submitModel(this.model, state, matrices, RenderTypes.entityCutout(texture), light, OverlayTexture.NO_OVERLAY, 0xffffffff, null, state.outlineColor, null);
 	}
 
 	static {

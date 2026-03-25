@@ -17,7 +17,7 @@ import dev.lambdaurora.lovely_snails.mixin.ShulkerAccessor;
 import dev.lambdaurora.lovely_snails.network.SnailScreenHandlerPayload;
 import dev.lambdaurora.lovely_snails.registry.LovelySnailsRegistry;
 import dev.lambdaurora.lovely_snails.screen.SnailScreenHandler;
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
+import net.fabricmc.fabric.api.menu.v1.ExtendedMenuProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
@@ -48,7 +48,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.ServerLevelAccessor;
@@ -56,12 +55,14 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.WoolCarpetBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.function.Predicate;
 
@@ -836,13 +837,14 @@ public class SnailEntity extends TamableAnimal implements ContainerListener, Has
 		return this.isBaby() ? 0.35f : 1.f;
 	}
 
-	private class SnailScreenHandlerFactory implements ExtendedScreenHandlerFactory<SnailScreenHandlerPayload> {
+	@NullMarked
+	private class SnailScreenHandlerFactory implements ExtendedMenuProvider<SnailScreenHandlerPayload> {
 		private SnailEntity snail() {
 			return SnailEntity.this;
 		}
 
 		@Override
-		public @NotNull Component getDisplayName() {
+		public Component getDisplayName() {
 			return this.snail().getDisplayName();
 		}
 

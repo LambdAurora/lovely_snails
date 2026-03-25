@@ -32,9 +32,9 @@
 		"lovely_snails.mixins.json"
 	],
 	"depends": {
-		"minecraft": ">=1.21.11 <26.0",
-		"fabricloader": ">=0.18.0",
-		"fabric-api": ">=0.140.0+1.21.11",
-		"java": ">=21"
+		"minecraft": "~26.1",
+		"fabricloader": ">=0.18.5",
+		"fabric-api": ">=0.144.0+26.1",
+		"java": ">=25"
 	}
 }
