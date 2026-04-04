@@ -138,5 +138,4 @@ jobs:
           dependencies: |
             fabric-api(required)
           java: |
-            21
-            22
+            25
