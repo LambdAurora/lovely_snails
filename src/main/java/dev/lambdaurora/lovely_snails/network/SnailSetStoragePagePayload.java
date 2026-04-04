@@ -46,6 +46,6 @@ public record SnailSetStoragePagePayload(int syncId, byte storagePage) implement
 
 	static {
 		PayloadTypeRegistry.serverboundPlay().register(TYPE, STREAM_CODEC);
-		PayloadTypeRegistry.serverboundPlay().register(TYPE, STREAM_CODEC);
+		PayloadTypeRegistry.clientboundPlay().register(TYPE, STREAM_CODEC);
 	}
 }

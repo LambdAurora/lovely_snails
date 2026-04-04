@@ -10,6 +10,7 @@
 package dev.lambdaurora.lovely_snails.client.screen;
 
 import dev.lambdaurora.lovely_snails.LovelySnails;
+import dev.lambdaurora.lovely_snails.SnailContainer;
 import dev.lambdaurora.lovely_snails.entity.SnailEntity;
 import dev.lambdaurora.lovely_snails.network.SnailSetStoragePagePayload;
 import dev.lambdaurora.lovely_snails.screen.SnailScreenHandler;
@@ -30,7 +31,6 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
-import net.minecraft.world.ContainerListener;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Inventory;
 
@@ -197,7 +197,7 @@ public class SnailInventoryScreen extends AbstractContainerScreen<SnailScreenHan
 		this.extractTooltip(graphics, mouseX, mouseY);
 	}
 
-	private class EnderChestButton extends ImageButton implements ContainerListener {
+	private class EnderChestButton extends ImageButton implements SnailContainer.Listener {
 		public EnderChestButton(int x, int y) {
 			super(x, y, 18, 18, ENDER_CHEST_SPRITES,
 					btn -> {
@@ -220,7 +220,7 @@ public class SnailInventoryScreen extends AbstractContainerScreen<SnailScreenHan
 		}
 	}
 
-	private class PageButton extends ImageButton implements ContainerListener, SnailScreenHandler.InventoryPageChangeListener {
+	private class PageButton extends ImageButton implements SnailContainer.Listener, SnailScreenHandler.InventoryPageChangeListener {
 		private final int page;
 
 		public PageButton(int x, int y, int page) {

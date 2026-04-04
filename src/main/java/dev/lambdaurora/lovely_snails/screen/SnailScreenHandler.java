@@ -9,6 +9,7 @@
 
 package dev.lambdaurora.lovely_snails.screen;
 
+import dev.lambdaurora.lovely_snails.SnailContainer;
 import dev.lambdaurora.lovely_snails.entity.SnailEntity;
 import dev.lambdaurora.lovely_snails.item.EquipmentContainer;
 import dev.lambdaurora.lovely_snails.network.SnailScreenHandlerPayload;
@@ -17,13 +18,12 @@ import dev.lambdaurora.lovely_snails.registry.LovelySnailsRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
-import net.minecraft.world.ContainerListener;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -32,9 +32,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SnailScreenHandler extends AbstractContainerMenu implements ContainerListener {
+public class SnailScreenHandler extends AbstractContainerMenu implements SnailContainer.Listener {
 	private final Player player;
-	private final SimpleContainer inventory;
+	private final SnailContainer inventory;
 	private final SnailEntity entity;
 	private final ChestSlot[] chestSlots = new ChestSlot[3];
 	private final List<InventoryPageChangeListener> pageChangeListeners = new ArrayList<>();
@@ -48,10 +48,10 @@ public class SnailScreenHandler extends AbstractContainerMenu implements Contain
 	}
 
 	public SnailScreenHandler(int syncId, Inventory playerInventory, SnailEntity snail, int currentStoragePage) {
-		this(syncId, playerInventory, new SimpleContainer(snail.getInventorySize()), snail, currentStoragePage);
+		this(syncId, playerInventory, new SnailContainer(snail.getInventorySize()), snail, currentStoragePage);
 	}
 
-	public SnailScreenHandler(int syncId, Inventory playerInventory, SimpleContainer inventory, SnailEntity entity, int currentStoragePage) {
+	public SnailScreenHandler(int syncId, Inventory playerInventory, SnailContainer inventory, SnailEntity entity, int currentStoragePage) {
 		super(LovelySnailsRegistry.SNAIL_SCREEN_HANDLER_TYPE, syncId);
 		checkContainerSize(inventory, entity.getInventorySize());
 		this.player = playerInventory.player;
@@ -98,7 +98,7 @@ public class SnailScreenHandler extends AbstractContainerMenu implements Contain
 		return this.entity;
 	}
 
-	public SimpleContainer getInventory() {
+	public SnailContainer getInventory() {
 		return this.inventory;
 	}
 
@@ -244,7 +244,7 @@ public class SnailScreenHandler extends AbstractContainerMenu implements Contain
 	}
 
 	@Override
-	public void clicked(int slotIndex, int button, ClickType actionType, Player player) {
+	public void clicked(int slotIndex, int button, ContainerInput actionType, Player player) {
 		if (slotIndex < this.inventory.getContainerSize() && !this.snail().canUseSnail(player))
 			return;
 

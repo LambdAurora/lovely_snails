@@ -10,6 +10,7 @@
 package dev.lambdaurora.lovely_snails.entity;
 
 import dev.lambdaurora.lovely_snails.LovelySnails;
+import dev.lambdaurora.lovely_snails.SnailContainer;
 import dev.lambdaurora.lovely_snails.entity.goal.SnailFollowParentGoal;
 import dev.lambdaurora.lovely_snails.entity.goal.SnailHideGoal;
 import dev.lambdaurora.lovely_snails.mixin.AgeableMobAccessor;
@@ -73,7 +74,7 @@ import java.util.function.Predicate;
  * @version 1.2.1
  * @since 1.0.0
  */
-public class SnailEntity extends TamableAnimal implements ContainerListener, HasCustomInventoryScreen {
+public class SnailEntity extends TamableAnimal implements SnailContainer.Listener, HasCustomInventoryScreen {
 	private static final AttributeModifier SCARED_ARMOR_BONUS = ShulkerAccessor.lovely_snails$getCoveredArmorModifier();
 
 	private static final EntityDataAccessor<Boolean> CHILD = AgeableMobAccessor.lovely_snails$getChild();
@@ -90,7 +91,7 @@ public class SnailEntity extends TamableAnimal implements ContainerListener, Has
 	public static final int THIRD_CHEST_SLOT = 2;
 	private static final int SATISFACTION_START = -256;
 
-	private SimpleContainer inventory;
+	private SnailContainer inventory;
 	private int satisfaction;
 	private short interactionCooldown;
 	private boolean reading;
@@ -456,7 +457,7 @@ public class SnailEntity extends TamableAnimal implements ContainerListener, Has
 
 	protected void updateInventory() {
 		var previousInventory = this.inventory;
-		this.inventory = new SimpleContainer(this.getInventorySize());
+		this.inventory = new SnailContainer(this.getInventorySize());
 		if (previousInventory != null) {
 			previousInventory.removeListener(this);
 			int maxSize = Math.min(previousInventory.getContainerSize(), this.inventory.getContainerSize());
