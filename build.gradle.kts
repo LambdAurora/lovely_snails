@@ -36,6 +36,8 @@ dependencies {
 	implementation(libs.fabric.loader)
 
 	implementation(libs.fabric.api)
+	implementation(libs.yumi.mc.foundation)
+	include(libs.yumi.mc.foundation)
 }
 
 java {

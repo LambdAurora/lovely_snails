@@ -12,7 +12,8 @@ package dev.lambdaurora.lovely_snails;
 import dev.lambdaurora.lovely_snails.network.SnailSetStoragePagePayload;
 import dev.lambdaurora.lovely_snails.registry.LovelySnailsRegistry;
 import dev.lambdaurora.lovely_snails.screen.SnailScreenHandler;
-import net.fabricmc.api.ModInitializer;
+import dev.yumi.mc.core.api.ModContainer;
+import dev.yumi.mc.core.api.entrypoint.ModInitializer;
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
 import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -27,14 +28,14 @@ import net.minecraft.world.level.storage.ValueOutput;
  * Represents the Lovely Snails mod.
  *
  * @author LambdAurora
- * @version 1.2.0
+ * @version 1.3.0
  * @since 1.0.0
  */
 public class LovelySnails implements ModInitializer {
 	public static final String NAMESPACE = "lovely_snails";
 
 	@Override
-	public void onInitialize() {
+	public void onInitialize(ModContainer mod) {
 		LovelySnailsRegistry.init();
 
 		ServerPlayNetworking.registerGlobalReceiver(SnailSetStoragePagePayload.TYPE,

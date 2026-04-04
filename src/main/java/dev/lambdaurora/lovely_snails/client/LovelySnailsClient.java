@@ -16,7 +16,8 @@ import dev.lambdaurora.lovely_snails.client.screen.SnailInventoryScreen;
 import dev.lambdaurora.lovely_snails.network.SnailSetStoragePagePayload;
 import dev.lambdaurora.lovely_snails.registry.LovelySnailsRegistry;
 import dev.lambdaurora.lovely_snails.screen.SnailScreenHandler;
-import net.fabricmc.api.ClientModInitializer;
+import dev.yumi.mc.core.api.ModContainer;
+import dev.yumi.mc.core.api.entrypoint.client.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -40,7 +41,7 @@ public class LovelySnailsClient implements ClientModInitializer {
 	public static final ModelLayerLocation SNAIL_DECOR_MODEL_LAYER = new ModelLayerLocation(LovelySnails.id("snail"), "decor");
 
 	@Override
-	public void onInitializeClient() {
+	public void onInitializeClient(ModContainer mod) {
 		EntityRenderers.register(LovelySnailsRegistry.SNAIL_ENTITY_TYPE, SnailEntityRenderer::new);
 		ModelLayerRegistry.registerModelLayer(SNAIL_MODEL_LAYER, () -> SnailModel.model(CubeDeformation.NONE));
 		ModelLayerRegistry.registerModelLayer(SNAIL_SADDLE_MODEL_LAYER, () -> SnailModel.model(new CubeDeformation(0.5f)));

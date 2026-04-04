@@ -21,10 +21,10 @@
 	"icon": "assets/lovely_snails/icon.png",
 	"environment": "*",
 	"entrypoints": {
-		"main": [
+		"yumi:init": [
 			"dev.lambdaurora.lovely_snails.LovelySnails"
 		],
-		"client": [
+		"yumi:client_init": [
 			"dev.lambdaurora.lovely_snails.client.LovelySnailsClient"
 		]
 	},
@@ -34,7 +34,8 @@
 	"depends": {
 		"minecraft": "~26.1",
 		"fabricloader": ">=0.18.5",
-		"fabric-api": ">=0.144.0+26.1",
-		"java": ">=25"
+		"fabric-api": ">=0.145.3+26.1",
+		"java": ">=25",
+		"yumi_mc_core": ">=1.0.0"
 	}
 }
