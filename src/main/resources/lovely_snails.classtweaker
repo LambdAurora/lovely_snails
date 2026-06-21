@@ -1,0 +1,4 @@
+classTweaker v2 official
+
+extendable method net/minecraft/world/entity/AgeableMob setBaby (Z)V
+extendable method net/minecraft/world/entity/AgeableMob isBaby ()Z
