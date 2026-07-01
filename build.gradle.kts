@@ -21,7 +21,7 @@ base.archivesName.set(modNamespace)
 
 val javaVersion = Integer.parseInt(project.property("java_version").toString())
 
-val compatibleMinecraftVersions = listOf<String>("26.1")
+val compatibleMinecraftVersions = listOf<String>()
 
 repositories {
 	maven {
