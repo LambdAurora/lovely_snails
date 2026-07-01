@@ -6,9 +6,9 @@ import dev.lambdaurora.mcdev.task.packaging.PackageModrinthTask
 import net.darkhax.curseforgegradle.TaskPublishCurseForge
 
 plugins {
-	id("net.fabricmc.fabric-loom").version("1.16.+")
-	id("dev.lambdaurora.mcdev").version("2.0.+")
-	id("dev.yumi.gradle.licenser").version("2.+")
+	id("net.fabricmc.fabric-loom").version("1.17.+")
+	id("dev.lambdaurora.mcdev").version("2.2.+")
+	id("dev.yumi.gradle.licenser").version("4.+")
 	id("com.modrinth.minotaur").version("2.+")
 	id("net.darkhax.curseforgegradle").version("1.1.+")
 }
@@ -72,13 +72,15 @@ tasks.jar {
 
 license {
 	rule(rootProject.file("codeformat/HEADER"))
+
+	include("**/*.java")
 }
 
 loom {
 	accessWidenerPath = file("src/main/resources/lovely_snails.classtweaker")
 }
 
-val packageModrinth by tasks.registering(PackageModrinthTask::class) {
+val packageModrinth = tasks.register<PackageModrinthTask>("packageModrinth") {
 	this.group = "publishing"
 	this.versionType.set(ModUtils.getVersionType(baseVersion, mcVersion))
 	this.versionName.set("${project.property("mod_name")} $baseVersion (${McVersionLookup.getVersionTag(mcVersion)})")
