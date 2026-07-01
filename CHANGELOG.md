@@ -93,10 +93,14 @@
 
 - Updated to Minecraft 1.21.11 ([#24](https://github.com/LambdAurora/lovely_snails/pull/24)).
 
-### 1.3.0
+## 1.3.0
 
 - Updated to Minecraft 26.1.
 
 ### 1.3.1
 
 - Updated to Minecraft 26.2 ([#25](https://github.com/LambdAurora/lovely_snails/pull/25)).
+
+### 1.3.2
+
+- Fixed access widener typo that resulted with crashes in production.
