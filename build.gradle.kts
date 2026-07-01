@@ -6,7 +6,7 @@ import dev.lambdaurora.mcdev.task.packaging.PackageModrinthTask
 import net.darkhax.curseforgegradle.TaskPublishCurseForge
 
 plugins {
-	id("net.fabricmc.fabric-loom").version("1.15.+")
+	id("net.fabricmc.fabric-loom").version("1.16.+")
 	id("dev.lambdaurora.mcdev").version("2.0.+")
 	id("dev.yumi.gradle.licenser").version("2.+")
 	id("com.modrinth.minotaur").version("2.+")
@@ -72,6 +72,10 @@ tasks.jar {
 
 license {
 	rule(rootProject.file("codeformat/HEADER"))
+}
+
+loom {
+	accessWidenerPath = file("src/main/resources/lovely_snails.classtweaker")
 }
 
 val packageModrinth by tasks.registering(PackageModrinthTask::class) {
