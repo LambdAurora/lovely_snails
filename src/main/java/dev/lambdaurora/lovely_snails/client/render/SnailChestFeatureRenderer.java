@@ -48,9 +48,9 @@ public class SnailChestFeatureRenderer extends RenderLayer<SnailEntityRenderStat
 		var rightChest = state.chests[0];
 		if (!rightChest.isEmpty()) {
 			matrices.pushPose();
-			matrices.mulPose(Axis.XP.rotationDegrees(180));
-			matrices.mulPose(Axis.XP.rotation(shellRotation));
-			matrices.mulPose(Axis.YP.rotationDegrees(90));
+			matrices.rotate(Axis.XP.rotationDegrees(180));
+			matrices.rotate(Axis.XP.rotation(shellRotation));
+			matrices.rotate(Axis.YP.rotationDegrees(90));
 			matrices.translate(.65, 0.2, -.505);
 			matrices.scale(1.25f, 1.25f, 1.25f);
 			renderChest(matrices, submitNodeCollector, state, rightChest);
@@ -60,8 +60,8 @@ public class SnailChestFeatureRenderer extends RenderLayer<SnailEntityRenderStat
 		var backChest = state.chests[1];
 		if (!backChest.isEmpty()) {
 			matrices.pushPose();
-			matrices.mulPose(Axis.XP.rotationDegrees(180));
-			matrices.mulPose(Axis.XP.rotation(shellRotation));
+			matrices.rotate(Axis.XP.rotationDegrees(180));
+			matrices.rotate(Axis.XP.rotation(shellRotation));
 			matrices.translate(0, 0.2, -.94);
 			matrices.scale(1.25f, 1.25f, 1.25f);
 			renderChest(matrices, submitNodeCollector, state, backChest);
@@ -71,9 +71,9 @@ public class SnailChestFeatureRenderer extends RenderLayer<SnailEntityRenderStat
 		var leftChest = state.chests[2];
 		if (!leftChest.isEmpty()) {
 			matrices.pushPose();
-			matrices.mulPose(Axis.XP.rotationDegrees(180));
-			matrices.mulPose(Axis.XP.rotation(shellRotation));
-			matrices.mulPose(Axis.YN.rotationDegrees(90));
+			matrices.rotate(Axis.XP.rotationDegrees(180));
+			matrices.rotate(Axis.XP.rotation(shellRotation));
+			matrices.rotate(Axis.YN.rotationDegrees(90));
 			matrices.translate(-.65, 0.2, -.505);
 			matrices.scale(1.25f, 1.25f, 1.25f);
 			renderChest(matrices, submitNodeCollector, state, leftChest);
