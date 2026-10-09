@@ -6,6 +6,10 @@
 			"required": false
 		},
 		{
+			"id": "minecraft:dappled_forest",
+			"required": false
+		},
+		{
 			"id": "minecraft:mushroom_fields",
 			"required": false
 		},

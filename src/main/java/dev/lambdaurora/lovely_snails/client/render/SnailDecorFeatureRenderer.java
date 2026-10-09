@@ -45,7 +45,7 @@ public class SnailDecorFeatureRenderer extends RenderLayer<SnailEntityRenderStat
 		var texture = TEXTURES[dyeColor.getId()];
 
 		this.model.setupAnim(state);
-		submitNodeCollector.submitModel(this.model, state, matrices, RenderTypes.entityCutout(texture), light, OverlayTexture.NO_OVERLAY, 0xffffffff, null, state.outlineColor, null);
+		submitNodeCollector.submitModel(this.model, state, matrices, RenderTypes.entityCutout(texture), light, OverlayTexture.NO_OVERLAY, 0xffffffff, null, state.outlineColor);
 	}
 
 	static {

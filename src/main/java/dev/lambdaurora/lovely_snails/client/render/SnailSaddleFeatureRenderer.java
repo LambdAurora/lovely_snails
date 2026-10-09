@@ -41,6 +41,6 @@ public class SnailSaddleFeatureRenderer extends RenderLayer<SnailEntityRenderSta
 	public void submit(PoseStack matrices, SubmitNodeCollector submitNodeCollector, int light, SnailEntityRenderState state, float tickDelta, float animationProgress) {
 		if (!state.hasSaddle) return;
 		this.model.setupAnim(state);
-		submitNodeCollector.submitModel(this.model, state, matrices, RenderTypes.entityCutout(TEXTURE), light, OverlayTexture.NO_OVERLAY, 0xffffffff, null, state.outlineColor, null);
+		submitNodeCollector.submitModel(this.model, state, matrices, RenderTypes.entityCutout(TEXTURE), light, OverlayTexture.NO_OVERLAY, 0xffffffff, null, state.outlineColor);
 	}
 }

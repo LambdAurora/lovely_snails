@@ -15,6 +15,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.projectile.throwableitemprojectile.AbstractThrownPotion;
 import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrowableItemProjectile;
+import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import org.spongepowered.asm.mixin.Mixin;
@@ -29,13 +30,13 @@ public abstract class AbstractThrownPotionMixin extends ThrowableItemProjectile 
 	}
 
 	@Inject(
-			method = "onHitAsWater",
+			method = "affectEntitiesAround",
 			at = @At(
 					value = "INVOKE",
 					target = "Lnet/minecraft/world/level/Level;getEntitiesOfClass(Ljava/lang/Class;Lnet/minecraft/world/phys/AABB;Ljava/util/function/Predicate;)Ljava/util/List;"
 			)
 	)
-	private void onWaterSplash(ServerLevel level, CallbackInfo ci, @Local AABB box) {
+	private void onWaterSplash(ServerLevel level, PotionContents potion, CallbackInfo ci, @Local AABB box) {
 		var snails = level.getEntitiesOfClass(SnailEntity.class, box);
 		for (var snail : snails) {
 			snail.onWaterSplashed(this.getOwner());
