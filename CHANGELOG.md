@@ -104,3 +104,8 @@
 ### 1.3.2
 
 - Fixed access widener typo that resulted with crashes in production.
+
+## 1.4.0
+
+- Updated to Minecraft 26.3 ([#27](https://github.com/LambdAurora/lovely_snails/pull/27)).
+  - Snails now spawn in Dappled Forests.

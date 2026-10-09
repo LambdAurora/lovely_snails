@@ -1,4 +1,5 @@
 import com.modrinth.minotaur.dependencies.ModDependency
+import dev.lambdaurora.mcdev.api.EnvironmentType
 import dev.lambdaurora.mcdev.api.McVersionLookup
 import dev.lambdaurora.mcdev.api.ModUtils
 import dev.lambdaurora.mcdev.api.ModVersionDependency
@@ -126,6 +127,7 @@ val packageModrinth = tasks.register<PackageModrinthTask>("packageModrinth") {
 	this.versionName.set("${project.property("mod_name")} $VERSION (${McVersionLookup.getVersionTag(mcVersion)})")
 	this.gameVersions.set(setOf(mcVersion) + compatibleMinecraftVersions)
 	this.loaders.set(listOf("fabric", "quilt"))
+	this.environment.set(EnvironmentType.CLIENT_AND_SERVER)
 	this.dependencies.set(
 		listOf(
 			ModVersionDependency("P7dR8mSH", ModVersionDependency.Type.REQUIRED),
